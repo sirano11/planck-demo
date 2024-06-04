@@ -1,0 +1,9 @@
+{
+  "name": "planck-demo",
+  "version": "1.0.0",
+  "private": true,
+  "repository": "https://github.com/alephresear-ch/planck-demo",
+  "author": "Junho Yeo <i@junho.io>",
+  "license": "MIT",
+  "packageManager": "yarn@4.2.2"
+}
