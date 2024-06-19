@@ -1,0 +1,18 @@
+node_modules
+.env
+coverage
+coverage.json
+
+# generated
+typechain
+abis
+
+#Hardhat files
+cache
+artifacts
+
+deployment
+
+.idea
+
+.DS_Store
