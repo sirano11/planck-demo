@@ -1,5 +1,5 @@
 {
-  "name": "@alephresear-ch/planck-contracts",
+  "name": "@alephresear-ch/planck-demo-contracts",
   "version": "1.0.0",
   "description": "",
   "main": "src/index.ts",
