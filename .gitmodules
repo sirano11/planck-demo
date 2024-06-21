@@ -1,0 +1,3 @@
+[submodule "mint"]
+	path = mint
+	url = https://github.com/mint-cash/mint
