@@ -8,9 +8,9 @@
     "./abis/*": "./abis/*.ts"
   },
   "scripts": {
-    "build": "yarn compile && yarn codegen",
-    "compile": "hardhat compile",
-    "test": "hardhat test"
+    "build": "yarn compile",
+    "compile": "npx hardhat compile",
+    "test": "npx hardhat test"
   },
   "keywords": [],
   "author": "",
