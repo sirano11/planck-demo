@@ -7,8 +7,7 @@
   "license": "MIT",
   "packageManager": "yarn@4.2.2",
   "workspaces": [
-    "contracts",
-    "interface"
+    "packages/*"
   ],
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^4.3.0",
