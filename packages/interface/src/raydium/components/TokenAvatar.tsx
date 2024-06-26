@@ -121,10 +121,13 @@ export default forwardRef(function TokenAvatar(
               if (!iconSrc) return;
               setQueryUrl(new URLSearchParams(iconSrc).get('url') || '');
             }}
-            alt={name || token?.address}
+            // FIXME:
+            // alt={name || token?.address}
+            alt={name}
             title={
               haveHTMLTitle && (name || token)
-                ? `${name || token?.symbol || token?.address}`
+                ? // ? `${name || token?.symbol || token?.address}`
+                  name
                 : undefined
             }
           />

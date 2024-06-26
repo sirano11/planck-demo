@@ -434,27 +434,3 @@ function RoutingValue({
     </HStack>
   );
 }
-
-function FeeItem({
-  route,
-}: {
-  route: ApiSwapV1OutSuccess['data']['routePlan']['0'];
-}) {
-  // const { tokenInfo } = useTokenInfo({ mint: route.feeMint });
-  const tokenInfo = null;
-  if (!tokenInfo) return null;
-  return (
-    <Flex alignItems="center" justifyContent="space-between" gap="1">
-      {/* {formatCurrency(
-        new Decimal(route.feeAmount)
-          .div(10 ** tokenInfo.decimals)
-          .toDecimalPlaces(tokenInfo.decimals, Decimal.ROUND_FLOOR)
-          .toString(),
-        {
-          decimalPlaces: tokenInfo.decimals,
-        },
-      )} */}
-      <Text>{getMintSymbol({ mint: tokenInfo, transformSol: true })}</Text>
-    </Flex>
-  );
-}

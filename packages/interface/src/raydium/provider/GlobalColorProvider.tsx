@@ -36,7 +36,6 @@ const GlobalColorProvider: FC<{ children: ReactNode }> = ({ children }) => {
   );
   return (
     <>
-      {/* through object's styles's global can't inject multi font-face */}
       <Global
         styles={`
           :root {

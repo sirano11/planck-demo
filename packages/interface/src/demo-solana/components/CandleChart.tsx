@@ -95,22 +95,23 @@ export default function CandleChart({
       },
       autoSize: true,
       rightPriceScale: { borderColor: axisColor },
-      timeScale: {
-        borderColor: axisColor,
-        tickMarkFormatter: (time: number, tickMarkType: TickMarkType) => {
-          if (tickMarkType === 0)
-            return dayjs(time * 1000)
-              .utc()
-              .format('YYYY/M');
-          if (tickMarkType < 3)
-            return dayjs(time * 1000)
-              .utc()
-              .format('M/D');
-          return dayjs(time * 1000)
-            .utc()
-            .format('H:mm');
-        },
-      },
+      // FIXME:
+      // timeScale: {
+      //   borderColor: axisColor,
+      //   tickMarkFormatter: (time: number, tickMarkType: TickMarkType) => {
+      //     if (tickMarkType === 0)
+      //       return dayjs(time * 1000)
+      //         .utc()
+      //         .format('YYYY/M');
+      //     if (tickMarkType < 3)
+      //       return dayjs(time * 1000)
+      //         .utc()
+      //         .format('M/D');
+      //     return dayjs(time * 1000)
+      //       .utc()
+      //       .format('H:mm');
+      //   },
+      // },
       localization: {
         // timeFormatter: (time: number) => {
         //   return dayjs(time).utc().format('H:mm')

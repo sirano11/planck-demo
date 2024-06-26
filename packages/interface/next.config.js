@@ -11,6 +11,9 @@ module.exports = withPlugins(
     compiler: {
       emotion: true,
     },
+    redirects: async () => [
+      { source: '/', destination: '/mint', permanent: false },
+    ],
   },
   [withBundleAnalyzer],
 );

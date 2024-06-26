@@ -106,11 +106,12 @@ export const darkColors: Record<keyof typeof colors, string> = {
   inputMask: '#0B102266',
 
   // customize (by V3 frontend coder)
-  backgroundApp: 'linear-gradient(29.71deg, #121C34 -18.98%, #050D17 14.6%, #070A15 56.26%, rgba(9, 14, 29, 0.97) 85.27%)',
   solidButtonBg: 'linear-gradient(272.03deg, #39D0D8 2.63%, #22D1F8 95.31%)',
-  outlineButtonBg: 'linear-gradient(272.03deg, rgba(57, 208, 216, 0.1) 2.63%, rgba(34, 209, 248, 0.1) 95.31%)',
+  outlineButtonBg:
+    'linear-gradient(272.03deg, rgba(57, 208, 216, 0.1) 2.63%, rgba(34, 209, 248, 0.1) 95.31%)',
   filledProgressBg: 'linear-gradient(270deg, #8C6EEF 0%, #4F53F3 100%)',
-  transparentContainerBg: 'linear-gradient(271.31deg, rgba(96, 59, 200, 0.2) 1.47%, rgba(140, 110, 239, 0.12) 100%)',
+  transparentContainerBg:
+    'linear-gradient(271.31deg, rgba(96, 59, 200, 0.2) 1.47%, rgba(140, 110, 239, 0.12) 100%)',
   modalContainerBg: '#ABC4FF12',
   infoButtonBg: '#ABC4FF33',
   warnButtonBg: '#FED33A33',
@@ -118,13 +119,15 @@ export const darkColors: Record<keyof typeof colors, string> = {
   buttonBg01: '#ABC4FF1F',
   /** it's designer's variable name in Figma */
   brandGradient: 'linear-gradient(244deg, #7748FC 8.17%, #39D0D8 101.65%)',
-  dividerDashGradient: 'repeating-linear-gradient(to right, currentColor 0 5px, transparent 5px 10px)',
+  dividerDashGradient:
+    'repeating-linear-gradient(to right, currentColor 0 5px, transparent 5px 10px)',
 
-  tokenAvatarBg: 'linear-gradient(127deg, rgba(171, 196, 255, 0.20) 28.69%, rgba(171, 196, 255, 0.00) 100%) #0b102280',
+  tokenAvatarBg:
+    'linear-gradient(127deg, rgba(171, 196, 255, 0.20) 28.69%, rgba(171, 196, 255, 0.00) 100%) #0b102280',
 
   panelCardShadow: '0px 8px 24px rgba(79, 83, 243, 0.12)',
-  panelCardBorder: 'unset'
-}
+  panelCardBorder: 'unset',
+};
 
 export const lightColors: Partial<typeof darkColors> = {
   // app main bg color
@@ -234,8 +237,6 @@ export const lightColors: Partial<typeof darkColors> = {
   inputMask: '#fff3',
 
   // customize (by V3 frontend coder)
-  backgroundApp: '#fff',
-
   solidButtonBg: 'linear-gradient(272deg, #4F53F3 2.63%, #8C6EEF 95.31%)',
   outlineButtonBg: 'linear-gradient(270deg, #8C6EEF1a 0%, #4F53F31a 100%)',
   filledProgressBg: 'linear-gradient(270deg, #8C6EEF 0%, #4F53F3 100%)',
@@ -247,13 +248,15 @@ export const lightColors: Partial<typeof darkColors> = {
   buttonBg01: '#ABC4FF1F',
   /** it's designer's variable name in Figma */
   brandGradient: 'linear-gradient(244deg, #7748FC 8.17%, #39D0D8 101.65%)',
-  dividerDashGradient: 'repeating-linear-gradient(to right, currentColor 0 5px, transparent 5px 10px)',
+  dividerDashGradient:
+    'repeating-linear-gradient(to right, currentColor 0 5px, transparent 5px 10px)',
 
-  tokenAvatarBg: 'linear-gradient(127deg, rgba(171, 196, 255, 0.20) 28.69%, rgba(171, 196, 255, 0.00) 100%) #fffe',
+  tokenAvatarBg:
+    'linear-gradient(127deg, rgba(171, 196, 255, 0.20) 28.69%, rgba(171, 196, 255, 0.00) 100%) #fffe',
 
   panelCardShadow: 'none',
-  panelCardBorder: '1px solid rgba(171, 196, 255, 0.50)'
-}
+  panelCardBorder: '1px solid rgba(171, 196, 255, 0.50)',
+};
 /**
  * note: it is not colors value, but colors css variable
  * color info may change in run-time by setting page, so use runtime css variable
@@ -367,7 +370,6 @@ export const colors = {
   inputMask: 'var(--input-mask)',
 
   // customize (by V3 frontend coder)
-  backgroundApp: 'var(--background-app)',
   solidButtonBg: 'var(--solid-button-bg)',
   outlineButtonBg: 'var(--outline-button-bg)',
   filledProgressBg: 'var(--filled-progress-bg)',
@@ -384,5 +386,5 @@ export const colors = {
   tokenAvatarBg: 'var(--token-avatar-bg)',
 
   panelCardShadow: 'var(--panel-card-shadow)',
-  panelCardBorder: 'var(--panel-card-border)'
-}
+  panelCardBorder: 'var(--panel-card-border)',
+};

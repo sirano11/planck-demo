@@ -29,8 +29,9 @@ const ThemeProvider: FC<{ children: ReactNode }> = ({ children }) => {
           --chakra-fonts-body: var(--global-font-family);
           --chakra-fonts-mono: var(--global-font-family);
           font-size: 16px;
-          
-          background: ${colors.backgroundApp};
+
+          background-color: rgb(18, 28, 52);
+          background: linear-gradient(29.71deg, rgb(18, 28, 52) -18.98%, rgb(5, 13, 23) 14.6%, rgb(7, 10, 21) 56.26%, rgba(9, 14, 29, 0.97) 85.27%);
           background-attachment: fixed;
           color: ${colors.textPrimary}
         }
@@ -62,7 +63,7 @@ const ThemeProvider: FC<{ children: ReactNode }> = ({ children }) => {
         }
 
 
-        @media (min-width: 48rem) {  
+        @media (min-width: 48rem) {
           ::-webkit-scrollbar {
             background-color: transparent;
             width: 6px;
