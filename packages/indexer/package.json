@@ -1,0 +1,31 @@
+{
+  "name": "planck-demo-indexer",
+  "version": "0.1.0",
+  "author": "Huiseong Yang <me@onnuri.dev>",
+  "private": true,
+  "license": "Apache-2.0",
+  "scripts": {
+    "start": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "5.10.2",
+    "@therne/hype": "^0.3.0",
+    "axios": "^1.6.8",
+    "dotenv": "^16.4.1",
+    "find-yarn-workspace-root": "^2.0.0",
+    "keccak256": "^1.0.6",
+    "mutative": "^1.0.5",
+    "planck-demo-contracts": "workspace:^",
+    "undici": "^6.6.2",
+    "web3": "^4.4.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@trivago/prettier-plugin-sort-imports": "^4.3.0",
+    "@types/node": "^20.11.16",
+    "prettier": "^3.2.5",
+    "rimraf": "^5.0.5",
+    "tsx": "^4.7.0",
+    "typescript": "5.4.2"
+  }
+}
