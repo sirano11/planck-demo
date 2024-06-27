@@ -51,23 +51,25 @@ export const TokenSelector: React.FC<TokenSelectorProps> = ({
     <Wrapper>
       <Container
         id={id}
-        className="token-selector"
+        className="token-selector bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700"
         onClick={() => setOpen((prev) => !prev)}
       >
         <TokenInfo>
           <TokenLogo src={selectedToken.logo} />
           <TokenSymbol>{selectedToken.symbol}</TokenSymbol>
         </TokenInfo>
-        <Caret
-          style={{
-            transform: `rotate(${isOpen ? 180 : 0}deg)`,
-            transition: 'transform 0.2s',
-          }}
-        />
+        <CaretWrapper>
+          <Caret
+            style={{
+              transform: `rotate(${isOpen ? 180 : 0}deg)`,
+              transition: 'transform 0.2s',
+            }}
+          />
+        </CaretWrapper>
       </Container>
 
       {isOpen && (
-        <SelectCard className="bg-white">
+        <SelectCard className="bg-white dark:bg-slate-800 shadow-lg">
           {tokens.map((token) => {
             const balance = tokenBalancesByDenom?.[token.type];
             return (
@@ -76,7 +78,10 @@ export const TokenSelector: React.FC<TokenSelectorProps> = ({
                 {...token}
                 balance={balance}
                 selected={token.type === selectedToken.type}
-                onClick={() => onChange(token.type)}
+                onClick={() => {
+                  onChange(token.type);
+                  setOpen(false);
+                }}
               />
             );
           })}
@@ -87,70 +92,96 @@ export const TokenSelector: React.FC<TokenSelectorProps> = ({
 };
 
 const Wrapper = styled.div`
-  ${fixedWidth(190)}
+  width: 360px;
   height: 52px;
-
   position: relative;
 `;
+
 const Container = styled.div`
-  padding: 0 12px;
+  padding: 0 16px;
   width: 100%;
   height: 100%;
-  gap: 8px;
-
   display: flex;
   align-items: center;
-
+  justify-content: space-between;
   border-radius: 12px;
   transition: all 0.2s ease;
-
-  background-color: white;
-  box-shadow: 0px 4px 16px 0px rgba(222, 225, 240, 0.48);
-
   cursor: pointer;
   user-select: none;
-
-  &:hover {
-    background-color: #f9fafc;
-  }
 `;
+
 const TokenInfo = styled.div`
   display: flex;
   align-items: center;
   flex: 1;
+  min-width: 0;
 `;
 
 const TokenLogo = styled.img`
-  margin-right: 9.75px;
-  width: 36px;
-  height: 36px;
+  margin-right: 12px;
+  width: 32px;
+  height: 32px;
   object-fit: contain;
+  flex-shrink: 0;
 `;
-const TokenSymbol = styled.span`
-  font-family: var(--HafferFontStack);
-  font-weight: 600;
-  font-size: 24px;
-  line-height: 140%;
 
-  font-size: 23.031px;
-  font-weight: 700;
-  letter-spacing: -0.921px;
-  color: #2b3b38;
+const TokenSymbol = styled.span`
+  font-weight: 600;
+  font-size: 18px;
+  color: #1f2937;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  .dark & {
+    color: #f3f4f6;
+  }
+`;
+
+const CaretWrapper = styled.div`
+  margin-left: 8px;
+  flex-shrink: 0;
 `;
 
 const SelectCard = styled.ul`
   padding: 8px;
-  ${fixedWidth(200)}
-
+  width: 100%;
   position: absolute;
-  top: 52px;
+  top: 60px;
   left: 0;
   z-index: 10;
+  border-radius: 12px;
+  max-height: 300px;
+  overflow-y: auto;
 
-  box-shadow:
-    0px 20px 24px -4px rgba(16, 24, 40, 0.08),
-    0px 8px 8px -4px rgba(16, 24, 40, 0.03);
-  border-radius: 4px;
+  /* Chrome, Safari, etc */
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(156, 163, 175, 0.5);
+    border-radius: 20px;
+    border: 3px solid transparent;
+  }
+
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+
+  /* IE & edge */
+  -ms-overflow-style: none;
+
+  /* dark mode */
+  .dark & {
+    &::-webkit-scrollbar-thumb {
+      background-color: rgba(209, 213, 219, 0.5);
+    }
+    scrollbar-color: rgba(209, 213, 219, 0.5) transparent;
+  }
 `;
 
 const Caret: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (

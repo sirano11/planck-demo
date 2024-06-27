@@ -9,7 +9,6 @@ import { ArchivoFont } from '@/styles/fonts';
 
 const tokens: Token[] = [
   {
-    // FIXME: replace with actual type name with packageId
     type: 'wbtc',
     symbol: 'wBTC',
     logo: '/assets/bitcoin.png',
@@ -42,27 +41,26 @@ const tokens: Token[] = [
 ];
 
 const MintDemoPage: NextPage = () => {
-  // FIXME: replace with actual type name with packageId
   const [offerCoinType, setOfferCoinType] = useState<string>('wbtc');
   const [askCoinType, setAskCoinType] = useState<string>('lmint');
   const [inputDraft, setInputDraft] = useState<string>('1');
   const [estimation, setEstimation] = useState<string>('0');
-
   const [balances, setBalances] = useState<Record<string, string>>({});
 
   return (
     <div
-      className={`w-full h-full pt-[64px] min-h-screen bg-slate-50 ${ArchivoFont.className}!`}
+      className={`w-full min-h-screen bg-background ${ArchivoFont.className} flex justify-center items-center`}
     >
-      <div className="w-full max-w-[420px] mx-auto gap-[10px] flex flex-col">
-        <div className="flex items-center w-full gap-4 px-3.5 py-3.5 bg-slate-100 rounded-2xl">
+      <div className="w-full max-w-[525px] mx-auto gap-[10px] flex flex-col">
+        <div className="flex items-center w-full gap-4 px-3.5 py-3.5 bg-slate-100 dark:bg-slate-800 rounded-2xl">
           <div className="flex flex-col w-full">
-            <span className="text-sm text-slate-400">
+            <span className="text-sm text-slate-400 dark:text-slate-500">
               {offerCoinType === 'wbtc' ? 'You deposit' : 'You burn'}
             </span>
             <Input
               value={inputDraft}
               onChange={(e) => setInputDraft(e.target.value)}
+              className="text-slate-900 dark:text-slate-100"
             />
           </div>
           <TokenSelector
@@ -73,12 +71,16 @@ const MintDemoPage: NextPage = () => {
           />
         </div>
 
-        <div className="flex items-center w-full gap-4 px-3.5 py-3.5 bg-slate-100 rounded-2xl">
+        <div className="flex items-center w-full gap-4 px-3.5 py-3.5 bg-slate-100 dark:bg-slate-800 rounded-2xl">
           <div className="flex flex-col w-full">
-            <span className="text-sm text-slate-400">
+            <span className="text-sm text-slate-400 dark:text-slate-500">
               {askCoinType === 'wbtc' ? 'You receive' : 'You mint'}
             </span>
-            <Input value={estimation} disabled />
+            <Input
+              value={estimation}
+              disabled
+              className="text-slate-900 dark:text-slate-100"
+            />
           </div>
           <TokenSelector
             id="ask"
@@ -88,7 +90,7 @@ const MintDemoPage: NextPage = () => {
           />
         </div>
 
-        <Button className="w-full py-7 text-[18px] font-bold bg-slate-900 rounded-[12px]">
+        <Button className="w-full py-7 text-[18px] font-bold bg-emerald-300 hover:bg-emerald-400 text-slate-800 dark:bg-emerald-400 dark:hover:bg-emerald-500 dark:text-slate-900 rounded-[12px] transition-colors duration-200">
           {offerCoinType === askCoinType
             ? 'Invalid Route'
             : offerCoinType === 'wbtc'
@@ -98,10 +100,6 @@ const MintDemoPage: NextPage = () => {
                 : 'Swap'}
         </Button>
       </div>
-
-      <br />
-
-      {JSON.stringify(balances, null, 2)}
     </div>
   );
 };
@@ -110,12 +108,9 @@ export default MintDemoPage;
 
 const Input = styled.input`
   width: 100%;
-
   flex: 1;
-
   font-size: 30px;
   font-weight: bold;
   background-color: transparent;
-  color: #2b3b38;
   letter-spacing: -1.6px;
 `;

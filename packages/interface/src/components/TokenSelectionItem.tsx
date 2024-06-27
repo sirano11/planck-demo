@@ -23,67 +23,65 @@ export const TokenSelectionItem: React.FC<TokenSelectionItemProps> = ({
 }) => {
   return (
     <Container
-      className={cn('hover:bg-slate-100', selected && 'selected bg-[#9febd5]')}
+      className={cn(
+        'hover:bg-emerald-300 dark:hover:bg-emerald-600',
+        selected
+          ? 'selected bg-emerald-200 dark:bg-emerald-700'
+          : 'bg-white dark:bg-slate-800',
+      )}
       onClick={onClick}
     >
       <TokenLogo alt={token.symbol} src={token.logo} />
 
       <Info>
         <span className="symbol">{token.symbol}</span>
-        <span className="balance">
-          {/* TODO: Format balances */}
-          {!balance ? '-' : balance}
-        </span>
+        <span className="balance">{!balance ? '-' : balance.toString()}</span>
       </Info>
     </Container>
   );
 };
 
 const Container = styled.li`
-  padding: 10px;
-
+  padding: 12px;
   display: flex;
   align-items: center;
-
-  border-radius: 4px;
+  border-radius: 8px;
   transition: all 0.2s ease;
   cursor: pointer;
 
-  span.symbol {
-    font-family: var(--HafferFontStack);
+  &.selected {
     font-weight: 600;
+  }
+
+  span.symbol {
     font-size: 16px;
     line-height: 130%;
+    color: #1f2937;
+    .dark & {
+      color: #f3f4f6;
+    }
   }
 
   span.balance {
-    font-weight: 500;
     font-size: 14px;
     line-height: 130%;
-
+    color: #6b7280;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-  }
-
-  &.selected {
-    span.symbol {
-      /* color:  */
-    }
-
-    span.balance {
-      /* color:  */
+    .dark & {
+      color: #9ca3af;
     }
   }
 `;
 
 const TokenLogo = styled.img`
-  margin-right: 9.75px;
-
-  width: 40px;
-  height: 40px;
+  margin-right: 12px;
+  width: 32px;
+  height: 32px;
   object-fit: contain;
 `;
+
 const Info = styled.div`
   min-width: 0;
   display: flex;

@@ -4,27 +4,9 @@
 
 /* app */
 
-html,
-body {
-  scroll-behavior: smooth;
-}
-
-img {
-  user-select: none;
-  -webkit-user-drag: none;
-}
-
-::selection {
-  background-color: rgba(43, 178, 115, 0.77);
-  color: rgba(255, 255, 255, 0.77);
-}
 
 /* toast */
 
-:root {
-  --toastify-color-success: #00ffb2;
-  --toastify-color-error: #ff6b7d;
-}
 
 /* shadcn/ui */
 
@@ -90,13 +72,9 @@ img {
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
   }
+
+  body {
+    font-family: 'Archivo', sans-serif;
+  }
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-}
