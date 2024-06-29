@@ -1,18 +1,20 @@
-import IndexerBase from './IndexerBase';
+import { MsgCommittedEvent } from 'planck-demo-contracts/typechain/Hub';
 
-export interface MsgCommittedEvent {
-  asset: string;
-  amount: string;
-  chain: string;
-  sender: string;
-  actor: string;
-  data: string;
-}
+import IndexerBase from './IndexerBase';
 
 export default class MsgCommittedIndexer
   implements IndexerBase<MsgCommittedEvent>
 {
-  handle = async (events: MsgCommittedEvent[], blockTime: Date) => {
-    // TODO: Implement this
+  repositorySave: (height: number) => Promise<void>;
+
+  constructor(repositorySave: (height: number) => Promise<void>) {
+    this.repositorySave = repositorySave;
+  }
+
+  handle = async (events: MsgCommittedEvent[], historic: boolean) => {
+    for (const event of events) {
+      console.log('MsgCommittedIndexer', event);
+      await this.repositorySave(event.blockNumber);
+    }
   };
 }

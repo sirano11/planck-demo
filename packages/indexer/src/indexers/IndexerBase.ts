@@ -1,8 +1,11 @@
-export type IndexerHandler<T> = (
-  events: (T & { hash: string })[],
-  blockTime: Date,
+import { Event } from 'ethers';
+
+export type IndexerHandler<T extends Event> = (
+  events: T[],
+  historic: boolean,
 ) => Promise<void>;
 
-export default interface IndexerBase<T> {
+export default interface IndexerBase<T extends Event> {
   handle: IndexerHandler<T>;
+  repositorySave: (height: number) => void;
 }

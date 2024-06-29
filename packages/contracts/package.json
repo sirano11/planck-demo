@@ -5,7 +5,8 @@
   "main": "src/index.ts",
   "typings": "src/index.ts",
   "exports": {
-    "./abis/*": "./abis/*.ts"
+    "./abis/*": "./abis/*.ts",
+    "./typechain/*": "./typechain/*.ts"
   },
   "scripts": {
     "build": "yarn compile",
