@@ -11,18 +11,22 @@ const pick = (obj: Record<string, any>, keys: string[]) => {
 };
 
 type Config = {
-  RPC_ENDPOINT: string;
+  ETH_RPC_ENDPOINT: string;
+  SUI_RPC_ENDPOINT: string;
+  SOLANA_RPC_ENDPOINT: string;
   START_HEIGHT: number;
   CONTRACT_ADDRESS_HUB: string;
-  DATABASE_URL: string;
+  REDIS_URL: string;
 };
 
 const getConfig = (): Config => {
   let config: any = pick(process.env, [
-    'RPC_ENDPOINT',
+    'ETH_RPC_ENDPOINT',
+    'SUI_RPC_ENDPOINT',
+    'SOLANA_RPC_ENDPOINT',
     'START_HEIGHT',
     'CONTRACT_ADDRESS_HUB',
-    'DATABASE_URL',
+    'REDIS_URL',
   ]);
 
   config.START_HEIGHT = Number.parseInt(config.START_HEIGHT || 0, 10);

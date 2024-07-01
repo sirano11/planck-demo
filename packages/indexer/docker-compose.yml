@@ -1,0 +1,12 @@
+name: indexer
+
+services:
+  redis:
+    container_name: indexer-redis
+    image: redis:7.2.5
+    restart: always
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - .volumes/redis:/data
+    ports:
+      - 6379:6379

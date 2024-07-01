@@ -30,7 +30,9 @@ const CACHE_FILE_PATH = path.join(
 const main = async (): Promise<void> => {
   console.log({ ...Config, CACHE_FILE_PATH });
 
-  const provider = new ethers.providers.JsonRpcProvider(Config.RPC_ENDPOINT);
+  const provider = new ethers.providers.JsonRpcProvider(
+    Config.ETH_RPC_ENDPOINT,
+  );
   const hubContract = Hub__factory.connect(
     Config.CONTRACT_ADDRESS_HUB,
     provider,
@@ -43,7 +45,7 @@ const main = async (): Promise<void> => {
   const repository = saveLastSyncedHeightInJSON(startHeight, CACHE_FILE_PATH);
 
   const redisClient = redis.createClient({
-    url: Config.DATABASE_URL,
+    url: Config.REDIS_URL,
   });
 
   const msgCommittedIndexer = new MsgCommittedIndexer(
