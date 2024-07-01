@@ -3,6 +3,7 @@ import findWorkspaceRoot from 'find-yarn-workspace-root';
 import path from 'path';
 import { MsgCommittedEvent } from 'planck-demo-contracts/typechain/Hub';
 import { Hub__factory } from 'planck-demo-contracts/typechain/factories/Hub__factory';
+import * as redis from 'redis';
 
 import { Config } from './config';
 import MsgCommittedIndexer from './indexers/MsgCommittedIndexer';
@@ -41,7 +42,14 @@ const main = async (): Promise<void> => {
 
   const repository = saveLastSyncedHeightInJSON(startHeight, CACHE_FILE_PATH);
 
-  const msgCommittedIndexer = new MsgCommittedIndexer(repository.save);
+  const redisClient = redis.createClient({
+    url: Config.DATABASE_URL,
+  });
+
+  const msgCommittedIndexer = new MsgCommittedIndexer(
+    redisClient,
+    repository.save,
+  );
 
   let historicEventsProcessed = false;
   let pendingEvents: MsgCommittedEvent[] = [];

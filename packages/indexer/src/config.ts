@@ -14,6 +14,7 @@ type Config = {
   RPC_ENDPOINT: string;
   START_HEIGHT: number;
   CONTRACT_ADDRESS_HUB: string;
+  DATABASE_URL: string;
 };
 
 const getConfig = (): Config => {
@@ -21,6 +22,7 @@ const getConfig = (): Config => {
     'RPC_ENDPOINT',
     'START_HEIGHT',
     'CONTRACT_ADDRESS_HUB',
+    'DATABASE_URL',
   ]);
 
   config.START_HEIGHT = Number.parseInt(config.START_HEIGHT || 0, 10);
