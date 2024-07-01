@@ -3361,6 +3361,32 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@nomicfoundation/hardhat-toolbox@npm:^5.0.0":
+  version: 5.0.0
+  resolution: "@nomicfoundation/hardhat-toolbox@npm:5.0.0"
+  peerDependencies:
+    "@nomicfoundation/hardhat-chai-matchers": ^2.0.0
+    "@nomicfoundation/hardhat-ethers": ^3.0.0
+    "@nomicfoundation/hardhat-ignition-ethers": ^0.15.0
+    "@nomicfoundation/hardhat-network-helpers": ^1.0.0
+    "@nomicfoundation/hardhat-verify": ^2.0.0
+    "@typechain/ethers-v6": ^0.5.0
+    "@typechain/hardhat": ^9.0.0
+    "@types/chai": ^4.2.0
+    "@types/mocha": ">=9.1.0"
+    "@types/node": ">=18.0.0"
+    chai: ^4.2.0
+    ethers: ^6.4.0
+    hardhat: ^2.11.0
+    hardhat-gas-reporter: ^1.0.8
+    solidity-coverage: ^0.8.1
+    ts-node: ">=8.0.0"
+    typechain: ^8.3.0
+    typescript: ">=4.5.0"
+  checksum: 10c0/34087be8fa62a5e4d6536c46719d0ad3a5414f1e440199d02947ad76bb26850eb2779dd34ff81a12d6ff2a24774b4f5a577e6a5a6f1342b8c8a46f96c9ec1fb4
+  languageName: node
+  linkType: hard
+
 "@nomicfoundation/solidity-analyzer-darwin-arm64@npm:0.1.2":
   version: 0.1.2
   resolution: "@nomicfoundation/solidity-analyzer-darwin-arm64@npm:0.1.2"
@@ -3516,10 +3542,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@openzeppelin/contracts@npm:^4.3.2":
-  version: 4.9.6
-  resolution: "@openzeppelin/contracts@npm:4.9.6"
-  checksum: 10c0/f834b000778f634a260ed5507827cc67c0922557a1f57e1d76cf7ace061fea171aaf16640ba2e54fd7ed2cc629a9d706bc671a9692d2bb9a9469ea6154de6e8c
+"@openzeppelin/contracts@npm:^5.0.2":
+  version: 5.0.2
+  resolution: "@openzeppelin/contracts@npm:5.0.2"
+  checksum: 10c0/d042661db7bb2f3a4b9ef30bba332e86ac20907d171f2ebfccdc9255cc69b62786fead8d6904b8148a8f26946bc7c15eead91b95f75db0c193a99d52e528663e
   languageName: node
   linkType: hard
 
@@ -12289,7 +12315,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"hardhat@npm:^2.16.1":
+"hardhat@npm:^2.22.5":
   version: 2.22.5
   resolution: "hardhat@npm:2.22.5"
   dependencies:
@@ -16392,10 +16418,11 @@ __metadata:
   resolution: "planck-demo-contracts@workspace:packages/contracts"
   dependencies:
     "@nomicfoundation/hardhat-network-helpers": "npm:^1.0.0"
+    "@nomicfoundation/hardhat-toolbox": "npm:^5.0.0"
     "@nomiclabs/hardhat-ethers": "npm:^2.0.2"
     "@nomiclabs/hardhat-etherscan": "npm:^2.1.6"
     "@nomiclabs/hardhat-waffle": "npm:^2.0.1"
-    "@openzeppelin/contracts": "npm:^4.3.2"
+    "@openzeppelin/contracts": "npm:^5.0.2"
     "@openzeppelin/contracts-upgradeable": "npm:^4.3.3"
     "@openzeppelin/contracts3.4.2-solc-0.7": "npm:@openzeppelin/contracts@3.4.2-solc-0.7"
     "@openzeppelin/merkle-tree": "npm:^1.0.6"
@@ -16412,7 +16439,7 @@ __metadata:
     dotenv: "npm:^10.0.0"
     ethereum-waffle: "npm:^3.4.4"
     ethers: "npm:^5.4.7"
-    hardhat: "npm:^2.16.1"
+    hardhat: "npm:^2.22.5"
     hardhat-contract-sizer: "npm:^2.1.1"
     hardhat-gas-reporter: "npm:^1.0.4"
     solhint: "npm:^2.0.0"

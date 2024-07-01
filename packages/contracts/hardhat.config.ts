@@ -27,11 +27,27 @@ const config: HardhatUserConfig = {
   defaultNetwork: 'hardhat',
   solidity: {
     compilers: [
+      // {
+      //   version: '0.7.6',
+      //   settings: {
+      //     optimizer: {
+      //       enabled: true,
+      //       runs: 2 ** 32 - 1,
+      //     },
+      //     metadata: {
+      //       // do not include the metadata hash, since this is machine dependent
+      //       // and we want all generated code to be deterministic
+      //       // https://docs.soliditylang.org/en/v0.7.6/metadata.html
+      //       bytecodeHash: 'none',
+      //     },
+      //   },
+      // },
       {
-        version: '0.7.6',
+        version: '0.8.20',
         settings: {
           optimizer: {
             enabled: true,
+            //runs: 200,
             runs: 2 ** 32 - 1,
           },
           metadata: {
@@ -39,15 +55,6 @@ const config: HardhatUserConfig = {
             // and we want all generated code to be deterministic
             // https://docs.soliditylang.org/en/v0.7.6/metadata.html
             bytecodeHash: 'none',
-          },
-        },
-      },
-      {
-        version: '0.8.9',
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 200,
           },
         },
       },
@@ -83,12 +90,14 @@ const config: HardhatUserConfig = {
     base: {
       chainId: 8453,
       url: process.env.BASE_URL || 'https://base-rpc.publicnode.com',
-      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+      accounts:
+        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
     baseSepolia: {
       chainId: 84532,
       url: process.env.BASE_SEPOLIA_URL || 'https://sepolia.base.org',
-      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+      accounts:
+        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
   },
   gasReporter: {
