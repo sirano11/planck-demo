@@ -27,21 +27,21 @@ const CACHE_FILE_PATH = path.join(
   'cache.json',
 );
 
-const suiQueue = new Queue(QUEUE_NAME.SUI, {
+const suiQueue = new Queue(QUEUE_NAME.Sui, {
   connection: QUEUE_CONFIG.connection,
   defaultJobOptions: QUEUE_CONFIG.defaultJobOptions,
 });
 
-const suiQueueEvents = new QueueEvents(QUEUE_NAME.SUI, {
+const suiQueueEvents = new QueueEvents(QUEUE_NAME.Sui, {
   connection: QUEUE_CONFIG.connection,
 });
 
-const solanaQueue = new Queue(QUEUE_NAME.SOLANA, {
+const solanaQueue = new Queue(QUEUE_NAME.Solana, {
   connection: QUEUE_CONFIG.connection,
   defaultJobOptions: QUEUE_CONFIG.defaultJobOptions,
 });
 
-const solanaQueueEvents = new QueueEvents(QUEUE_NAME.SOLANA, {
+const solanaQueueEvents = new QueueEvents(QUEUE_NAME.Solana, {
   connection: QUEUE_CONFIG.connection,
 });
 
