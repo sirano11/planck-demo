@@ -16,7 +16,6 @@ contract Hub {
         uint256 amount,
         ChainIdentifier indexed chain,
         address indexed sender,
-        bytes32 indexed actor,
         bytes data
     );
 
@@ -25,9 +24,7 @@ contract Hub {
         uint256 amount,
         // destination chain identifier
         ChainIdentifier chain,
-        // actor address in destination chain
-        bytes32 actor,
-        // if it's too long, throw it to 3rd party storage (ipfs, arweave, p2p gossip networks etc.)
+        // unsigned raw tx data; if it's too long, throw it to 3rd party storage (ipfs, arweave, p2p gossip networks etc.)
         bytes memory data
     ) public {
         // Transfer the tokens to this contract for "locking"
@@ -37,6 +34,6 @@ contract Hub {
         );
 
         // Emit the event for the third-party indexer
-        emit MsgCommitted(asset, amount, chain, msg.sender, actor, data);
+        emit MsgCommitted(asset, amount, chain, msg.sender, data);
     }
 }
