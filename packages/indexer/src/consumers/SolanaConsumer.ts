@@ -1,13 +1,24 @@
-import { RedisClient } from '@/indexers/MsgCommittedIndexer';
+import { createClient } from 'redis';
+
+import { Config } from '@/config';
 
 import { BaseConsumer, ChainIdentifier, Tx } from './Consumer';
 
 export class SolanaConsumer extends BaseConsumer {
-  constructor(redisClient: RedisClient) {
-    super(redisClient, ChainIdentifier.Solana);
+  private static instance: SolanaConsumer;
+  constructor() {
+    const redisClient = createClient({ url: Config.REDIS_URL });
+    super(redisClient, ChainIdentifier.Sui);
   }
 
-  protected async processTx(tx: Tx) {
+  static getInstance() {
+    if (this.instance) {
+      return this.instance;
+    }
+    return new SolanaConsumer();
+  }
+
+  public async processTx(tx: Tx) {
     const { asset, chain, sender, data } = tx;
 
     const actorAddress = await this.getActorAddress(sender);

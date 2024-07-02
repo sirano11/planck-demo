@@ -1,28 +1,28 @@
+import { Queue } from 'bullmq';
+import { BigNumber } from 'ethers';
 import { MsgCommittedEvent } from 'planck-demo-contracts/typechain/Hub';
 import * as redis from 'redis';
 
+import { QUEUE_CONFIG, QUEUE_NAME } from '@/config';
 import { ChainIdentifier, Tx } from '@/consumers/Consumer';
-import { SolanaConsumer } from '@/consumers/SolanaConsumer';
-import { SuiConsumer } from '@/consumers/SuiConsumer';
 
 import IndexerBase from './IndexerBase';
-
-export type RedisClient = ReturnType<typeof redis.createClient>;
 
 export default class MsgCommittedIndexer
   implements IndexerBase<MsgCommittedEvent>
 {
   repositorySave: (height: number) => Promise<void>;
-  private solanaConsumer: SolanaConsumer;
-  private suiConsumer: SuiConsumer;
+  suiQueue: Queue;
+  solanaQueue: Queue;
 
   constructor(
-    redisClient: RedisClient,
     repositorySave: (height: number) => Promise<void>,
+    suiQueue: Queue,
+    solanaQueue: Queue,
   ) {
     this.repositorySave = repositorySave;
-    this.solanaConsumer = new SolanaConsumer(redisClient);
-    this.suiConsumer = new SuiConsumer(redisClient);
+    this.suiQueue = suiQueue;
+    this.solanaQueue = solanaQueue;
   }
 
   handle = async (events: MsgCommittedEvent[], historic: boolean) => {
@@ -37,14 +37,36 @@ export default class MsgCommittedIndexer
       };
 
       if (chain === ChainIdentifier.Solana) {
-        this.solanaConsumer.enqueue(tx);
+        this.solanaQueue.add(
+          QUEUE_NAME.SOLANA,
+          { tx },
+          { jobId: event.transactionHash },
+        );
       } else if (chain === ChainIdentifier.Sui) {
-        this.suiConsumer.enqueue(tx);
+        this.suiQueue.add(
+          QUEUE_NAME.SUI,
+          { tx },
+          { jobId: event.transactionHash },
+        );
       } else {
         // TODO: Handle other chains
       }
 
       await this.repositorySave(event.blockNumber);
+    }
+  };
+
+  mockHandle = async (tx: Tx, transactionHash: string) => {
+    if (tx.chain === ChainIdentifier.Solana) {
+      this.solanaQueue.add(
+        QUEUE_NAME.SOLANA,
+        { tx },
+        { jobId: transactionHash },
+      );
+    } else if (tx.chain === ChainIdentifier.Sui) {
+      this.suiQueue.add(QUEUE_NAME.SUI, { tx }, { jobId: transactionHash });
+    } else {
+      // TODO: Handle other chains
     }
   };
 }

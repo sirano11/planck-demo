@@ -5,10 +5,13 @@
   "private": true,
   "license": "Apache-2.0",
   "scripts": {
-    "start": "tsx src/index.ts"
+    "start": "tsx src/index.ts",
+    "worker": "tsx src/consumers/worker.ts",
+    "mock-indexer": "tsx src/script/addTx.ts"
   },
   "dependencies": {
     "@therne/hype": "^0.3.0",
+    "bullmq": "^5.8.3",
     "dotenv": "^16.4.1",
     "ethers": "^5.4.7",
     "find-yarn-workspace-root": "^2.0.0",

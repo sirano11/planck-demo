@@ -1,6 +1,7 @@
 import { BigNumber } from 'ethers';
+import * as redis from 'redis';
 
-import { RedisClient } from '@/indexers/MsgCommittedIndexer';
+export type RedisClient = ReturnType<typeof redis.createClient>;
 
 export enum ChainIdentifier {
   Ethereum,
@@ -32,26 +33,7 @@ export class BaseConsumer {
     this.chain = chain;
   }
 
-  public enqueue(tx: Tx) {
-    this.txQueue.push(tx);
-
-    if (!this.isProcessing) {
-      this.processTxs();
-    }
-  }
-
-  private async processTxs() {
-    this.isProcessing = true;
-
-    while (this.txQueue.length > 0) {
-      const tx = this.txQueue.shift();
-      if (tx) {
-        await this.processTx(tx);
-      }
-    }
-  }
-
-  protected async processTx(tx: Tx) {
+  public async processTx(tx: Tx) {
     throw new Error('Not implemented');
   }
 

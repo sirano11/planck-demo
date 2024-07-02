@@ -1,11 +1,11 @@
-import { ethers } from 'ethers';
+import { Queue, QueueEvents } from 'bullmq';
+import { BigNumber, ethers } from 'ethers';
 import findWorkspaceRoot from 'find-yarn-workspace-root';
 import path from 'path';
 import { MsgCommittedEvent } from 'planck-demo-contracts/typechain/Hub';
 import { Hub__factory } from 'planck-demo-contracts/typechain/factories/Hub__factory';
-import * as redis from 'redis';
 
-import { Config } from './config';
+import { Config, QUEUE_CONFIG, QUEUE_NAME } from './config';
 import MsgCommittedIndexer from './indexers/MsgCommittedIndexer';
 import { saveLastSyncedHeightInJSON } from './repository';
 
@@ -27,6 +27,24 @@ const CACHE_FILE_PATH = path.join(
   'cache.json',
 );
 
+const suiQueue = new Queue(QUEUE_NAME.SUI, {
+  connection: QUEUE_CONFIG.connection,
+  defaultJobOptions: QUEUE_CONFIG.defaultJobOptions,
+});
+
+const suiQueueEvents = new QueueEvents(QUEUE_NAME.SUI, {
+  connection: QUEUE_CONFIG.connection,
+});
+
+const solanaQueue = new Queue(QUEUE_NAME.SOLANA, {
+  connection: QUEUE_CONFIG.connection,
+  defaultJobOptions: QUEUE_CONFIG.defaultJobOptions,
+});
+
+const solanaQueueEvents = new QueueEvents(QUEUE_NAME.SOLANA, {
+  connection: QUEUE_CONFIG.connection,
+});
+
 const main = async (): Promise<void> => {
   console.log({ ...Config, CACHE_FILE_PATH });
 
@@ -44,13 +62,10 @@ const main = async (): Promise<void> => {
 
   const repository = saveLastSyncedHeightInJSON(startHeight, CACHE_FILE_PATH);
 
-  const redisClient = redis.createClient({
-    url: Config.REDIS_URL,
-  });
-
   const msgCommittedIndexer = new MsgCommittedIndexer(
-    redisClient,
     repository.save,
+    suiQueue,
+    solanaQueue,
   );
 
   let historicEventsProcessed = false;
@@ -95,3 +110,60 @@ const main = async (): Promise<void> => {
 main()
   .then(() => console.log('✨ Done'))
   .catch(console.error);
+
+//---> Queue Event handler
+suiQueueEvents.on('completed', ({ jobId, returnvalue }) => {
+  // Called every time a job is completed in any worker.
+  const date = new Date().toISOString();
+  console.log(`Completed tx job ${jobId} time ${date}`);
+});
+
+solanaQueueEvents.on('completed', ({ jobId, returnvalue }) => {
+  // Called every time a job is completed in any worker.
+  const date = new Date().toISOString();
+  console.log(`Completed tx job ${jobId} time ${date}`);
+});
+
+//<--- Queue Event handler
+
+//---> Error handler
+//https://docs.bullmq.io/guide/going-to-production#gracefully-shut-down-workers
+const gracefulShutdown = async (signal: string) => {
+  console.log(`Received ${signal}, closing server...`);
+  await suiQueue.close();
+  await suiQueueEvents.close();
+  await solanaQueue.close();
+  await solanaQueueEvents.close();
+
+  process.exit(0);
+};
+
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+
+// https://docs.bullmq.io/guide/going-to-production#unhandled-exceptions-and-rejections
+// https://nodejs.org/docs/latest-v16.x/api/process.html#warning-using-uncaughtexception-correctly
+// The correct use of 'uncaughtException' is to perform synchronous cleanup of allocated resources (e.g. file descriptors, handles, etc) before shutting down the process. It is not safe to resume normal operation after 'uncaughtException'.
+process.on('uncaughtException', async (err, origin) => {
+  // The 'beforeExit' event is not emitted for conditions causing explicit termination,
+  // such as calling process.exit() or uncaught exceptions.
+  console.error({ err, origin }, 'uncaught exception occurred.');
+
+  await suiQueue.close();
+  await suiQueueEvents.close();
+  await solanaQueue.close();
+  await solanaQueueEvents.close();
+
+  process.exit(1);
+});
+
+process.on('unhandledRejection', async (reason, promise) => {
+  // Handle the error safely
+  console.error({ promise, reason }, 'Unhandled Rejection at: Promise');
+  await suiQueue.close();
+  await suiQueueEvents.close();
+  await solanaQueue.close();
+  await solanaQueueEvents.close();
+});
+//<--- Error handler
