@@ -1,14 +1,24 @@
 import { Raydium, TxVersion } from '@raydium-io/raydium-sdk-v2';
 import { Connection, Keypair } from '@solana/web3.js';
+import * as bip39 from 'bip39';
+import dotenv from 'dotenv';
+import { derivePath } from 'ed25519-hd-key';
 
-export const owner: Keypair = Keypair.fromSecretKey(
-  Uint8Array.from(
-    // FIXME: Inject PK from other safer sources like .env
-    '164,106,67,123,209,159,38,87,225,69,45,70,174,249,223,214,17,115,81,217,123,28,199,252,54,201,103,39,240,113,60,133,70,45,193,156,162,221,175,86,113,103,125,141,127,90,122,129,140,98,174,167,55,163,200,168,230,196,247,17,51,20,95,113'
-      .split(',')
-      .map((v) => parseInt(v, 10)),
-  ),
-);
+dotenv.config();
+
+// Use an existing mnemonic
+const mnemonic = process.env.MNEMONIC || '';
+
+// Convert mnemonic to seed
+const seed = bip39.mnemonicToSeedSync(mnemonic, 'mint');
+
+// Derive the EdDSA private key
+const derivationPath = "m/44'/501'/0'/0'";
+const { key } = derivePath(derivationPath, seed.toString('hex'));
+
+const keypair = Keypair.fromSeed(key);
+export const owner: Keypair = Keypair.fromSecretKey(keypair.secretKey);
+
 export const connection = new Connection('https://api.devnet.solana.com', {
   commitment: 'confirmed',
 });

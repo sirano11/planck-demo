@@ -8,14 +8,20 @@ import {
   generateSigner,
   percentAmount,
   signerIdentity,
+  Keypair as umiKeypair,
 } from '@metaplex-foundation/umi';
 import { createUmi } from '@metaplex-foundation/umi-bundle-defaults';
 import { DEVNET_PROGRAM_ID, WSOLMint } from '@raydium-io/raydium-sdk-v2';
 import { Keypair, PublicKey } from '@solana/web3.js';
+import * as bip39 from 'bip39';
 import BN from 'bn.js';
+import dotenv from 'dotenv';
+import { derivePath } from 'ed25519-hd-key';
 
 import { connection, initSdk, owner, txVersion } from './raydium';
 import { revokeMintAuthority } from './revoke';
+
+dotenv.config();
 
 const metadata = {
   name: 'Test Token',
@@ -26,20 +32,33 @@ const metadata = {
 // TODO: uploader 도 설정 가능함 https://developers.metaplex.com/token-metadata/mint
 
 // Faucet: https://faucet.solana.com
+// -> airdrop to `DrEe77cTWwBNdSFEvegd896TabyxSQKP9EDGbYyZcnqy`
 
 const main = async () => {
   const umi = createUmi('https://api.devnet.solana.com', 'confirmed').use(
     mplTokenMetadata(),
   );
+
+  // Generate a new mnemonic (or use an existing one)
+  // const mnemonic = bip39.generateMnemonic();
+
+  const mnemonic = process.env.MNEMONIC || '';
+  console.log('Mnemonic:', mnemonic);
+  // XXX: What is `solana --url devnet airdrop 1 DEVw4sdjjwo3he1JgJbycZuWmZuC28YFMEY9uYpnP7cP` ?
+  // TODO: How can we do this on typescript code?
+
+  // Convert mnemonic to seed
+  const seed = bip39.mnemonicToSeedSync(mnemonic, 'mint');
+
+  const derivationPath = "m/44'/501'/0'/0'";
+  const { key } = derivePath(derivationPath, seed.toString('hex'));
+
+  const keypair = Keypair.fromSeed(key);
   const publisherKeypair = umi.eddsa.createKeypairFromSecretKey(
-    // FIXME: Inject PK from other safer sources like .env
-    // TODO: also need to run faucet -> add balance check?
-    Uint8Array.from(
-      '164,106,67,123,209,159,38,87,225,69,45,70,174,249,223,214,17,115,81,217,123,28,199,252,54,201,103,39,240,113,60,133,70,45,193,156,162,221,175,86,113,103,125,141,127,90,122,129,140,98,174,167,55,163,200,168,230,196,247,17,51,20,95,113'
-        .split(',')
-        .map((v) => parseInt(v, 10)),
-    ),
+    keypair.secretKey,
   );
+  // TODO: also need to run faucet -> add balance check?
+
   const publisherSigner = createSignerFromKeypair(umi, publisherKeypair);
   console.log(publisherSigner.publicKey.toString());
   console.log(publisherSigner.secretKey.toString());
@@ -52,7 +71,7 @@ const main = async () => {
 
   // check balance of publisher
   const balance = await umi.rpc.getBalance(publisherSigner.publicKey);
-  console.log(balance);
+  console.log(`balance: ${balance.basisPoints.toString()}`);
 
   const res = await createAndMint(umi, {
     ...metadata,
