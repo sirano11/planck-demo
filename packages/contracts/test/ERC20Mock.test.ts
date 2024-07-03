@@ -2,7 +2,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 
-import { ERC20Mock } from '../contracts';
+import { ERC20Mock } from '../typechain';
 
 describe('ERC20Mock', function () {
   let token: ERC20Mock;
