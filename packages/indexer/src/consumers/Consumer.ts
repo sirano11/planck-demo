@@ -29,7 +29,7 @@ type ActorInfo = {
   mnemonic: string;
 };
 
-const isObjectEmpty = (obj) => {
+const isObjectEmpty = (obj: object) => {
   return JSON.stringify(obj) === '{}';
 };
 

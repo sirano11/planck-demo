@@ -17,6 +17,8 @@ type Config = {
   START_HEIGHT: number;
   CONTRACT_ADDRESS_HUB: string;
   REDIS_URL: string;
+  SOLANA_MINT_MNEMONIC: string;
+  HUB_OWNER_MNEMONIC: string;
 };
 
 const getConfig = (): Config => {
@@ -27,6 +29,8 @@ const getConfig = (): Config => {
     'START_HEIGHT',
     'CONTRACT_ADDRESS_HUB',
     'REDIS_URL',
+    'SOLANA_MINT_MNEMONIC',
+    'HUB_OWNER_MNEMONIC',
   ]);
 
   config.START_HEIGHT = Number.parseInt(config.START_HEIGHT || 0, 10);

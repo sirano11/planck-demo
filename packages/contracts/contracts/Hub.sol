@@ -2,8 +2,9 @@
 pragma solidity >=0.4.22 <0.9.0;
 
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import '@openzeppelin/contracts/access/Ownable.sol';
 
-contract Hub {
+contract Hub is Ownable {
     enum ChainIdentifier {
         Ethereum,
         Solana,
@@ -18,6 +19,8 @@ contract Hub {
         address indexed sender,
         bytes data
     );
+
+    constructor() Ownable(msg.sender) {}
 
     function commit(
         address asset,
@@ -35,5 +38,16 @@ contract Hub {
 
         // Emit the event for the third-party indexer
         emit MsgCommitted(asset, amount, chain, msg.sender, data);
+    }
+
+    function transfer(
+        address recipient,
+        address asset,
+        uint256 amount
+    ) public onlyOwner {
+        require(
+            IERC20(asset).transfer(recipient, amount),
+            'Token transfer failed'
+        );
     }
 }
