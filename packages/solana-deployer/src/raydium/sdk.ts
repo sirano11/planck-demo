@@ -1,37 +1,23 @@
 import { Raydium, TxVersion } from '@raydium-io/raydium-sdk-v2';
-import { Connection, Keypair } from '@solana/web3.js';
-import * as bip39 from 'bip39';
-import dotenv from 'dotenv';
-import { derivePath } from 'ed25519-hd-key';
+import { Keypair } from '@solana/web3.js';
 
-dotenv.config();
+import { connection } from '../constants';
 
-// Use an existing mnemonic
-const mnemonic = process.env.MNEMONIC || '';
-
-// Convert mnemonic to seed
-const seed = bip39.mnemonicToSeedSync(mnemonic, 'mint');
-
-// Derive the EdDSA private key
-const derivationPath = "m/44'/501'/0'/0'";
-const { key } = derivePath(derivationPath, seed.toString('hex'));
-
-const keypair = Keypair.fromSeed(key);
-export const owner: Keypair = Keypair.fromSecretKey(keypair.secretKey);
-
-export const connection = new Connection('https://api.devnet.solana.com', {
-  commitment: 'confirmed',
-});
 export const txVersion = TxVersion.V0;
 
+type InitRaydiumSDKParams = {
+  keypair: Keypair;
+  loadToken?: boolean;
+};
+
 // https://github.com/raydium-io/raydium-sdk-V2-demo/blob/master/src/config.ts.template
-export const initSdk = async (params?: { loadToken?: boolean }) => {
+export const initSDK = async ({ keypair, loadToken }: InitRaydiumSDKParams) => {
   const raydium = await Raydium.load({
-    owner,
+    owner: keypair,
     connection,
     cluster: 'devnet', // 'mainnet' | 'devnet'
     disableFeatureCheck: true,
-    disableLoadToken: !params?.loadToken,
+    disableLoadToken: !loadToken,
     blockhashCommitment: 'finalized',
     // urlConfigs: {
     //   BASE_HOST: '<API_HOST>', // api url configs, currently api doesn't support devnet
