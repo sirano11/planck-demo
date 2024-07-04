@@ -24,6 +24,7 @@ import { useTranslation } from 'react-i18next';
 // } from '@/raydium/hooks/pool/useFetchPoolKLine';
 import { colors } from '@/raydium/theme/cssVariables/colors';
 import { formatCurrency } from '@/raydium/utils/numberish/formatter';
+import { SpaceGroteskFont } from '@/styles/fonts';
 
 import { TimeType } from './SwapKlinePanel';
 
@@ -82,7 +83,7 @@ export default function CandleChart({
       layout: {
         textColor: chartTextColor,
         background: { type: ColorType.Solid, color: 'transparent' },
-        fontFamily: 'Space Grotesk',
+        fontFamily: SpaceGroteskFont.style.fontFamily,
       },
       grid: {
         vertLines: { color: 'transparent' },

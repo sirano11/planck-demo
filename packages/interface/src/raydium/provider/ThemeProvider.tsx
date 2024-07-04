@@ -3,6 +3,7 @@ import { Global } from '@emotion/react';
 import type { FC, ReactNode } from 'react';
 
 import { colors } from '@/raydium/theme/cssVariables';
+import { SpaceGroteskFont } from '@/styles/fonts';
 
 import { theme } from '../theme';
 
@@ -20,9 +21,7 @@ const ThemeProvider: FC<{ children: ReactNode }> = ({ children }) => {
           height: 100%;
         }
         :root,body {
-          --global-font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB',
-            'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-            'Segoe UI Symbol';
+          --global-font-family: ${SpaceGroteskFont.style.fontFamily};
           font-family: var(--global-font-family);
           font-feature-settings: 'ss04', 'tnum' 1;
           --chakra-fonts-heading: var(--global-font-family);
@@ -76,27 +75,6 @@ const ThemeProvider: FC<{ children: ReactNode }> = ({ children }) => {
           ::-webkit-scrollbar-corner {
             background-color: transparent;
           }
-        }
-
-        @font-face {
-          font-family: 'Space Grotesk';
-          src: url('/SpaceGrotesk[wght].woff2') format('woff2');
-          font-weight: 300;
-        }
-        @font-face {
-          font-family: 'Space Grotesk';
-          src: url('/SpaceGrotesk[wght].woff2') format('woff2');
-          font-weight: 400;
-        }
-        @font-face {
-          font-family: 'Space Grotesk';
-          src: url('/SpaceGrotesk[wght].woff2') format('woff2');
-          font-weight: 500;
-        }
-        @font-face {
-          font-family: 'Space Grotesk';
-          src: url('/SpaceGrotesk[wght].woff2') format('woff2');
-          font-weight: 700;
         }
         `}
       />
