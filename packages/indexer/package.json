@@ -7,14 +7,19 @@
   "scripts": {
     "start": "tsx src/index.ts",
     "worker": "tsx src/consumers/worker.ts",
-    "mock-indexer": "tsx src/script/addTx.ts"
+    "mock-indexer": "tsx src/script/addTx.ts",
+    "add-sender": "tsx src/script/addSenderInfo.ts"
   },
   "dependencies": {
+    "@mysten/sui": "^1.2.1",
+    "@solana/web3.js": "^1.93.0",
     "@therne/hype": "^0.3.0",
+    "bip39": "^3.1.0",
     "bullmq": "^5.8.3",
     "dotenv": "^16.4.1",
     "ethers": "^5.4.7",
     "find-yarn-workspace-root": "^2.0.0",
+    "micro-ed25519-hdkey": "^0.1.2",
     "planck-demo-contracts": "workspace:^",
     "redis": "^4.6.14"
   },

@@ -22,6 +22,17 @@ export interface Tx {
   data: string;
 }
 
+type ActorInfo = {
+  eth: string;
+  sui: string;
+  solana: string;
+  mnemonic: string;
+};
+
+const isObjectEmpty = (obj) => {
+  return JSON.stringify(obj) === '{}';
+};
+
 export class BaseConsumer {
   private txQueue: Tx[] = [];
   private isProcessing: boolean = false;
@@ -37,13 +48,51 @@ export class BaseConsumer {
     throw new Error('Not implemented');
   }
 
-  protected async getActorAddress(sender: string): Promise<string | null> {
+  public async disconnectRedis() {
+    if (this.redisClient.isOpen) {
+      await this.redisClient.disconnect();
+    }
+  }
+
+  protected async getActorAddress(ethAddress: string): Promise<string | null> {
+    if (!this.redisClient.isOpen) {
+      await this.connectRedis();
+    }
+
+    const chainId = {
+      [ChainIdentifier.Ethereum]: 'eth',
+      [ChainIdentifier.Solana]: 'sol',
+      [ChainIdentifier.Sui]: 'sui',
+      [ChainIdentifier.TON]: 'ton',
+    }[this.chain];
+
+    const address = await this.redisClient.hGet(`eth:${ethAddress}`, chainId);
+
+    return address || null;
+  }
+
+  protected async getActorInfo(ethAddress: string): Promise<ActorInfo | null> {
+    if (!this.redisClient.isOpen) {
+      await this.connectRedis();
+    }
+
+    const info = await this.redisClient.hGetAll(`eth:${ethAddress}`);
+    return !isObjectEmpty(info) ? (info as ActorInfo) : null;
+  }
+
+  protected async getMnemonic(ethAddress: string): Promise<string | null> {
+    if (!this.redisClient.isOpen) {
+      await this.connectRedis();
+    }
+
     return (
-      (await this.redisClient.get(`actor:${this.chain}:${sender}`)) || null
+      (await this.redisClient.hGet(`eth:${ethAddress}`, 'mnemonic')) || null
     );
   }
 
-  protected async setActorAddress(sender: string, actor: string) {
-    await this.redisClient.set(`actor:${this.chain}:${sender}`, actor);
+  private async connectRedis() {
+    if (!this.redisClient.isOpen) {
+      await this.redisClient.connect();
+    }
   }
 }

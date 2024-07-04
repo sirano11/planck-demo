@@ -21,12 +21,12 @@ export class SolanaConsumer extends BaseConsumer {
   public async processTx(tx: Tx) {
     const { asset, chain, sender, data } = tx;
 
-    const actorAddress = await this.getActorAddress(sender);
+    const actorAddress = await this.getActorAddress(tx.sender);
     if (!actorAddress) {
-      await this.setActorAddress(
-        sender,
-        '0f92eabf01c1a7013ad85e1b871875f56d955e200cbbdedbab344615f37ab2f9',
-      ); // FIXME:
+      // await this.setActorAddress(
+      //   sender,
+      //   '0f92eabf01c1a7013ad85e1b871875f56d955e200cbbdedbab344615f37ab2f9',
+      // ); // FIXME:
     }
 
     // TODO: Asset handling

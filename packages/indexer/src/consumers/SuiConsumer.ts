@@ -20,7 +20,15 @@ export class SuiConsumer extends BaseConsumer {
 
   public async processTx(tx: Tx) {
     const { asset, chain, sender, data } = tx;
-    console.log(tx);
+
+    const suiAddress = await this.getActorAddress(sender);
+    console.log(suiAddress);
+
+    const info = await this.getActorInfo(sender);
+    console.log(info);
+
+    const mnemonic = await this.getMnemonic(sender);
+    console.log(mnemonic);
 
     // const actorAddress = await this.getActorAddress(sender);
     // if (!actorAddress) {
