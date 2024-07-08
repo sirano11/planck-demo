@@ -1,13 +1,8 @@
 import styled from '@emotion/styled';
+import { formatUnits } from 'viem';
 
+import { Token } from '@/constants/tokens';
 import { cn } from '@/utils/cn';
-
-export type Token = {
-  type: string;
-  symbol: string;
-  coinGeckoId?: string;
-  logo?: string;
-};
 
 export type TokenSelectionItemProps = Token & {
   balance?: bigint;
@@ -35,7 +30,11 @@ export const TokenSelectionItem: React.FC<TokenSelectionItemProps> = ({
 
       <Info>
         <span className="symbol">{token.symbol}</span>
-        <span className="balance">{!balance ? '-' : balance.toString()}</span>
+        <span className="balance">
+          {typeof balance === 'undefined'
+            ? '-'
+            : formatUnits(balance, token.decimals)}
+        </span>
       </Info>
     </Container>
   );

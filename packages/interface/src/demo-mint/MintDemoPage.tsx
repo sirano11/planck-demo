@@ -2,50 +2,21 @@ import styled from '@emotion/styled';
 import { NextPage } from 'next';
 import { useState } from 'react';
 
-import { Token } from '@/components/TokenSelectionItem';
 import { TokenSelector } from '@/components/TokenSelector';
 import { Button } from '@/components/ui/button';
+import { CONTRACTS, TOKENS } from '@/constants/tokens';
+import { useTokenBalances } from '@/hooks/useTokenBalances';
 import { ArchivoFont } from '@/styles/fonts';
 
-const tokens: Token[] = [
-  {
-    type: 'wbtc',
-    symbol: 'wBTC',
-    logo: '/assets/bitcoin.png',
-  },
-  {
-    type: 'lmint',
-    symbol: 'MINT',
-    logo: '/assets/mint.png',
-  },
-  {
-    type: 'sdr',
-    symbol: 'cashSDR',
-    logo: '/assets/cash-sdr.png',
-  },
-  {
-    type: 'livre',
-    symbol: 'cashLIVRE',
-    logo: '/assets/cash-livre.png',
-  },
-  {
-    type: 'krw',
-    symbol: 'cashKRW',
-    logo: '/assets/cash-krw.png',
-  },
-  {
-    type: 'jpy',
-    symbol: 'cashJPY',
-    logo: '/assets/cash-jpy.png',
-  },
-];
-
 const MintDemoPage: NextPage = () => {
-  const [offerCoinType, setOfferCoinType] = useState<string>('wbtc');
-  const [askCoinType, setAskCoinType] = useState<string>('lmint');
+  const [offerCoinAddress, setOfferCoinAddress] = useState<string>(
+    CONTRACTS.wBTC,
+  );
+  const [askCoinAddress, setAskCoinAddress] = useState<string>(CONTRACTS.lMINT);
   const [inputDraft, setInputDraft] = useState<string>('1');
   const [estimation, setEstimation] = useState<string>('0');
-  const [balances, setBalances] = useState<Record<string, string>>({});
+
+  const { tokenBalances } = useTokenBalances();
 
   return (
     <div
@@ -55,7 +26,7 @@ const MintDemoPage: NextPage = () => {
         <div className="flex items-center w-full gap-4 px-3.5 py-3.5 bg-slate-100 dark:bg-slate-800 rounded-2xl">
           <div className="flex flex-col w-full">
             <span className="text-sm text-slate-400 dark:text-slate-500">
-              {offerCoinType === 'wbtc' ? 'You deposit' : 'You burn'}
+              {offerCoinAddress === 'wbtc' ? 'You deposit' : 'You burn'}
             </span>
             <Input
               value={inputDraft}
@@ -65,16 +36,17 @@ const MintDemoPage: NextPage = () => {
           </div>
           <TokenSelector
             id="offer"
-            selectedToken={tokens.find((v) => v.type === offerCoinType)!}
-            tokens={tokens}
-            onChange={setOfferCoinType}
+            selectedToken={TOKENS.find((v) => v.address === offerCoinAddress)!}
+            tokens={TOKENS}
+            onChange={setOfferCoinAddress}
+            tokenBalances={tokenBalances}
           />
         </div>
 
         <div className="flex items-center w-full gap-4 px-3.5 py-3.5 bg-slate-100 dark:bg-slate-800 rounded-2xl">
           <div className="flex flex-col w-full">
             <span className="text-sm text-slate-400 dark:text-slate-500">
-              {askCoinType === 'wbtc' ? 'You receive' : 'You mint'}
+              {askCoinAddress === 'wbtc' ? 'You receive' : 'You mint'}
             </span>
             <Input
               value={estimation}
@@ -84,18 +56,19 @@ const MintDemoPage: NextPage = () => {
           </div>
           <TokenSelector
             id="ask"
-            selectedToken={tokens.find((v) => v.type === askCoinType)!}
-            tokens={tokens}
-            onChange={setAskCoinType}
+            selectedToken={TOKENS.find((v) => v.address === askCoinAddress)!}
+            tokens={TOKENS}
+            onChange={setAskCoinAddress}
+            tokenBalances={tokenBalances}
           />
         </div>
 
         <Button className="w-full py-7 text-[18px] font-bold bg-emerald-300 hover:bg-emerald-400 text-slate-800 dark:bg-emerald-400 dark:hover:bg-emerald-500 dark:text-slate-900 rounded-[12px] transition-colors duration-200">
-          {offerCoinType === askCoinType
+          {offerCoinAddress === askCoinAddress
             ? 'Invalid Route'
-            : offerCoinType === 'wbtc'
+            : offerCoinAddress === CONTRACTS.wBTC
               ? 'Deposit'
-              : askCoinType === 'wbtc'
+              : askCoinAddress === CONTRACTS.wBTC
                 ? 'Withdraw'
                 : 'Swap'}
         </Button>

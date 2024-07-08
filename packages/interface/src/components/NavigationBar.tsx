@@ -1,7 +1,7 @@
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { ethers } from 'ethers';
 import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { formatUnits } from 'viem';
 import { useAccount, useBalance, useDisconnect } from 'wagmi';
 
 import { Button } from '@/components/ui/button';
@@ -81,10 +81,7 @@ const NavigationBar: React.FC = () => {
                     className="bg-white text-black border-gray-300 hover:bg-gray-100"
                     onClick={handleDisconnect}
                   >
-                    {ethers.utils.formatUnits(
-                      balanceData.value,
-                      balanceData.decimals,
-                    )}{' '}
+                    {formatUnits(balanceData.value, balanceData.decimals)}{' '}
                     {balanceData.symbol}
                   </Button>
                 )}

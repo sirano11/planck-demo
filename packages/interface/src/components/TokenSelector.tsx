@@ -1,16 +1,17 @@
 import styled from '@emotion/styled';
 import { useEffect, useState } from 'react';
 
+import { Token } from '@/constants/tokens';
 import { fixedWidth } from '@/styles/helpers';
 
-import { Token, TokenSelectionItem } from './TokenSelectionItem';
+import { TokenSelectionItem } from './TokenSelectionItem';
 
 type TokenSelectorProps = {
   id: string;
   selectedToken: Token;
   tokens: Token[];
   onChange: (value: string) => void;
-  tokenBalancesByDenom?: Record<string, bigint>;
+  tokenBalances: Record<`0x${string}`, bigint>;
 };
 
 export const TokenSelector: React.FC<TokenSelectorProps> = ({
@@ -18,7 +19,7 @@ export const TokenSelector: React.FC<TokenSelectorProps> = ({
   selectedToken,
   tokens,
   onChange,
-  tokenBalancesByDenom,
+  tokenBalances,
 }) => {
   const [isOpen, setOpen] = useState<boolean>(false);
 
@@ -71,15 +72,15 @@ export const TokenSelector: React.FC<TokenSelectorProps> = ({
       {isOpen && (
         <SelectCard className="bg-white dark:bg-slate-800 shadow-lg">
           {tokens.map((token) => {
-            const balance = tokenBalancesByDenom?.[token.type];
+            const balance = tokenBalances[token.address];
             return (
               <TokenSelectionItem
-                key={token.type}
+                key={token.address}
                 {...token}
                 balance={balance}
-                selected={token.type === selectedToken.type}
+                selected={token.address === selectedToken.address}
                 onClick={() => {
-                  onChange(token.type);
+                  onChange(token.address);
                   setOpen(false);
                 }}
               />
@@ -92,7 +93,7 @@ export const TokenSelector: React.FC<TokenSelectorProps> = ({
 };
 
 const Wrapper = styled.div`
-  width: 360px;
+  ${fixedWidth(190)}
   height: 52px;
   position: relative;
 `;

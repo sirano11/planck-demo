@@ -14,6 +14,8 @@ module.exports = withPlugins(
     redirects: async () => [
       { source: '/', destination: '/mint', permanent: false },
     ],
+    // NOTE: Unused for now
+    transpilePackages: ['planck-demo-contracts'],
   },
   [withBundleAnalyzer],
 );

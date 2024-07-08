@@ -71,15 +71,9 @@ const config: HardhatUserConfig = {
     hardhat: {
       allowUnlimitedContractSize: true,
     },
-    base: {
-      chainId: 8453,
-      url: process.env.BASE_URL || 'https://base-rpc.publicnode.com',
-      accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
-    },
-    baseSepolia: {
-      chainId: 84532,
-      url: process.env.BASE_SEPOLIA_URL || 'https://sepolia.base.org',
+    sepolia: {
+      chainId: 11155111,
+      url: process.env.SEPOLIA_URL || 'https://rpc.sepolia.org',
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },

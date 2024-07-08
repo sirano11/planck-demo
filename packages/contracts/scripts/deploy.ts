@@ -1,5 +1,6 @@
 import { BigNumber } from 'ethers';
 import { ethers } from 'hardhat';
+import prettier from 'prettier';
 
 type TokenParameters = {
   name: string;
@@ -56,10 +57,12 @@ async function main() {
 
   console.log('Deploying contracts with the account:', deployer.address);
 
-  const BridgeToken = await ethers.getContractFactory('BridgeToken');
+  const BridgeTokenFactory = await ethers.getContractFactory('BridgeToken');
 
+  const deployedAddrs: string[] = [];
   for (const token of tokens) {
-    const tokenContract = await BridgeToken.connect(deployer).deploy(
+    // TODO: Allow user minting of wBTC (testnet faucet)
+    const bridgeToken = await BridgeTokenFactory.connect(deployer).deploy(
       token.name,
       token.symbol,
       BigNumber.from(token.initialSupply).mul(
@@ -67,9 +70,31 @@ async function main() {
       ),
       token.decimals,
     );
-    await tokenContract.deployed();
-    console.log(`✅ ${token.symbol} deployed to:`, tokenContract.address);
+    await bridgeToken.deployed();
+    console.log(`✅ ${token.symbol} deployed to:`, bridgeToken.address);
+    deployedAddrs.push(bridgeToken.address);
   }
+
+  // save addresses to json file
+  const contents = await prettier.format(
+    JSON.stringify(
+      Object.fromEntries(
+        tokens.map((token, index) => [
+          token.symbol,
+          deployedAddrs[index].toLowerCase(),
+        ]),
+      ),
+    ),
+    {
+      parser: 'json',
+      bracketSpacing: true,
+      bracketSameLine: false,
+      singleQuote: true,
+      trailingComma: 'all',
+      // semi: true,
+    },
+  );
+  console.log(contents);
 }
 
 main().catch((error) => {
