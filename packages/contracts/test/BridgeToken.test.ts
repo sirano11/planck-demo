@@ -2,10 +2,12 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 
+import { tokens } from '../constants/tokens';
 import { BridgeToken } from '../typechain';
 
 describe('BridgeToken', function () {
   let token: BridgeToken;
+  let wsol_token: BridgeToken;
   let owner: SignerWithAddress;
   let addr1: SignerWithAddress;
   let addr2: SignerWithAddress;
@@ -20,6 +22,15 @@ describe('BridgeToken', function () {
       8,
     )) as BridgeToken;
     await token.deployed();
+
+    const wSOLMetadata = tokens.find((t) => t.symbol === 'wSOL')!;
+    wsol_token = (await BridgeTokenFactory.connect(owner).deploy(
+      wSOLMetadata.name,
+      wSOLMetadata.symbol,
+      ethers.utils.parseUnits('123', wSOLMetadata.decimals),
+      wSOLMetadata.decimals,
+    )) as BridgeToken;
+    await token.deployed();
   });
 
   it('Should have correct name and symbol', async function () {
@@ -27,9 +38,17 @@ describe('BridgeToken', function () {
     expect(await token.symbol()).to.equal('wBTC');
   });
 
+  it('Should have correct decimals', async function () {
+    expect(await token.decimals()).to.equal(8);
+    expect(await wsol_token.decimals()).to.equal(9);
+  });
+
   it('Should mint initial supply to owner', async function () {
     const ownerBalance = await token.balanceOf(owner.address);
     expect(ownerBalance).to.equal(100000000000n);
+
+    const ownerBalanceOfwSOL = await wsol_token.balanceOf(owner.address);
+    expect(ownerBalanceOfwSOL).to.equal(123_000_000_000n);
   });
 
   it('Should allow owner to mint new tokens', async function () {
