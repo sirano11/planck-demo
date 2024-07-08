@@ -1,29 +1,75 @@
+import { BigNumber } from 'ethers';
 import { ethers } from 'hardhat';
+
+type TokenParameters = {
+  name: string;
+  symbol: string;
+  initialSupply: bigint;
+  decimals: number;
+};
+const tokens: TokenParameters[] = [
+  {
+    name: 'Wrapped Bitcoin',
+    symbol: 'wBTC',
+    initialSupply: 21_000_000n,
+    decimals: 8,
+  },
+  {
+    // Ethereum Bridged lMINT
+    name: 'Liquid Mint',
+    symbol: 'lMINT',
+    initialSupply: 100_000_000n,
+    decimals: 9,
+  },
+  {
+    // Ethereum Bridged CashJPY
+    name: 'CashJPY',
+    symbol: 'cashJPY',
+    initialSupply: 100_000_000n,
+    decimals: 9,
+  },
+  {
+    // Ethereum Bridged CashKRW
+    name: 'CashKRW',
+    symbol: 'cashKRW',
+    initialSupply: 100_000_000n,
+    decimals: 9,
+  },
+  {
+    // Ethereum Bridged CashLIVRE
+    name: 'CashLIVRE',
+    symbol: 'cashLIVRE',
+    initialSupply: 100_000_000n,
+    decimals: 9,
+  },
+  {
+    // Ethereum Bridged CashSDR
+    name: 'CashSDR',
+    symbol: 'cashSDR',
+    initialSupply: 100_000_000n,
+    decimals: 9,
+  },
+];
 
 async function main() {
   const [deployer] = await ethers.getSigners();
 
   console.log('Deploying contracts with the account:', deployer.address);
 
-  const ERC20Mock = await ethers.getContractFactory('ERC20Mock');
+  const BridgeToken = await ethers.getContractFactory('BridgeToken');
 
-  // wBTC token deploy (Quantity matched 1:1 to the actual maximum supply of Bitcoin)
-  const wBTC = await ERC20Mock.deploy(
-    'Wrapped Bitcoin',
-    'wBTC',
-    ethers.utils.parseEther('21000000'),
-  );
-  await wBTC.deployed();
-  console.log('wBTC deployed to:', wBTC.address);
-
-  // lMint token deploy
-  const lMint = await ERC20Mock.deploy(
-    'Liquid Mint',
-    'lMint',
-    ethers.utils.parseEther('1000000000'),
-  );
-  await lMint.deployed();
-  console.log('lMint deployed to:', lMint.address);
+  for (const token of tokens) {
+    const tokenContract = await BridgeToken.connect(deployer).deploy(
+      token.name,
+      token.symbol,
+      BigNumber.from(token.initialSupply).mul(
+        BigNumber.from(10).pow(token.decimals),
+      ),
+      token.decimals,
+    );
+    await tokenContract.deployed();
+    console.log(`✅ ${token.symbol} deployed to:`, tokenContract.address);
+  }
 }
 
 main().catch((error) => {
