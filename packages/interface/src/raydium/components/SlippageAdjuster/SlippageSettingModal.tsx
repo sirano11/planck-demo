@@ -13,7 +13,6 @@ import {
 } from '@chakra-ui/react';
 import Decimal from 'decimal.js';
 import React, { KeyboardEvent, useCallback, useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 
 import DecimalInput from '@/raydium/components/DecimalInput';
 import { useEvent } from '@/raydium/hooks/useEvent';
@@ -28,7 +27,6 @@ export function SlippageSettingModal(props: {
   isOpen: boolean;
   onClose: () => void;
 }) {
-  const { t } = useTranslation();
   // const slippage = useAppStore((s) => s.slippage);
   const [currentSlippage, setCurrentSlippage] = useState<string>(
     // String(slippage * 100),
@@ -76,9 +74,9 @@ export function SlippageSettingModal(props: {
   const isFailrun = slippageDecimal.lt('0.1');
   const isWarn = isForerun || isFailrun;
   const warnText = isForerun
-    ? t('setting_board.slippage_tolerance_forerun')
+    ? 'Your transaction may be frontrun and result in an unfavorable trade'
     : isFailrun
-      ? t('setting_board.slippage_tolerance_fail')
+      ? 'Your transaction may fail'
       : '';
 
   return (
@@ -93,7 +91,7 @@ export function SlippageSettingModal(props: {
       >
         <ModalHeader marginTop={0} marginBottom={'48px'}>
           <HStack spacing="6px">
-            <Text>{t('setting_board.slippage_tolerance')}</Text>
+            <Text>Slippage Tolerance</Text>
           </HStack>
         </ModalHeader>
         <ModalCloseButton />
@@ -126,7 +124,7 @@ export function SlippageSettingModal(props: {
                   whiteSpace={'nowrap'}
                   color={colors.textSecondary}
                 >
-                  {t('setting_board.custom')}
+                  Custom
                 </Text>
                 <DecimalInput
                   variant="filledDark"
@@ -182,7 +180,7 @@ export function SlippageSettingModal(props: {
                 bgClip="text"
                 color={colors.buttonSolidText}
               >
-                {t('button.save')}
+                Save
               </Text>
             </Button>
           </VStack>

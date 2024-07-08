@@ -1,9 +1,6 @@
 import { Box, Collapse, Flex, HStack, Skeleton, Text } from '@chakra-ui/react';
-// import { TokenInfo } from '@raydium-io/raydium-sdk-v2';
-import Decimal from 'decimal.js';
-import { Fragment, RefObject, useEffect, useRef, useState } from 'react';
+import { Fragment, RefObject, useRef, useState } from 'react';
 import { ChevronDown } from 'react-feather';
-import { useTranslation } from 'react-i18next';
 
 import AddressChip from '@/raydium/components/AddressChip';
 import IntervalCircle, {
@@ -12,20 +9,14 @@ import IntervalCircle, {
 import { QuestionToolTip } from '@/raydium/components/QuestionToolTip';
 import TokenAvatar from '@/raydium/components/TokenAvatar';
 import Tooltip from '@/raydium/components/Tooltip';
-// import useTokenInfo from '@/raydium/hooks/token/useTokenInfo';
 import { useEvent } from '@/raydium/hooks/useEvent';
 import CircleCheckBreaker from '@/raydium/icons/misc/CircleCheckBreaker';
 import HorizontalSwitchIcon from '@/raydium/icons/misc/HorizontalSwitchIcon';
 import WarningIcon from '@/raydium/icons/misc/WarningIcon';
 import { colors } from '@/raydium/theme/cssVariables';
-import {
-  formatCurrency,
-  formatToRawLocaleStr,
-  trimTrailZero,
-} from '@/raydium/utils/numberish/formatter';
+import { formatToRawLocaleStr } from '@/raydium/utils/numberish/formatter';
 import toPercentString from '@/raydium/utils/numberish/toPercentString';
 
-// import { getMintSymbol } from '@/raydium/utils/token';
 import { ApiSwapV1OutSuccess } from '../type';
 
 export function SwapInfoBoard({
@@ -43,7 +34,6 @@ export function SwapInfoBoard({
   // computedSwapResult?: ApiSwapV1OutSuccess['data'];
   // onRefresh: () => void;
 }) {
-  const { t } = useTranslation();
   const [showMoreSwapInfo, setShowMoreSwapInfo] = useState(false);
   const refreshCircleRef = useRef<IntervalCircleHandler>(null);
 
@@ -101,15 +91,11 @@ export function SwapInfoBoard({
 
       <HStack gap={4} py={1} justifyContent="space-between">
         <ItemLabel
-          name={
-            isBaseOut
-              ? t('swap.info_maximum_input')
-              : t('swap.info_minimum_received')
-          }
+          name={isBaseOut ? 'Maximum Input' : 'Minimum Received'}
           tooltip={
             isBaseOut
-              ? t('swap.info_maximum_input_tooltip')
-              : t('swap.info_minimum_received_tooltip')
+              ? 'The maximum number of tokens you will input on this trade'
+              : 'The minimum number of tokens you will receive. This is determined by your slippage tolerance.'
           }
         />
         {/* <MinimumReceiveValue
@@ -120,8 +106,8 @@ export function SwapInfoBoard({
 
       <HStack gap={4} py={1} justifyContent="space-between">
         <ItemLabel
-          name={t('swap.info_price_impact')}
-          tooltip={t('swap.info_price_impact_tooltip')}
+          name="Price Impact"
+          tooltip="The difference between the current market price and estimated price due to trade size"
         />
         <Text
           fontSize="xs"
@@ -143,8 +129,8 @@ export function SwapInfoBoard({
       <Collapse in={showMoreSwapInfo} animateOpacity>
         <HStack gap={4} py={1} justifyContent="space-between">
           <ItemLabel
-            name={t('swap.info_order_routing')}
-            tooltip={t('swap.info_order_routing_tooltip')}
+            name="Order Routing"
+            tooltip="This route gave the best price for your trade"
           />
           {/* {routeTokens && (
             <RoutingValue routePlan={computedSwapResult?.routePlan || []} />
@@ -153,8 +139,8 @@ export function SwapInfoBoard({
 
         <HStack gap={4} py={1} justifyContent="space-between">
           <ItemLabel
-            name={t('swap.info_estimated_fees')}
-            tooltip={t('swap.info_estimated_fees_tooltip')}
+            name="Estimated Fees"
+            tooltip="Swap fees go to LPs, RAY buybacks, and treasury."
           />
           {/* <Text align="end" fontSize="xs" color={colors.textPrimary}>
             {computedSwapResult?.routePlan.map((route) => (
@@ -173,7 +159,7 @@ export function SwapInfoBoard({
         onClick={() => setShowMoreSwapInfo((b) => !b)}
       >
         <Text align="center" cursor="pointer">
-          {showMoreSwapInfo ? t('common.less_info') : t('common.more_info')}
+          {showMoreSwapInfo ? 'Less info' : 'More info'}
         </Text>
         {/* arrow */}
         <Box
@@ -199,7 +185,6 @@ function PriceDetector({
   computedSwapResult?: ApiSwapV1OutSuccess['data'];
 }) {
   const [reverse, setReverse] = useState(false);
-  const { t } = useTranslation();
 
   const priceImpact = computedSwapResult
     ? computedSwapResult.priceImpactPct > 5
@@ -266,7 +251,15 @@ function PriceDetector({
           </Text>
         </Flex>
       </Text>
-      <Tooltip label={t(`swap.price_impact_${priceImpact}_tooltip`)}>
+      <Tooltip
+        label={
+          priceImpact === 'high'
+            ? 'Price Impact Warning'
+            : priceImpact === 'warning'
+              ? 'Price Impact Warning'
+              : 'Low Price Impact'
+        }
+      >
         {priceImpact === 'low' ? (
           <CircleCheckBreaker />
         ) : priceImpact === 'warning' ? (

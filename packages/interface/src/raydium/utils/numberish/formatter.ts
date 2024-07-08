@@ -1,7 +1,5 @@
 import Decimal from 'decimal.js';
 
-import i18n from '@/raydium/i18n';
-
 function formatLocaleStr(
   num?: string | number | Decimal,
   decimalPlace?: number,
@@ -94,12 +92,11 @@ export const isIntlNumberFormatSupported =
 export function formatToRawLocaleStr(
   val: string | number | undefined,
 ): string | number {
-  const locale = i18n.language;
   if (!val) {
     return '';
   }
   const decimalSeparator = isIntlNumberFormatSupported
-    ? new Intl.NumberFormat(locale)
+    ? new Intl.NumberFormat('en')
         .formatToParts(0.1)
         .find((part) => part.type === 'decimal')?.value || '.'
     : '.';
@@ -266,7 +263,6 @@ export function formatCurrency(
   amount?: string | number | Decimal,
   params: FormatCurrencyParams = {},
 ): string {
-  const locale = i18n.language;
   const {
     noDecimal = false,
     symbol,
@@ -284,7 +280,7 @@ export function formatCurrency(
   const amountNumber = amountDecimal.toNumber();
   const amountString = amountDecimal.toFixed();
   const currencyFormatterNoDecimal: { format: (value: number) => string } =
-    generateFormatter(locale, symbol, abbreviated, 0);
+    generateFormatter('en', symbol, abbreviated, 0);
 
   if (noDecimal === true && amountNumber > 1) {
     return formatCurrencyOverride(
@@ -293,7 +289,7 @@ export function formatCurrency(
   }
   if (Object.prototype.hasOwnProperty.call(params, 'decimalPlaces')) {
     const currencyFormatterCustom = generateFormatter(
-      locale,
+      'en',
       symbol,
       abbreviated,
       decimalPlaces,
@@ -314,7 +310,7 @@ export function formatCurrency(
   } else if (amountNumber >= 50 && amountNumber < 1000) {
     // Medium, show 3 fraction digits
     const currencyFormatterMedium: { format: (value: number) => string } =
-      generateFormatter(locale, symbol, abbreviated, 3);
+      generateFormatter('en', symbol, abbreviated, 3);
     return formatCurrencyOverride(
       currencyFormatterMedium.format(amountNumber),
       maximumDecimalTrailingZeroes,
@@ -322,7 +318,7 @@ export function formatCurrency(
   } else if (amountNumber >= 0.000001 && amountNumber < 50) {
     // show 6 fraction digits
     const currencyFormatterSmall: { format: (value: number) => string } =
-      generateFormatter(locale, symbol, abbreviated, 6);
+      generateFormatter('en', symbol, abbreviated, 6);
     return formatCurrencyOverride(
       currencyFormatterSmall.format(amountNumber),
       maximumDecimalTrailingZeroes,
@@ -331,7 +327,7 @@ export function formatCurrency(
     // show 12 fraction digits
     const currencyFormatterVeryVerySmall: {
       format: (value: number) => string;
-    } = generateFormatter(locale, symbol, abbreviated, 12);
+    } = generateFormatter('en', symbol, abbreviated, 12);
     return formatCurrencyOverride(
       currencyFormatterVeryVerySmall.format(
         formatSmallNumberWithFixed(amountNumber, 3),
@@ -342,7 +338,7 @@ export function formatCurrency(
     // too small show all fraction digits
     const digitsAfterPoint = amountString.length - 2;
     const currencyFormatterTooSmall: { format: (value: number) => string } =
-      generateFormatter(locale, symbol, abbreviated, digitsAfterPoint);
+      generateFormatter('en', symbol, abbreviated, digitsAfterPoint);
     return formatCurrencyOverride(
       currencyFormatterTooSmall.format(
         formatSmallNumberWithFixed(amountNumber, 3),

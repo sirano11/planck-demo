@@ -16,7 +16,6 @@ import React, {
   useMemo,
   useRef,
 } from 'react';
-import { useTranslation } from 'react-i18next';
 
 import {
   formatToRawLocaleStr,
@@ -92,11 +91,8 @@ function DecimalInput(props: Props) {
   const valRef = useRef(value);
   valRef.current = value;
 
-  const { i18n } = useTranslation();
-  const currentLocale = i18n.language;
-
   const decimalSeparator = isIntlNumberFormatSupported
-    ? new Intl.NumberFormat(currentLocale)
+    ? new Intl.NumberFormat('en')
         .formatToParts(0.1)
         .find((part) => part.type === 'decimal')?.value || '.'
     : '.';
@@ -145,7 +141,7 @@ function DecimalInput(props: Props) {
       // }
       // return val === '.' ? '0.' : val
     },
-    [decimals, currentLocale],
+    [decimals],
   );
 
   const handleFocus = useCallback(() => {

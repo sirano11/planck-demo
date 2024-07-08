@@ -15,9 +15,7 @@ import {
 } from '@chakra-ui/react';
 // import { ApiV3Token, SOL_INFO, TokenInfo } from '@raydium-io/raydium-sdk-v2';
 import Decimal from 'decimal.js';
-import { t } from 'i18next';
 import React, { ReactNode, useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 
 // import { toastSubject } from '@/raydium/hooks/toast/useGlobalToast';
 // import useTokenPrice from '@/raydium/hooks/token/useTokenPrice';
@@ -40,7 +38,7 @@ import TokenAvatar from './TokenAvatar';
 // import TokenFreezeDialog from './TokenSelectDialog/components/TokenFreezeDialog';
 // import TokenUnknownAddDialog from './TokenSelectDialog/components/TokenUnknownAddDialog';
 
-export const DEFAULT_SOL_RESERVER = 0.01;
+const DEFAULT_SOL_RESERVER = 0.01;
 interface TokenInputProps {
   id?: string;
   name?: string;
@@ -159,10 +157,8 @@ function TokenInput(props: TokenInputProps) {
     onClose: onCloseFreezeTokenConfirm,
   } = useDisclosure();
 
-  const { i18n } = useTranslation();
-  const currentLocale = i18n.language;
   const decimalSeparator = isIntlNumberFormatSupported
-    ? new Intl.NumberFormat(currentLocale)
+    ? new Intl.NumberFormat('en')
         .formatToParts(0.1)
         .find((part) => part.type === 'decimal')?.value || '.'
     : '.';

@@ -9,48 +9,16 @@ import {
   Text,
   useDisclosure,
 } from '@chakra-ui/react';
-// import {
-//   ApiV3Token,
-//   RAYMint,
-//   SOLMint,
-//   SOL_INFO,
-//   TokenInfo,
-//   USDCMint,
-//   USDTMint,
-// } from '@raydium-io/raydium-sdk-v2';
-// import { NATIVE_MINT } from '@solana/spl-token';
-// import { PublicKey } from '@solana/web3.js';
-// import dayjs from 'dayjs';
-import Decimal from 'decimal.js';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Trans } from 'react-i18next';
-import shallow from 'zustand/shallow';
+import { useRef, useState } from 'react';
 
-import ConnectedButton from '@/raydium/components/ConnectedButton';
 import { QuestionToolTip } from '@/raydium/components/QuestionToolTip';
-import TokenInput, {
-  DEFAULT_SOL_RESERVER,
-} from '@/raydium/components/TokenInput';
-// import useTokenInfo from '@/raydium/hooks/token/useTokenInfo';
-import { useEvent } from '@/raydium/hooks/useEvent';
+import TokenInput from '@/raydium/components/TokenInput';
 import { useHover } from '@/raydium/hooks/useHover';
-import CircleInfo from '@/raydium/icons/misc/CircleInfo';
 import SwapButtonOneTurnIcon from '@/raydium/icons/misc/SwapButtonOneTurnIcon';
 import SwapButtonTwoTurnIcon from '@/raydium/icons/misc/SwapButtonTwoTurnIcon';
-import WarningIcon from '@/raydium/icons/misc/WarningIcon';
 import { colors } from '@/raydium/theme/cssVariables';
-// import { useAppStore, useTokenAccountStore, useTokenStore } from '@/store';
-import { formatToRawLocaleStr } from '@/raydium/utils/numberish/formatter';
 
-// import { setUrlQuery, useRouteQuery } from '@/raydium/utils/routeTools';
-// import { mintToUrl, urlToMint } from '@/raydium/utils/token';
-// import { isSolWSol } from '@/raydium/utils/token';
 import { ApiSwapV1OutSuccess } from '../type';
-// import useSwap from '../useSwap';
-// import { useSwapStore } from '../useSwapStore';
-// import { getSwapPairCache, setSwapPairCache } from '../util';
-import HighRiskAlert from './HighRiskAlert';
 import { SwapInfoBoard } from './SwapInfoBoard';
 
 export function SwapPanel({
@@ -62,31 +30,6 @@ export function SwapPanel({
   onOutputMintChange?: (mint: string) => void;
   onDirectionNeedReverse?(): void;
 }) {
-  // const query = useRouteQuery<{ inputMint: string; outputMint: string }>();
-  // const [urlInputMint, urlOutputMint] = [
-  //   urlToMint(query.inputMint),
-  //   urlToMint(query.outputMint),
-  // ];
-  // const { inputMint: cacheInput, outputMint: cacheOutput } = getSwapPairCache();
-  // const [defaultInput, defaultOutput] = [
-  //   urlInputMint || cacheInput,
-  //   urlOutputMint || cacheOutput,
-  // ];
-
-  const { t, i18n } = useTranslation();
-  // const { swap: swapDisabled } = useAppStore().featureDisabled;
-  // const swapTokenAct = useSwapStore((s) => s.swapTokenAct);
-  // const unWrapSolAct = useSwapStore((s) => s.unWrapSolAct);
-  // const tokenMap = useTokenStore((s) => s.tokenMap);
-  // const [getTokenBalanceUiAmount, fetchTokenAccountAct, refreshTokenAccTime] =
-  //   useTokenAccountStore(
-  //     (s) => [
-  //       s.getTokenBalanceUiAmount,
-  //       s.fetchTokenAccountAct,
-  //       s.refreshTokenAccTime,
-  //     ],
-  //     shallow,
-  //   );
   const {
     isOpen: isSending,
     onOpen: onSending,
@@ -353,7 +296,7 @@ export function SwapPanel({
         {/* input */}
         <TokenInput
           name="swap"
-          topLeftLabel={t('swap.from_label')}
+          topLeftLabel="From"
           // ctrSx={getCtrSx('BaseIn')}
           // token={tokenInput}
           // value={isSwapBaseIn ? amountIn : inputAmount}
@@ -369,7 +312,7 @@ export function SwapPanel({
         {/* output */}
         <TokenInput
           name="swap"
-          topLeftLabel={t('swap.to_label')}
+          topLeftLabel="To"
           // ctrSx={getCtrSx('BaseOut')}
           // token={tokenOutput}
           // value={isSwapBaseIn ? outputAmount : amountIn}
@@ -490,7 +433,6 @@ export function SwapPanel({
 }
 
 function SwapPriceUpdatedAlert({ onConfirm }: { onConfirm: () => void }) {
-  const { t } = useTranslation();
   return (
     <HStack
       bg={colors.backgroundDark}
@@ -499,11 +441,11 @@ function SwapPriceUpdatedAlert({ onConfirm }: { onConfirm: () => void }) {
       justify={'space-between'}
     >
       <HStack color={colors.textSecondary}>
-        <Text fontSize={'sm'}>{t('swap.alert_price_updated')}</Text>
-        <QuestionToolTip label={t('swap.alert_price_updated_tooltip')} />
+        <Text fontSize={'sm'}>Price updated</Text>
+        <QuestionToolTip label="Price has changed since your swap amount was entered." />
       </HStack>
       <Button size={['sm', 'md']} onClick={onConfirm}>
-        {t('swap.alert_price_updated_button')}
+        Accept
       </Button>
     </HStack>
   );

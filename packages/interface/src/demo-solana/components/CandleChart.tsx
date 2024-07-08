@@ -2,33 +2,23 @@ import {
   AbsoluteCenter,
   Box,
   GridItem,
-  Spinner,
   Text,
   useColorMode,
 } from '@chakra-ui/react';
-// import { ApiV3Token } from '@raydium-io/raydium-sdk-v2';
-import dayjs from 'dayjs';
 import {
   ColorType,
   CrosshairMode,
   IChartApi,
   ISeriesApi,
-  TickMarkType,
   createChart,
 } from 'lightweight-charts';
 import { useEffect, useRef } from 'react';
-import { useTranslation } from 'react-i18next';
 
-// import useFetchPoolKLine, {
-//   TimeType,
-// } from '@/raydium/hooks/pool/useFetchPoolKLine';
 import { colors } from '@/raydium/theme/cssVariables/colors';
 import { formatCurrency } from '@/raydium/utils/numberish/formatter';
 import { SpaceGroteskFont } from '@/styles/fonts';
 
 import { TimeType } from './SwapKlinePanel';
-
-// import { formatCurrency } from '@/raydium/utils/numberish/formatter';
 
 interface Props {
   onPriceChange?: (
@@ -49,7 +39,6 @@ export default function CandleChart({
 }: Props) {
   const { colorMode } = useColorMode();
 
-  const { t } = useTranslation();
   const chartCtrRef = useRef<HTMLDivElement>(null);
   const timeTypeRef = useRef<TimeType>(timeType);
   const chartRef = useRef<{
@@ -246,8 +235,8 @@ export default function CandleChart({
             whiteSpace="nowrap"
             textAlign="center"
           >
-            <Text mb={2}>{t('error.no_chart_data')}</Text>
-            <Text>{t('error.no_chart_data_hint')}</Text>
+            <Text mb={2}>No data for this chart.</Text>
+            <Text>Please wait for a moment or try refreshing the page.</Text>
           </Box>
         </AbsoluteCenter>
       ) : null}
