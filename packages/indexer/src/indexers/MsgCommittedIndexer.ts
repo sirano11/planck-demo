@@ -27,7 +27,7 @@ export default class MsgCommittedIndexer
 
   handle = async (events: MsgCommittedEvent[], historic: boolean) => {
     for (const event of events) {
-      const { asset, amount, chain, sender, actor, data } = event.args;
+      const { asset, amount, chain, sender, data } = event.args;
 
       const tx: Tx = {
         asset: { address: asset, amount },

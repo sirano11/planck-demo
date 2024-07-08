@@ -1,4 +1,5 @@
 import { toHEX } from '@mysten/bcs';
+import { bcs } from '@mysten/sui.js/bcs';
 import { SuiClient, SuiExecutionResult } from '@mysten/sui/client';
 import { Transaction } from '@mysten/sui/transactions';
 
@@ -77,25 +78,27 @@ export const btc_to_lmint = async (
 
 export const simulate_swap = async (
   client: SuiClient,
-  fromAmount: number,
+  fromAmount: bigint,
   fromTypeArgument: string,
   toTypeArgument: string,
-): Promise<SuiExecutionResult[]> => {
+): Promise<bigint> => {
   const tx = new Transaction();
   tx.moveCall({
     target: PROTOCOL.TARGET.MARKET_SIMULATE_SWAP,
-    arguments: [tx.pure.u64(fromAmount)],
+    arguments: [tx.pure.u64(fromAmount), tx.object(PROTOCOL.OBJECT_ID.ORACLE)],
     typeArguments: [fromTypeArgument, toTypeArgument],
   });
 
-  const result = await devInspectAndGetResults(client, tx);
-  return result;
+  const results = await devInspectAndGetResults(client, tx);
+  const result = results[0].returnValues?.[0][0];
+
+  return result ? BigInt(bcs.u64().parse(new Uint8Array(result))) : 0n;
 };
 
 export const simulate_btc_to_lmint = async (
   client: SuiClient,
-  btcAmount: number,
-): Promise<SuiExecutionResult[]> => {
+  btcAmount: bigint,
+): Promise<bigint> => {
   const tx = new Transaction();
   tx.moveCall({
     target: PROTOCOL.TARGET.MARKET_SIMULATE_BTC_TO_LMINT,
@@ -107,14 +110,16 @@ export const simulate_btc_to_lmint = async (
     ],
   });
 
-  const result = await devInspectAndGetResults(client, tx);
+  const results = await devInspectAndGetResults(client, tx);
+  const [result] = parseExecutionResults<[bigint]>(results);
+
   return result;
 };
 
 export const simulate_lmint_to_btc = async (
   client: SuiClient,
-  lmintAmount: number,
-): Promise<SuiExecutionResult[]> => {
+  lmintAmount: bigint,
+): Promise<bigint> => {
   const tx = new Transaction();
   tx.moveCall({
     target: PROTOCOL.TARGET.MARKET_SIMULATE_LMINT_TO_BTC,
@@ -126,7 +131,9 @@ export const simulate_lmint_to_btc = async (
     ],
   });
 
-  const result = await devInspectAndGetResults(client, tx);
+  const results = await devInspectAndGetResults(client, tx);
+  const [result] = parseExecutionResults<[bigint]>(results);
+
   return result;
 };
 
@@ -148,3 +155,22 @@ async function devInspectAndGetResults(
   }
   return resp.results;
 }
+
+// Based on https://github.com/naviprotocol/navi-sdk/blob/387ab3b6dbc8aa1cedcf6cf239c53e161964c3e1/src/libs/CallFunctions/index.ts#L13
+export const parseExecutionResults = <ReturnType extends any[]>(
+  results: SuiExecutionResult[],
+  parseType?: string,
+) => {
+  if (results[0].returnValues && results[0].returnValues.length > 0) {
+    let values: any[] = [];
+    for (let v of results[0].returnValues) {
+      const _type = parseType ? parseType : v[1];
+      let result = bcs.de(_type, Uint8Array.from(v[0]));
+      values.push(result);
+    }
+    return values as ReturnType;
+  }
+  throw new Error(
+    `Failed to parse \`SuiExecutionResult[]\`: ${JSON.stringify(results)}`,
+  );
+};

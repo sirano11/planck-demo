@@ -1,11 +1,19 @@
 import styled from '@emotion/styled';
+import { SuiClient, getFullnodeUrl } from '@mysten/sui/client';
 import { NextPage } from 'next';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { TokenSelector } from '@/components/TokenSelector';
 import { Button } from '@/components/ui/button';
 import { CONTRACTS, TOKENS } from '@/constants/tokens';
+import { PROTOCOL } from '@/helper/sui/config';
+import {
+  simulate_btc_to_lmint,
+  simulate_lmint_to_btc,
+  simulate_swap,
+} from '@/helper/sui/tx-builder';
 import { useTokenBalances } from '@/hooks/useTokenBalances';
+import { atomicsFromFloat, formatRawAmount } from '@/utils/format';
 
 const MintDemoPage: NextPage = () => {
   const [offerCoinAddress, setOfferCoinAddress] = useState<string>(
@@ -16,6 +24,64 @@ const MintDemoPage: NextPage = () => {
   const [estimation, setEstimation] = useState<string>('0');
 
   const { tokenBalances } = useTokenBalances();
+
+  const rpcUrl = getFullnodeUrl('testnet');
+  const client = new SuiClient({ url: rpcUrl });
+
+  useEffect(() => {
+    const parsedInput = parseFloat(inputDraft);
+    if (isNaN(parsedInput)) {
+      setEstimation('0');
+      return;
+    }
+
+    if (offerCoinAddress === askCoinAddress) return;
+
+    (async () => {
+      const inputAtomics = atomicsFromFloat(parsedInput);
+
+      const offer = TOKENS.find((v) => v.address === offerCoinAddress)!;
+      const ask = TOKENS.find((v) => v.address === askCoinAddress)!;
+
+      let est: bigint | null = null;
+      if (offer.category === 'wbtc' && ask.category === 'lmint') {
+        est = await simulate_btc_to_lmint(client, inputAtomics);
+      } else if (offer.category === 'lmint' && ask.category === 'wbtc') {
+        est = await simulate_lmint_to_btc(client, inputAtomics);
+      } else if (offer.category === 'wbtc' && ask.category === 'cash') {
+        est = await simulate_swap(
+          client,
+          await simulate_btc_to_lmint(client, inputAtomics),
+          PROTOCOL.TYPE_ARGUMENT.LIQUID_MINT,
+          ask.typeArgument!,
+        );
+      } else if (offer.category === 'cash' && ask.category === 'wbtc') {
+        est = await simulate_lmint_to_btc(
+          client,
+          await simulate_swap(
+            client,
+            inputAtomics,
+            offer.typeArgument!,
+            PROTOCOL.TYPE_ARGUMENT.LIQUID_MINT,
+          ),
+        );
+      } else {
+        est = await simulate_swap(
+          client,
+          inputAtomics,
+          offer.typeArgument!,
+          ask.typeArgument!,
+        );
+      }
+
+      if (est === null) {
+        setEstimation('0');
+        return;
+      }
+
+      setEstimation(formatRawAmount(est.toString()));
+    })();
+  }, [inputDraft, offerCoinAddress, askCoinAddress]);
 
   return (
     <div
