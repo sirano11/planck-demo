@@ -30,7 +30,7 @@ import { radii } from './foundations/radii';
 
 const config: ThemeConfig = {
   initialColorMode: 'dark',
-  useSystemColorMode: false,
+  useSystemColorMode: true,
 };
 
 export const theme = extendTheme({

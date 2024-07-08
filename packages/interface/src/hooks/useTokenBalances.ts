@@ -34,7 +34,7 @@ export const useTokenBalances = () => {
     );
 
     setTokenBalances(balances);
-  }, [result]);
+  }, [result.data]);
 
   return { tokenBalances, refresh: result.refetch };
 };

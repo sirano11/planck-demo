@@ -52,7 +52,7 @@ export const TokenSelector: React.FC<TokenSelectorProps> = ({
     <Wrapper>
       <Container
         id={id}
-        className="token-selector bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700"
+        className="token-selector bg-white hover:bg-slate-50 dark:bg-slate-800"
         onClick={() => setOpen((prev) => !prev)}
       >
         <TokenInfo>
@@ -70,7 +70,7 @@ export const TokenSelector: React.FC<TokenSelectorProps> = ({
       </Container>
 
       {isOpen && (
-        <SelectCard className="bg-white dark:bg-slate-800 shadow-lg">
+        <SelectCard className="bg-white dark:bg-slate-800">
           {tokens.map((token) => {
             const balance = tokenBalances[token.address];
             return (
@@ -93,15 +93,16 @@ export const TokenSelector: React.FC<TokenSelectorProps> = ({
 };
 
 const Wrapper = styled.div`
-  ${fixedWidth(190)}
-  height: 52px;
+  ${fixedWidth(200)}
+  height: 60px;
   position: relative;
 `;
 
 const Container = styled.div`
-  padding: 0 16px;
+  padding: 0 12px;
   width: 100%;
   height: 100%;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -109,6 +110,12 @@ const Container = styled.div`
   transition: all 0.2s ease;
   cursor: pointer;
   user-select: none;
+
+  box-shadow: 0px 6px 18px 0px rgba(222, 225, 240, 0.48);
+
+  .dark & {
+    box-shadow: 0px 6px 18px 0px #1e293b;
+  }
 `;
 
 const TokenInfo = styled.div`
@@ -119,20 +126,23 @@ const TokenInfo = styled.div`
 `;
 
 const TokenLogo = styled.img`
-  margin-right: 12px;
-  width: 32px;
-  height: 32px;
+  margin-right: 8px;
+  width: 38px;
+  height: 38px;
   object-fit: contain;
   flex-shrink: 0;
 `;
 
 const TokenSymbol = styled.span`
-  font-weight: 600;
-  font-size: 18px;
+  font-weight: 700;
+  font-size: 24px;
   color: #1f2937;
+  letter-spacing: -1.094px;
+
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+
   .dark & {
     color: #f3f4f6;
   }
@@ -153,6 +163,7 @@ const SelectCard = styled.ul`
   border-radius: 12px;
   max-height: 300px;
   overflow-y: auto;
+  box-shadow: 0px 0px 18px 0px rgba(0, 0, 0, 0.2);
 
   /* Chrome, Safari, etc */
   &::-webkit-scrollbar {

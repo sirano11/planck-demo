@@ -19,9 +19,9 @@ export const TokenSelectionItem: React.FC<TokenSelectionItemProps> = ({
   return (
     <Container
       className={cn(
-        'hover:bg-emerald-300 dark:hover:bg-emerald-600',
+        'hover:bg-emerald-100/80 dark:hover:bg-emerald-300/10',
         selected
-          ? 'selected bg-emerald-200 dark:bg-emerald-700'
+          ? 'selected bg-emerald-200 dark:bg-emerald-200/20'
           : 'bg-white dark:bg-slate-800',
       )}
       onClick={onClick}
@@ -48,14 +48,12 @@ const Container = styled.li`
   transition: all 0.2s ease;
   cursor: pointer;
 
-  &.selected {
-    font-weight: 600;
-  }
-
   span.symbol {
     font-size: 16px;
+    font-weight: 500;
     line-height: 130%;
     color: #1f2937;
+
     .dark & {
       color: #f3f4f6;
     }
@@ -63,11 +61,13 @@ const Container = styled.li`
 
   span.balance {
     font-size: 14px;
+    font-weight: 500;
     line-height: 130%;
     color: #6b7280;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+
     .dark & {
       color: #9ca3af;
     }
