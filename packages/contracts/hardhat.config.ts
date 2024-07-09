@@ -12,13 +12,48 @@ dotenv.config();
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
 task('accounts', 'Prints the list of accounts', async (taskArgs, hre) => {
-  // @ts-ignore
   const accounts = await hre.ethers.getSigners();
 
   for (const account of accounts) {
     console.log(account.address);
   }
 });
+
+task('faucet', 'Mint a given BridgeToken to a user address')
+  .addParam('tokenAddress', 'Address of BridgeToken')
+  .addParam(
+    'userAddress',
+    'Address of recipient (default is deployer)',
+    undefined,
+    undefined,
+    true,
+  ) // isOptional
+  .addParam('amount', 'Amount to mint', BigInt(1 * 10 ** 8).toString())
+  .setAction(
+    async (taskArgs: { tokenAddress?: string; userAddress?: string }, hre) => {
+      const [deployer] = await hre.ethers.getSigners();
+      const {
+        tokenAddress,
+        userAddress = deployer.address,
+        amount,
+      } = taskArgs as {
+        tokenAddress?: string;
+        userAddress?: string;
+        amount: string;
+      };
+      if (!tokenAddress) {
+        throw new Error('tokenAddress is required');
+      }
+
+      const bridgeToken = await hre.ethers.getContractAt(
+        'BridgeToken',
+        tokenAddress,
+      );
+      const tx = await bridgeToken.connect(deployer).mint(userAddress, amount);
+      const receipt = await tx.wait();
+      console.log(receipt);
+    },
+  );
 
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
