@@ -1,7 +1,8 @@
 import styled from '@emotion/styled';
 import { SuiClient, getFullnodeUrl } from '@mysten/sui/client';
 import { NextPage } from 'next';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { formatUnits } from 'viem';
 
 import { TokenSelector } from '@/components/TokenSelector';
 import { Button } from '@/components/ui/button';
@@ -16,10 +17,12 @@ import { useTokenBalances } from '@/hooks/useTokenBalances';
 import { atomicsFromFloat, formatRawAmount } from '@/utils/format';
 
 const MintDemoPage: NextPage = () => {
-  const [offerCoinAddress, setOfferCoinAddress] = useState<string>(
+  const [offerCoinAddress, setOfferCoinAddress] = useState<`0x${string}`>(
     CONTRACTS.wBTC,
   );
-  const [askCoinAddress, setAskCoinAddress] = useState<string>(CONTRACTS.lMINT);
+  const [askCoinAddress, setAskCoinAddress] = useState<`0x${string}`>(
+    CONTRACTS.lMINT,
+  );
   const [inputDraft, setInputDraft] = useState<string>('1');
   const [estimation, setEstimation] = useState<string>('0');
 
@@ -28,40 +31,54 @@ const MintDemoPage: NextPage = () => {
   const rpcUrl = getFullnodeUrl('testnet');
   const client = new SuiClient({ url: rpcUrl });
 
+  const offerCoin = useMemo(
+    () => TOKENS.find((v) => v.address === offerCoinAddress)!,
+    [offerCoinAddress],
+  );
+  const askCoin = useMemo(
+    () => TOKENS.find((v) => v.address === askCoinAddress)!,
+    [askCoinAddress],
+  );
+
   useEffect(() => {
     const parsedInput = parseFloat(inputDraft);
     if (isNaN(parsedInput)) {
       setEstimation('0');
       return;
     }
+    if (parsedInput <= 0) {
+      setEstimation('0');
+      return;
+    }
 
-    if (offerCoinAddress === askCoinAddress) return;
+    if (offerCoin.address === askCoin.address) return;
 
+    // TODO: Add error handling on simulation failure
     (async () => {
       const inputAtomics = atomicsFromFloat(parsedInput);
 
-      const offer = TOKENS.find((v) => v.address === offerCoinAddress)!;
-      const ask = TOKENS.find((v) => v.address === askCoinAddress)!;
-
       let est: bigint | null = null;
-      if (offer.category === 'wbtc' && ask.category === 'lmint') {
+      if (offerCoin.category === 'wbtc' && askCoin.category === 'lmint') {
         est = await simulate_btc_to_lmint(client, inputAtomics);
-      } else if (offer.category === 'lmint' && ask.category === 'wbtc') {
+      } else if (
+        offerCoin.category === 'lmint' &&
+        askCoin.category === 'wbtc'
+      ) {
         est = await simulate_lmint_to_btc(client, inputAtomics);
-      } else if (offer.category === 'wbtc' && ask.category === 'cash') {
+      } else if (offerCoin.category === 'wbtc' && askCoin.category === 'cash') {
         est = await simulate_swap(
           client,
           await simulate_btc_to_lmint(client, inputAtomics),
           PROTOCOL.TYPE_ARGUMENT.LIQUID_MINT,
-          ask.typeArgument!,
+          askCoin.typeArgument!,
         );
-      } else if (offer.category === 'cash' && ask.category === 'wbtc') {
+      } else if (offerCoin.category === 'cash' && askCoin.category === 'wbtc') {
         est = await simulate_lmint_to_btc(
           client,
           await simulate_swap(
             client,
             inputAtomics,
-            offer.typeArgument!,
+            offerCoin.typeArgument!,
             PROTOCOL.TYPE_ARGUMENT.LIQUID_MINT,
           ),
         );
@@ -69,8 +86,8 @@ const MintDemoPage: NextPage = () => {
         est = await simulate_swap(
           client,
           inputAtomics,
-          offer.typeArgument!,
-          ask.typeArgument!,
+          offerCoin.typeArgument!,
+          askCoin.typeArgument!,
         );
       }
 
@@ -81,48 +98,110 @@ const MintDemoPage: NextPage = () => {
 
       setEstimation(formatRawAmount(est.toString()));
     })();
-  }, [inputDraft, offerCoinAddress, askCoinAddress]);
+  }, [inputDraft, offerCoin, askCoin]);
 
   return (
     <div
       className={`w-full min-h-screen bg-background flex justify-center items-center`}
     >
       <div className="w-full max-w-[525px] mx-auto gap-[10px] flex flex-col">
-        <div className="flex items-center w-full gap-4 px-3.5 py-3.5 bg-slate-100 dark:bg-slate-700 rounded-2xl">
-          <div className="flex flex-col w-full">
-            <Field htmlFor="from-token">
-              {offerCoinAddress === 'wbtc' ? 'You deposit' : 'You burn'}
-            </Field>
-            <Input
-              id="from-token"
-              value={inputDraft}
-              onChange={(e) => setInputDraft(e.target.value)}
+        <TokenInputContainer>
+          <div className="flex items-center gap-4">
+            <div className="flex flex-col w-full">
+              <Field htmlFor="from-token">
+                {offerCoinAddress === CONTRACTS.wBTC
+                  ? 'You deposit'
+                  : 'You burn'}
+              </Field>
+              <Input
+                id="from-token"
+                value={inputDraft}
+                onChange={(e) => setInputDraft(e.target.value)}
+              />
+            </div>
+            <TokenSelector
+              id="offer"
+              selectedToken={offerCoin}
+              tokens={TOKENS}
+              onChange={setOfferCoinAddress}
+              tokenBalances={tokenBalances}
             />
           </div>
-          <TokenSelector
-            id="offer"
-            selectedToken={TOKENS.find((v) => v.address === offerCoinAddress)!}
-            tokens={TOKENS}
-            onChange={setOfferCoinAddress}
-            tokenBalances={tokenBalances}
-          />
-        </div>
+          <div className="w-full flex items-center justify-between">
+            {/* TODO: Show token valuation */}
+            <span />
 
-        <div className="flex items-center w-full gap-4 px-3.5 py-3.5 bg-slate-100 dark:bg-slate-700 rounded-2xl">
-          <div className="flex flex-col w-full">
-            <Field htmlFor="to-token">
-              {askCoinAddress === 'wbtc' ? 'You receive' : 'You mint'}
-            </Field>
-            <Input id="to-token" value={estimation} disabled />
+            <TokenBalance>
+              Balance:{' '}
+              <button
+                className="underline"
+                onClick={() => {
+                  setInputDraft(
+                    formatUnits(
+                      tokenBalances[offerCoinAddress] ?? 0n,
+                      offerCoin.decimals,
+                    ),
+                  );
+                }}
+              >
+                {typeof tokenBalances[offerCoinAddress] === 'undefined'
+                  ? '-'
+                  : formatUnits(
+                      tokenBalances[offerCoinAddress],
+                      offerCoin.decimals,
+                    )}
+              </button>
+            </TokenBalance>
           </div>
-          <TokenSelector
-            id="ask"
-            selectedToken={TOKENS.find((v) => v.address === askCoinAddress)!}
-            tokens={TOKENS}
-            onChange={setAskCoinAddress}
-            tokenBalances={tokenBalances}
-          />
-        </div>
+        </TokenInputContainer>
+
+        <TokenInputContainer>
+          <div className="flex items-center gap-4">
+            <div className="flex flex-col w-full">
+              <Field htmlFor="to-token">
+                {askCoinAddress === CONTRACTS.wBTC ? 'You receive' : 'You mint'}
+              </Field>
+              <Input id="to-token" value={estimation} disabled />
+            </div>
+            <TokenSelector
+              id="ask"
+              selectedToken={askCoin}
+              tokens={TOKENS}
+              onChange={setAskCoinAddress}
+              tokenBalances={tokenBalances}
+            />
+          </div>
+          <div className="w-full flex items-center justify-between">
+            {/* TODO: Show token valuation */}
+            <span />
+
+            <TokenBalance>
+              Balance:{' '}
+              <button
+                className="underline"
+                onClick={() => {
+                  // change (swap) between offer and ask
+                  setOfferCoinAddress(askCoinAddress);
+                  setAskCoinAddress(offerCoinAddress);
+
+                  setInputDraft(
+                    formatUnits(
+                      tokenBalances[askCoinAddress] ?? 0n,
+                      askCoin.decimals,
+                    ),
+                  );
+                }}
+              >
+                {typeof tokenBalances[askCoinAddress] === 'undefined'
+                  ? '-'
+                  : formatUnits(
+                      tokenBalances[askCoinAddress],
+                      askCoin.decimals,
+                    )}
+              </button>
+            </TokenBalance>
+          </div>
+        </TokenInputContainer>
 
         <Button className="w-full py-8 text-[22px] font-bold bg-emerald-300 hover:bg-emerald-400 text-slate-800    rounded-[12px] transition-colors duration-200">
           {offerCoinAddress === askCoinAddress
@@ -139,6 +218,24 @@ const MintDemoPage: NextPage = () => {
 };
 
 export default MintDemoPage;
+
+const TokenInputContainer = styled.div`
+  width: 100%;
+  padding: 14px;
+  background-color: #f1f5f9;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+
+  border-radius: 16px;
+
+  .dark & {
+    background-color: #334155;
+  }
+`;
 
 const Field = styled.label`
   font-size: 19px;
@@ -165,5 +262,17 @@ const Input = styled.input`
 
   .dark & {
     color: #fff;
+  }
+`;
+
+const TokenBalance = styled.span`
+  color: #8a8f9d;
+  text-align: right;
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: -0.593px;
+
+  .dark & {
+    color: #94a3b8;
   }
 `;

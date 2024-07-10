@@ -10,7 +10,7 @@ type TokenSelectorProps = {
   id: string;
   selectedToken: Token;
   tokens: Token[];
-  onChange: (value: string) => void;
+  onChange: (value: `0x${string}`) => void;
   tokenBalances: Record<`0x${string}`, bigint>;
 };
 
