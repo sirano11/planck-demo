@@ -13,17 +13,18 @@ import {
   useColorMode,
   useDisclosure,
 } from '@chakra-ui/react';
-// import { ApiV3Token, SOL_INFO, TokenInfo } from '@raydium-io/raydium-sdk-v2';
+import { ApiV3Token, SOL_INFO, TokenInfo } from '@raydium-io/raydium-sdk-v2';
 import Decimal from 'decimal.js';
 import React, { ReactNode, useEffect, useState } from 'react';
+import { formatUnits } from 'viem';
 
-// import { toastSubject } from '@/raydium/hooks/toast/useGlobalToast';
+import { Token } from '@/constants/tokens';
+import { useTokenBalances } from '@/hooks/useTokenBalances';
 // import useTokenPrice from '@/raydium/hooks/token/useTokenPrice';
 import { useEvent } from '@/raydium/hooks/useEvent';
 import BalanceWalletIcon from '@/raydium/icons/misc/BalanceWalletIcon';
 import ChevronDownIcon from '@/raydium/icons/misc/ChevronDownIcon';
 import { colors } from '@/raydium/theme/cssVariables';
-// import { useAppStore, useTokenAccountStore, useTokenStore } from '@/store';
 import {
   formatCurrency,
   formatToRawLocaleStr,
@@ -63,8 +64,9 @@ interface TokenInputProps {
    * - upper grid py: 10px
    */
   size?: 'md' | 'sm';
-  // FIXME:
-  token?: { decimals: number; address: string };
+  // FIXME: ?
+  token?: Token;
+  // token?: { decimals: number; address: string };
   /** <NumberInput> is disabled */
   readonly?: boolean;
   loading?: boolean;
@@ -96,7 +98,7 @@ interface TokenInputProps {
   topBlockSx?: StackProps;
   onChange?: (val: string) => void;
   /** for library:fomik  */
-  // onTokenChange?: (token: TokenInfo | ApiV3Token) => void;
+  onTokenChange?: (token: TokenInfo | ApiV3Token) => void;
   onFocus?: () => void;
 
   // defaultUnknownToken?: TokenInfo;
@@ -126,7 +128,7 @@ function TokenInput(props: TokenInputProps) {
       <BalanceWalletIcon color={colors.textTertiary} />
     ),
     onChange,
-    // onTokenChange,
+    onTokenChange,
     onFocus,
     // filterFn,
     topLeftLabel,
@@ -143,6 +145,7 @@ function TokenInput(props: TokenInputProps) {
   // const isMobile = useAppStore((s) => s.isMobile);
   // const setExtraTokenListAct = useTokenStore((s) => s.setExtraTokenListAct);
   // const whiteListMap = useTokenStore((s) => s.whiteListMap);
+
   const { colorMode } = useColorMode();
   const isLight = colorMode === 'light';
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -190,8 +193,8 @@ function TokenInput(props: TokenInputProps) {
 
   // price
   // const tokenMap = useTokenStore((s) => s.tokenMap);
-  // const token =
-  // typeof inputToken === 'string' ? tokenMap.get(inputToken) : inputToken;
+  const { tokenBalances } = useTokenBalances();
+  // const token = typeof inputToken === 'string' ? tokenMap.get(inputToken) : inputToken;
   const token = inputToken;
   // const { data: tokenPrice } = useTokenPrice({
   //   mintList: [token?.address],
@@ -210,7 +213,11 @@ function TokenInput(props: TokenInputProps) {
   //   mint: token?.address || '',
   //   decimals: token?.decimals,
   // });
+
   // const balanceAmount = balanceInfo.amount;
+
+  const tokenAmount = tokenBalances[token?.address!];
+
   // const balanceMaxString = hideBalance
   //   ? null
   //   : trimTrailZero(
@@ -250,12 +257,12 @@ function TokenInput(props: TokenInputProps) {
   //   return trimTrailZero(decimal.toFixed(token.decimals))!;
   // });
 
-  // const handleClickMax = useEvent(() => {
-  //   if (disableClickBalance) return;
-  //   if (!maxString) return;
-  //   handleFocus();
-  //   onChange?.(getBalanceString(maxString));
-  // });
+  const handleClickMax = useEvent(() => {
+    if (disableClickBalance) return;
+    // if (!maxString) return;
+    handleFocus();
+    onChange?.(String(tokenAmount));
+  });
 
   // const handleClickHalf = useEvent(() => {
   //   if (!maxString) return;
@@ -282,12 +289,14 @@ function TokenInput(props: TokenInputProps) {
   //   if (isFreeze) {
   //     setFreezeToken(token);
   //   }
+
   //   const shouldShowUnknownTokenConfirm = isUnknownToken(token);
   //   if (shouldShowUnknownTokenConfirm) {
   //     setUnknownToken(token);
   //     onOpenUnknownTokenConfirm();
   //     return;
   //   }
+
   //   if (isFreeze) {
   //     if (name === 'swap') {
   //       onOpenFreezeTokenConfirm();
@@ -339,27 +348,27 @@ function TokenInput(props: TokenInputProps) {
   //   onClose();
   // });
 
-  // const handleParseVal = useEvent((propVal: string) => {
-  //   const val =
-  //     propVal.match(new RegExp(`[0-9${decimalSeparator}]`, 'gi'))?.join('') ||
-  //     '';
-  //   if (!val) return '';
-  //   const splitArr = val.split(decimalSeparator);
-  //   if (splitArr.length > 2) return [splitArr[0], splitArr[1]].join('.');
-  //   if (token && splitArr[1] && splitArr[1].length > token.decimals) {
-  //     return [splitArr[0], splitArr[1].substring(0, token.decimals)].join('.');
-  //   }
-  //   return val === decimalSeparator ? '0.' : val.replace(decimalSeparator, '.');
-  //   // const val = propVal.match(/[0-9.]/gi)?.join('') || ''
-  //   // if (!val) return ''
-  //   // const splitArr = val.split('.')
-  //   // if (splitArr.length > 2) return [splitArr[0], splitArr[1]].join('.')
-  //   // if (token && splitArr[1] && splitArr[1].length > token.decimals) {
-  //   //   //.replace(/([1-9]+(\.[0-9]+[1-9])?)(\.?0+$)/, '$1')
-  //   //   return [splitArr[0], splitArr[1].substring(0, token.decimals)].join('.')
-  //   // }
-  //   // return val === '.' ? '0.' : val
-  // });
+  const handleParseVal = useEvent((propVal: string) => {
+    const val =
+      propVal.match(new RegExp(`[0-9${decimalSeparator}]`, 'gi'))?.join('') ||
+      '';
+    if (!val) return '';
+    const splitArr = val.split(decimalSeparator);
+    if (splitArr.length > 2) return [splitArr[0], splitArr[1]].join('.');
+    if (token && splitArr[1] && splitArr[1].length > token.decimals) {
+      return [splitArr[0], splitArr[1].substring(0, token.decimals)].join('.');
+    }
+    return val === decimalSeparator ? '0.' : val.replace(decimalSeparator, '.');
+    // const val = propVal.match(/[0-9.]/gi)?.join('') || ''
+    // if (!val) return ''
+    // const splitArr = val.split('.')
+    // if (splitArr.length > 2) return [splitArr[0], splitArr[1]].join('.')
+    // if (token && splitArr[1] && splitArr[1].length > token.decimals) {
+    //   //.replace(/([1-9]+(\.[0-9]+[1-9])?)(\.?0+$)/, '$1')
+    //   return [splitArr[0], splitArr[1].substring(0, token.decimals)].join('.')
+    // }
+    // return val === '.' ? '0.' : val
+  });
 
   // useEffect(() => {
   //   if (!defaultUnknownToken) return;
@@ -401,7 +410,7 @@ function TokenInput(props: TokenInputProps) {
         <Spacer />
 
         {/* balance */}
-        {/* {!hideBalance && maxString && (
+        {!hideBalance && (
           <HStack spacing={0.5} color={colors.textTertiary} fontSize="sm">
             {renderTopRightPrefixLabel()}
             <Text
@@ -416,10 +425,12 @@ function TokenInput(props: TokenInputProps) {
                 textUnderlineOffset: '2px',
               }}
             >
-              {formatCurrency(maxString, { decimalPlaces: token?.decimals })}
+              {typeof tokenAmount === 'undefined'
+                ? '-' // 값이 없을 땐 0 과 구별해서 표시
+                : formatUnits(tokenAmount, token?.decimals!)}
             </Text>
           </HStack>
-        )} */}
+        )}
 
         {/* buttons */}
         {/* {hideControlButton ? null : (
@@ -485,8 +496,7 @@ function TokenInput(props: TokenInputProps) {
               />
             )}
             <Text color={isLight ? colors.secondary : colors.textPrimary}>
-              {/* {token?.symbol || ' '} */}
-              SOL
+              {token?.symbol || ' '}
             </Text>
             {disableSelectToken ? undefined : (
               <ChevronDownIcon width={20} height={20} />
@@ -505,7 +515,7 @@ function TokenInput(props: TokenInputProps) {
               variant="number"
               sx={{ '& input[inputmode=decimal]': { opacity: 1 } }}
               onChange={(e) => {
-                // onChange?.(handleParseVal(e?.currentTarget?.value || ''));
+                onChange?.(handleParseVal(e?.currentTarget?.value || ''));
               }}
               onFocus={handleFocus}
               isDisabled={readonly || loading}

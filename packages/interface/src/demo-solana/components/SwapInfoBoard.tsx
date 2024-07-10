@@ -2,6 +2,7 @@ import { Box, Collapse, Flex, HStack, Skeleton, Text } from '@chakra-ui/react';
 import { Fragment, RefObject, useRef, useState } from 'react';
 import { ChevronDown } from 'react-feather';
 
+import { Token } from '@/constants/tokens';
 import AddressChip from '@/raydium/components/AddressChip';
 import IntervalCircle, {
   IntervalCircleHandler,
@@ -21,15 +22,15 @@ import { ApiSwapV1OutSuccess } from '../type';
 
 export function SwapInfoBoard({
   amountIn,
-  // tokenInput,
-  // tokenOutput,
+  tokenInput,
+  tokenOutput,
   // isComputing,
   // computedSwapResult,
   // onRefresh,
 }: {
   amountIn: string;
-  // tokenInput?: TokenInfo;
-  // tokenOutput?: TokenInfo;
+  tokenInput?: Token;
+  tokenOutput?: Token;
   // isComputing: boolean;
   // computedSwapResult?: ApiSwapV1OutSuccess['data'];
   // onRefresh: () => void;

@@ -4,7 +4,8 @@ type TokenParameters = {
   initialSupply: bigint;
   decimals: number;
 };
-export const tokens: TokenParameters[] = [
+
+export const TOKENS: TokenParameters[] = [
   {
     name: 'Wrapped Bitcoin',
     symbol: 'wBTC',
