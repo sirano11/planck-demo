@@ -2,7 +2,7 @@ import styled from '@emotion/styled';
 import { CoinStruct, SuiClient, getFullnodeUrl } from '@mysten/sui/client';
 import { NextPage } from 'next';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Address, formatUnits } from 'viem';
+import { Address, formatUnits, parseUnits } from 'viem';
 
 import { TokenSelector } from '@/components/TokenSelector';
 import { Button } from '@/components/ui/button';
@@ -25,7 +25,6 @@ import {
   swap,
 } from '@/helper/sui/tx-builder';
 import { useTokenBalances } from '@/hooks/useTokenBalances';
-import { atomicsFromFloat, formatRawAmount } from '@/utils/format';
 
 const MintDemoPage: NextPage = () => {
   const [offerCoinAddress, setOfferCoinAddress] = useState<Address>(
@@ -66,7 +65,10 @@ const MintDemoPage: NextPage = () => {
 
     // TODO: Add error handling on simulation failure
     (async () => {
-      const inputAtomics = atomicsFromFloat(parsedInput);
+      const inputAtomics = parseUnits(
+        parsedInput.toString(),
+        offerCoin.decimals,
+      );
 
       let est: bigint | null = null;
       if (offerCoin.category === 'wbtc' && askCoin.category === 'lmint') {
@@ -107,7 +109,7 @@ const MintDemoPage: NextPage = () => {
         return;
       }
 
-      setEstimation(formatRawAmount(est.toString()));
+      setEstimation(formatUnits(est, askCoin.decimals));
     })();
   }, [inputDraft, offerCoin, askCoin]);
 
@@ -116,10 +118,10 @@ const MintDemoPage: NextPage = () => {
     if (isNaN(parsedInput)) {
       return;
     }
-    const inputAtomics = atomicsFromFloat(parsedInput);
 
     const offer = TOKENS.find((v) => v.address === offerCoinAddress)!;
     const ask = TOKENS.find((v) => v.address === askCoinAddress)!;
+    const inputAtomics = parseUnits(parsedInput.toString(), offer.decimals);
 
     const actorAddress = '0xadf'; // FIXME: get actor address by querying
 
