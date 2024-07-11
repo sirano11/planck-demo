@@ -26,6 +26,8 @@ import {
 } from '@/helper/sui/tx-builder';
 import { useTokenBalances } from '@/hooks/useTokenBalances';
 
+const SUI_TOKENS = TOKENS.filter((v) => v.chain === ChainIdentifier.Sui);
+
 const MintDemoPage: NextPage = () => {
   const [offerCoinAddress, setOfferCoinAddress] = useState<Address>(
     TOKEN_ADDRESS.wBTC,
@@ -232,7 +234,7 @@ const MintDemoPage: NextPage = () => {
             <TokenSelector
               id="offer"
               selectedToken={offerCoin}
-              tokens={TOKENS}
+              tokens={SUI_TOKENS}
               onChange={setOfferCoinAddress}
               tokenBalances={tokenBalances}
             />
@@ -278,7 +280,7 @@ const MintDemoPage: NextPage = () => {
             <TokenSelector
               id="ask"
               selectedToken={askCoin}
-              tokens={TOKENS}
+              tokens={SUI_TOKENS}
               onChange={setAskCoinAddress}
               tokenBalances={tokenBalances}
             />

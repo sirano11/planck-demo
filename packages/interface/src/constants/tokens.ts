@@ -1,6 +1,6 @@
 import { Address } from 'viem';
 
-import { TOKEN_ADDRESS } from '@/helper/eth/config';
+import { ChainIdentifier, TOKEN_ADDRESS } from '@/helper/eth/config';
 import { PROTOCOL } from '@/helper/sui/config';
 
 import { CONTRACTS } from './contracts';
@@ -16,6 +16,7 @@ export type Token = {
   logo?: string;
   typeArgument?: string;
   supplyId?: string;
+  chain: ChainIdentifier;
 };
 
 export const TOKENS: Token[] = [
@@ -25,6 +26,7 @@ export const TOKENS: Token[] = [
     address: TOKEN_ADDRESS.wBTC,
     decimals: 8,
     logo: '/assets/bitcoin.png',
+    chain: ChainIdentifier.Sui,
   },
   {
     symbol: 'MINT',
@@ -34,6 +36,7 @@ export const TOKENS: Token[] = [
     logo: '/assets/mint.png',
     typeArgument: PROTOCOL.TYPE_ARGUMENT.LIQUID_MINT,
     supplyId: PROTOCOL.OBJECT_ID.SUPPLY_LIQUID_MINT,
+    chain: ChainIdentifier.Sui,
   },
   {
     symbol: 'cashSDR',
@@ -43,6 +46,7 @@ export const TOKENS: Token[] = [
     logo: '/assets/cash-sdr.png',
     typeArgument: PROTOCOL.TYPE_ARGUMENT.CASH_SDR,
     supplyId: PROTOCOL.OBJECT_ID.SUPPLY_SDR,
+    chain: ChainIdentifier.Sui,
   },
   {
     symbol: 'cashLIVRE',
@@ -52,6 +56,7 @@ export const TOKENS: Token[] = [
     logo: '/assets/cash-livre.png',
     typeArgument: PROTOCOL.TYPE_ARGUMENT.CASH_LIVRE,
     supplyId: PROTOCOL.OBJECT_ID.SUPPLY_LIVRE,
+    chain: ChainIdentifier.Sui,
   },
   {
     symbol: 'cashKRW',
@@ -61,6 +66,7 @@ export const TOKENS: Token[] = [
     logo: '/assets/cash-krw.png',
     typeArgument: PROTOCOL.TYPE_ARGUMENT.CASH_KRW,
     supplyId: PROTOCOL.OBJECT_ID.SUPPLY_KRW,
+    chain: ChainIdentifier.Sui,
   },
   {
     symbol: 'cashJPY',
@@ -70,17 +76,20 @@ export const TOKENS: Token[] = [
     logo: '/assets/cash-jpy.png',
     typeArgument: PROTOCOL.TYPE_ARGUMENT.CASH_JPY,
     supplyId: PROTOCOL.OBJECT_ID.SUPPLY_JPY,
+    chain: ChainIdentifier.Sui,
   },
   {
     symbol: 'wSOL',
     category: 'wsol',
     address: CONTRACTS.wSOL,
     decimals: 9,
+    chain: ChainIdentifier.Solana,
   },
   {
     symbol: 'wMEME',
     category: 'wmeme',
     address: CONTRACTS.wMEME,
     decimals: 9,
+    chain: ChainIdentifier.Solana,
   },
 ];
