@@ -6,7 +6,7 @@ import { formatUnits } from 'viem';
 
 import { TokenSelector } from '@/components/TokenSelector';
 import { Button } from '@/components/ui/button';
-import { CONTRACTS, TOKENS } from '@/constants/tokens';
+import { CONTRACTS, TOKENS } from '@/constants';
 import { PROTOCOL } from '@/helper/sui/config';
 import {
   simulate_btc_to_lmint,
