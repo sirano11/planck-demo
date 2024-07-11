@@ -1,9 +1,7 @@
 import { Queue } from 'bullmq';
-import { BigNumber } from 'ethers';
 import { MsgCommittedEvent } from 'planck-demo-contracts/typechain/Hub';
-import * as redis from 'redis';
 
-import { QUEUE_CONFIG, QUEUE_NAME } from '@/config';
+import { QUEUE_NAME } from '@/config';
 import { ChainIdentifier, Tx } from '@/consumers/Consumer';
 
 import IndexerBase from './IndexerBase';

@@ -8,11 +8,9 @@ import { config } from '@/constants/wagmi';
 export async function commit(
   contractAddress: Address,
   asset: Address,
-  amount: string,
+  amountAtomics: bigint,
   chain: number,
-  sender: Address,
-  actor: string,
-  data: string,
+  data: Uint8Array,
 ) {
   const { writeContractAsync } = useWriteContract();
   try {
@@ -20,7 +18,12 @@ export async function commit(
       address: contractAddress,
       abi: Hub__factory.abi,
       functionName: 'commit',
-      args: [asset, parseEther(amount), chain, sender, actor, data],
+      args: [
+        asset,
+        amountAtomics,
+        chain,
+        `0x${data.reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '')}`,
+      ],
     });
 
     const receipt = await waitForTransactionReceipt(config, { hash });

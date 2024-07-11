@@ -1,27 +1,38 @@
 import styled from '@emotion/styled';
-import { SuiClient, getFullnodeUrl } from '@mysten/sui/client';
+import { CoinStruct, SuiClient, getFullnodeUrl } from '@mysten/sui/client';
 import { NextPage } from 'next';
-import { useEffect, useMemo, useState } from 'react';
-import { formatUnits } from 'viem';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Address, formatUnits } from 'viem';
 
 import { TokenSelector } from '@/components/TokenSelector';
 import { Button } from '@/components/ui/button';
-import { CONTRACTS, TOKENS } from '@/constants';
+import { TOKENS } from '@/constants/tokens';
+import {
+  ChainIdentifier,
+  HUB_CONTRACT_ADDRESS,
+  TOKEN_ADDRESS,
+} from '@/helper/eth/config';
+import { commit } from '@/helper/eth/hub-builder';
 import { PROTOCOL } from '@/helper/sui/config';
 import {
+  btc_to_cash,
+  btc_to_lmint,
+  cash_to_btc,
+  lmint_to_btc,
   simulate_btc_to_lmint,
   simulate_lmint_to_btc,
   simulate_swap,
+  swap,
 } from '@/helper/sui/tx-builder';
 import { useTokenBalances } from '@/hooks/useTokenBalances';
 import { atomicsFromFloat, formatRawAmount } from '@/utils/format';
 
 const MintDemoPage: NextPage = () => {
-  const [offerCoinAddress, setOfferCoinAddress] = useState<`0x${string}`>(
-    CONTRACTS.wBTC,
+  const [offerCoinAddress, setOfferCoinAddress] = useState<Address>(
+    TOKEN_ADDRESS.wBTC,
   );
-  const [askCoinAddress, setAskCoinAddress] = useState<`0x${string}`>(
-    CONTRACTS.lMINT,
+  const [askCoinAddress, setAskCoinAddress] = useState<Address>(
+    TOKEN_ADDRESS.lMINT,
   );
   const [inputDraft, setInputDraft] = useState<string>('1');
   const [estimation, setEstimation] = useState<string>('0');
@@ -100,6 +111,103 @@ const MintDemoPage: NextPage = () => {
     })();
   }, [inputDraft, offerCoin, askCoin]);
 
+  const onClickSwap = useCallback(async () => {
+    const parsedInput = parseFloat(inputDraft);
+    if (isNaN(parsedInput)) {
+      return;
+    }
+    const inputAtomics = atomicsFromFloat(parsedInput);
+
+    const offer = TOKENS.find((v) => v.address === offerCoinAddress)!;
+    const ask = TOKENS.find((v) => v.address === askCoinAddress)!;
+
+    const actorAddress = '0xadf'; // FIXME: get actor address by querying
+
+    let nextCursor: string | null | undefined;
+    let offerCoins: CoinStruct[] = [];
+    let offerCoinTotal = 0n;
+    do {
+      const coins = await client.getCoins({
+        owner: actorAddress,
+        cursor: nextCursor,
+        coinType: offer.typeArgument,
+      });
+
+      offerCoins = [...offerCoins, ...coins.data];
+      offerCoinTotal += coins.data.reduce(
+        (acc, v) => acc + BigInt(v.balance),
+        0n,
+      );
+
+      nextCursor = coins.hasNextPage ? coins.nextCursor : undefined;
+    } while (nextCursor);
+
+    if (offerCoins.length === 0) {
+      console.log('No coin found in actor wallet');
+      return;
+    }
+
+    const offerCoinObjectIds = offerCoins.map((v) => v.coinObjectId);
+
+    let rawTx: Uint8Array | undefined;
+    if (offer.category === 'wbtc' && ask.category === 'lmint') {
+      rawTx = await btc_to_lmint(
+        client,
+        offerCoinObjectIds,
+        offerCoinTotal,
+        inputAtomics,
+        0n,
+        actorAddress,
+      );
+    } else if (offer.category === 'lmint' && ask.category === 'wbtc') {
+      rawTx = await lmint_to_btc(
+        client,
+        offerCoinObjectIds,
+        inputAtomics,
+        0n,
+        actorAddress,
+      );
+    } else if (offer.category === 'wbtc' && ask.category === 'cash') {
+      rawTx = await btc_to_cash(
+        client,
+        offerCoinObjectIds,
+        offerCoinTotal,
+        inputAtomics,
+        ask.supplyId!,
+        ask.typeArgument!,
+        actorAddress,
+      );
+    } else if (offer.category === 'cash' && ask.category === 'wbtc') {
+      rawTx = await cash_to_btc(
+        client,
+        offerCoinObjectIds,
+        inputAtomics,
+        offer.supplyId!,
+        offer.typeArgument!,
+        actorAddress,
+      );
+    } else {
+      rawTx = await swap(
+        client,
+        offer.supplyId!,
+        ask.supplyId!,
+        offerCoinObjectIds,
+        inputAtomics,
+        offer.typeArgument!,
+        ask.typeArgument!,
+        actorAddress,
+      );
+    }
+
+    await commit(
+      HUB_CONTRACT_ADDRESS,
+      offerCoinAddress,
+      inputAtomics,
+      ChainIdentifier.Ethereum,
+      rawTx,
+    );
+  }, [inputDraft, offerCoinAddress, askCoinAddress]);
+
   return (
     <div
       className={`w-full min-h-screen bg-background flex justify-center items-center`}
@@ -109,7 +217,7 @@ const MintDemoPage: NextPage = () => {
           <div className="flex items-center gap-4">
             <div className="flex flex-col w-full">
               <Field htmlFor="from-token">
-                {offerCoinAddress === CONTRACTS.wBTC
+                {offerCoinAddress === TOKEN_ADDRESS.wBTC
                   ? 'You deposit'
                   : 'You burn'}
               </Field>
@@ -159,7 +267,9 @@ const MintDemoPage: NextPage = () => {
           <div className="flex items-center gap-4">
             <div className="flex flex-col w-full">
               <Field htmlFor="to-token">
-                {askCoinAddress === CONTRACTS.wBTC ? 'You receive' : 'You mint'}
+                {askCoinAddress === TOKEN_ADDRESS.wBTC
+                  ? 'You receive'
+                  : 'You mint'}
               </Field>
               <Input id="to-token" value={estimation} disabled />
             </div>
@@ -203,12 +313,15 @@ const MintDemoPage: NextPage = () => {
           </div>
         </TokenInputContainer>
 
-        <Button className="w-full py-8 text-[22px] font-bold bg-emerald-300 hover:bg-emerald-400 text-slate-800    rounded-[12px] transition-colors duration-200">
+        <Button
+          onClick={onClickSwap}
+          className="w-full py-8 text-[22px] font-bold bg-emerald-300 hover:bg-emerald-400 text-slate-800 rounded-[12px] transition-colors duration-200"
+        >
           {offerCoinAddress === askCoinAddress
             ? 'Invalid Route'
-            : offerCoinAddress === CONTRACTS.wBTC
+            : offerCoinAddress === TOKEN_ADDRESS.wBTC
               ? 'Deposit'
-              : askCoinAddress === CONTRACTS.wBTC
+              : askCoinAddress === TOKEN_ADDRESS.wBTC
                 ? 'Withdraw'
                 : 'Swap'}
         </Button>

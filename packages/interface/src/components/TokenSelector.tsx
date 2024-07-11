@@ -1,5 +1,6 @@
 import styled from '@emotion/styled';
 import { useEffect, useState } from 'react';
+import { Address } from 'viem';
 
 import { Token } from '@/constants/tokens';
 import { fixedWidth } from '@/styles/helpers';
@@ -10,8 +11,8 @@ type TokenSelectorProps = {
   id: string;
   selectedToken: Token;
   tokens: Token[];
-  onChange: (value: `0x${string}`) => void;
-  tokenBalances: Record<`0x${string}`, bigint>;
+  onChange: (value: Address) => void;
+  tokenBalances: Record<Address, bigint>;
 };
 
 export const TokenSelector: React.FC<TokenSelectorProps> = ({
