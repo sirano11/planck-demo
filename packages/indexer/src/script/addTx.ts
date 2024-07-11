@@ -38,30 +38,14 @@ const main = async (): Promise<void> => {
     solanaQueue,
   );
 
-  const solTx: Tx = {
-    asset: { address: '0x1234', amount: BigNumber.from(1234) },
-    chain: ChainIdentifier.Solana,
-    sender: '0x80950530FfA47D5F56bcA3C1506e3bE98d625A9f',
-    data: '0xabcdef',
-  };
-
   const suiTx: Tx = {
     asset: { address: '0x1234', amount: BigNumber.from(1234) },
     chain: ChainIdentifier.Sui,
     sender: '0xD87C87a0D1eE4BC4896e808788691545Ba284CF8',
-    data: '0xabcdef',
+    data: '000301018f6f516357fa46455baf9f1827764e60d156b062016740939895b0174212c34e40b712000000000001000800ca9a3b0000000000207a866724ad74ab439e10664f65398fa23d8490f7f1715d613c8d6a1796a63af50200388ddbe9c72136a9cbd86c628fa3034c5be9da576efd1f0cfa820ea76fe42a6303627463046d696e74000201000001010001010300000000010200',
   };
 
-  const suiTxUnregistedAddr: Tx = {
-    asset: { address: '0x1234', amount: BigNumber.from(1234) },
-    chain: ChainIdentifier.Sui,
-    sender: '0xabcdefabcdef',
-    data: '0xabcdef',
-  };
-
-  await msgCommittedIndexer.mockHandle(solTx, '0x123456');
   await msgCommittedIndexer.mockHandle(suiTx, '0x87651143');
-  await msgCommittedIndexer.mockHandle(suiTxUnregistedAddr, '0x87622251143');
 };
 
 main();

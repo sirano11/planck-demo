@@ -1,14 +1,23 @@
+import { fromHEX, toHEX } from '@mysten/bcs';
+import { SuiClient, getFullnodeUrl } from '@mysten/sui/client';
+import { SuiTransactionBlockResponse } from '@mysten/sui/client';
+import { Keypair } from '@mysten/sui/cryptography';
+import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
+import { Transaction } from '@mysten/sui/transactions';
+import { BigNumber, ethers } from 'ethers';
 import { createClient } from 'redis';
 
 import { Config } from '@/config';
 
-import { BaseConsumer, ChainIdentifier, Tx } from './Consumer';
+import { Asset, BaseConsumer, ChainIdentifier, Tx } from './Consumer';
 
 export class SuiConsumer extends BaseConsumer {
   private static instance: SuiConsumer;
+  private suiClient: SuiClient;
   constructor() {
     const redisClient = createClient({ url: Config.REDIS_URL });
     super(redisClient, ChainIdentifier.Sui);
+    this.suiClient = new SuiClient({ url: getFullnodeUrl('testnet') });
   }
 
   static getInstance() {
@@ -19,28 +28,29 @@ export class SuiConsumer extends BaseConsumer {
   }
 
   public async processTx(tx: Tx) {
-    const { asset, chain, sender, data } = tx;
+    try {
+      const { asset, chain, sender, data } = tx;
+      const keypair = (await this.getKeyPair(sender)) as Ed25519Keypair;
 
-    const suiAddress = await this.getActorAddress(sender);
-    console.log(suiAddress);
+      const rawSuiTx = fromHEX(data);
+      const suiTx = Transaction.fromKind(rawSuiTx);
 
-    const info = await this.getActorInfo(sender);
-    console.log(info);
+      suiTx.setSender(keypair.toSuiAddress());
+      const result = await this.suiClient.signAndExecuteTransaction({
+        transaction: suiTx,
+        signer: keypair,
+        requestType: 'WaitForLocalExecution',
+        options: {
+          showEffects: true,
+          showEvents: true,
+          showBalanceChanges: true,
+          showObjectChanges: true,
+        },
+      });
 
-    const mnemonic = await this.getMnemonic(sender);
-    console.log(mnemonic);
-
-    // const actorAddress = await this.getActorAddress(sender);
-    // if (!actorAddress) {
-    //   await this.setActorAddress(
-    //     sender,
-    //     '0xa217fe3fa6486b464332223a0a14418839994fa943cc1eb422ba51f99a21e56b',
-    //   ); // FIXME:
-    // }
-
-    // TODO: Asset handling
-    // mint `asset.address` of `asset.ammount` on Sui
-
-    // TODO: Handle Sui raw tx
+      console.log(result);
+    } catch (e) {
+      console.log(e);
+    }
   }
 }

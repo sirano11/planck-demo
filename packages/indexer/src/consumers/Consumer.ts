@@ -1,4 +1,8 @@
+import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
+import { Keypair } from '@solana/web3.js';
+import * as bip39 from 'bip39';
 import { BigNumber } from 'ethers';
+import { HDKey } from 'micro-ed25519-hdkey';
 import * as redis from 'redis';
 
 export type RedisClient = ReturnType<typeof redis.createClient>;
@@ -88,6 +92,27 @@ export class BaseConsumer {
     return (
       (await this.redisClient.hGet(`eth:${ethAddress}`, 'mnemonic')) || null
     );
+  }
+
+  protected async getKeyPair(
+    ethAddress: string,
+  ): Promise<Keypair | Ed25519Keypair | null> {
+    const mnemonics = await this.getMnemonic(ethAddress);
+
+    if (!mnemonics) {
+      return null;
+    }
+
+    if (this.chain === ChainIdentifier.Sui) {
+      return Ed25519Keypair.deriveKeypair(mnemonics);
+    } else if (this.chain === ChainIdentifier.Solana) {
+      const seed = bip39.mnemonicToSeedSync(mnemonics, '');
+      const hd = HDKey.fromMasterSeed(seed.toString('hex'));
+      const path = `m/44'/501'/0'/0'`;
+      return Keypair.fromSeed(hd.derive(path).privateKey);
+    } else {
+      return null;
+    }
   }
 
   private async connectRedis() {

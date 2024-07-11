@@ -72,7 +72,7 @@ const main = async (): Promise<void> => {
   let pendingEvents: MsgCommittedEvent[] = [];
   let latestEventBlockNumber: number | null = null;
 
-  hubContract.on(msgCommittedFilter, async (_0, _1, _2, _3, _4, _5, event) => {
+  hubContract.on(msgCommittedFilter, async (_0, _1, _2, _3, _4, event) => {
     if (historicEventsProcessed) {
       if (pendingEvents.length > 0) {
         await msgCommittedIndexer.handle(pendingEvents, true);
