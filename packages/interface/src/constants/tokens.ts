@@ -3,6 +3,8 @@ import { Address } from 'viem';
 import { TOKEN_ADDRESS } from '@/helper/eth/config';
 import { PROTOCOL } from '@/helper/sui/config';
 
+import { CONTRACTS } from './contracts';
+
 export type TokenCategory = 'wbtc' | 'lmint' | 'cash' | 'wsol' | 'wmeme';
 
 export type Token = {

@@ -2,17 +2,16 @@ import {
   Box,
   Button,
   CircularProgress,
-  Collapse,
   Flex,
   HStack,
   SimpleGrid,
   Text,
   useDisclosure,
 } from '@chakra-ui/react';
-import { ApiV3Token, SOL_INFO, TokenInfo } from '@raydium-io/raydium-sdk-v2';
+import { ApiV3Token, TokenInfo } from '@raydium-io/raydium-sdk-v2';
 import { useCallback, useRef, useState } from 'react';
 
-import { CONTRACTS, TOKENS } from '@/constants/tokens';
+import { CONTRACTS, TOKENS } from '@/constants';
 import { QuestionToolTip } from '@/raydium/components/QuestionToolTip';
 import TokenInput from '@/raydium/components/TokenInput';
 import { useEvent, useHover } from '@/raydium/hooks';
