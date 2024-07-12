@@ -135,18 +135,19 @@ export class SolanaConsumer extends BaseConsumer {
         this.hubOwnerSigner,
       );
 
-      await Promise.allSettled([
-        ...mintDelta.map((balance) => {
-          const erc20Contract = ERC20Mock__factory.connect(
-            balance.address,
-            this.ethersProvider,
-          );
-          return erc20Contract.mint(sender, balance.amount);
-        }),
-        ...remainedDelta.map((balance) => {
-          return hubContract.transfer(sender, balance.address, balance.amount);
-        }),
-      ]);
+      for (const balance of mintDelta) {
+        const erc20Contract = ERC20Mock__factory.connect(
+          balance.address,
+          this.ethersProvider,
+        );
+        await (await erc20Contract.mint(sender, balance.amount)).wait();
+      }
+
+      for (const balance of remainedDelta) {
+        await (
+          await hubContract.transfer(sender, balance.address, balance.amount)
+        ).wait();
+      }
     }
   }
 }
