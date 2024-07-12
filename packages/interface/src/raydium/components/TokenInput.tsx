@@ -13,14 +13,13 @@ import {
   useColorMode,
   useDisclosure,
 } from '@chakra-ui/react';
-import { ApiV3Token, SOL_INFO, TokenInfo } from '@raydium-io/raydium-sdk-v2';
+import { ApiV3Token, TokenInfo } from '@raydium-io/raydium-sdk-v2';
 import Decimal from 'decimal.js';
-import React, { ReactNode, useEffect, useState } from 'react';
+import React, { ReactNode } from 'react';
 import { formatUnits } from 'viem';
 
 import { Token } from '@/constants/tokens';
 import { useTokenBalances } from '@/hooks/useTokenBalances';
-// import useTokenPrice from '@/raydium/hooks/token/useTokenPrice';
 import { useEvent } from '@/raydium/hooks/useEvent';
 import BalanceWalletIcon from '@/raydium/icons/misc/BalanceWalletIcon';
 import ChevronDownIcon from '@/raydium/icons/misc/ChevronDownIcon';
@@ -29,10 +28,8 @@ import {
   formatCurrency,
   formatToRawLocaleStr,
   isIntlNumberFormatSupported,
-  trimTrailZero,
 } from '@/raydium/utils/numberish/formatter';
 
-// import Button from './Button';
 import TokenAvatar from './TokenAvatar';
 
 // import TokenSelectDialog, { TokenSelectDialogProps } from './TokenSelectDialog';
@@ -199,6 +196,7 @@ function TokenInput(props: TokenInputProps) {
   // const { data: tokenPrice } = useTokenPrice({
   //   mintList: [token?.address],
   // });
+
   const value = shakeValueDecimal(inputValue, token?.decimals);
   // const price = tokenPrice[token?.address || '']?.value;
   const price = 0;
@@ -441,7 +439,7 @@ function TokenInput(props: TokenInputProps) {
               variant="rect-rounded-radio"
               size="xs"
             >
-              {t('input.max_button')}
+              {'input.max_button'}
             </Button>
             <Button
               disabled={disableClickBalance}

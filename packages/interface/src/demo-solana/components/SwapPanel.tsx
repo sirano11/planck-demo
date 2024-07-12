@@ -9,9 +9,11 @@ import {
   useDisclosure,
 } from '@chakra-ui/react';
 import { ApiV3Token, TokenInfo } from '@raydium-io/raydium-sdk-v2';
+import Decimal from 'decimal.js';
 import { useCallback, useRef, useState } from 'react';
 
-import { CONTRACTS, TOKENS } from '@/constants';
+import { PROGRAMS, TOKENS } from '@/constants';
+import { useComputeSwap } from '@/hooks/useComputeSwap';
 import { QuestionToolTip } from '@/raydium/components/QuestionToolTip';
 import TokenInput from '@/raydium/components/TokenInput';
 import { useEvent, useHover } from '@/raydium/hooks';
@@ -48,13 +50,15 @@ export function SwapPanel({
   } = useDisclosure();
   const sendingResult = useRef<ApiSwapV1OutSuccess | undefined>();
 
-  const [inputMint, setInputMint] = useState<string>(CONTRACTS.wSOL);
+  const [inputMint, setInputMint] = useState<string>(PROGRAMS.wSOL.toString());
   const [swapType, setSwapType] = useState<'BaseIn' | 'BaseOut'>('BaseIn');
-  const [outputMint, setOutputMint] = useState<string>(CONTRACTS.wMEME);
+  const [outputMint, setOutputMint] = useState<string>(
+    PROGRAMS.wMEME.toString(),
+  );
 
   const [tokenInput, tokenOutput] = [
-    TOKENS.find((t) => t.address === inputMint)!,
-    TOKENS.find((t) => t.address === outputMint)!,
+    TOKENS.find((t) => t.symbol === 'wSOL')!,
+    TOKENS.find((t) => t.symbol === 'wMEME')!,
   ];
   // const [cacheLoaded, setCacheLoaded] = useState(false);
   // const isTokenLoaded = tokenMap.size > 0;
@@ -97,6 +101,8 @@ export function SwapPanel({
 
   const swapDisabled = false;
   const isSwapBaseIn = swapType === 'BaseIn';
+  const computeResult = useComputeSwap(inputMint, amountIn)!;
+
   // const { response, data, isLoading, isValidating, error, openTime, mutate } =
   //   useSwap({
   //     inputMint,
@@ -121,14 +127,14 @@ export function SwapPanel({
   // const isComputing = isLoading || isValidating;
   // const isHighRiskTx = (computeResult?.priceImpactPct || 0) > 5;
 
-  // const inputAmount =
-  //   computeResult && tokenInput ? computeResult?.inputAmount || '' : undefined;
-  const outputAmount = '0'; // WIP in next PR
-  //   computeResult && tokenOutput
-  //     ? new Decimal(computeResult.outputAmount)
-  //         .div(10 ** tokenOutput?.decimals)
-  //         .toFixed(tokenOutput?.decimals)
-  //     : computeResult?.outputAmount || '';
+  const inputAmount =
+    computeResult && tokenInput ? computeResult?.inputAmount || '' : undefined;
+  const outputAmount =
+    computeResult && tokenOutput
+      ? new Decimal(computeResult.outputAmount.toString())
+          .div(10 ** tokenOutput?.decimals)
+          .toFixed(tokenOutput?.decimals)
+      : computeResult?.outputAmount || '';
 
   // useEffect(() => {
   //   if (!cacheLoaded) return;
@@ -172,7 +178,10 @@ export function SwapPanel({
 
   const handleSelectToken = useCallback(
     (token: TokenInfo | ApiV3Token, side?: 'input' | 'output') => {
-      const defaultMints = new Set<string>([CONTRACTS.wSOL, CONTRACTS.wMEME]);
+      const defaultMints = new Set<string>([
+        PROGRAMS.wSOL.toBase58(),
+        PROGRAMS.wMEME.toBase58(),
+      ]);
       if (side === 'input') {
         defaultMints.has(token.address) &&
           !defaultMints.has(outputMint) &&
@@ -212,10 +221,7 @@ export function SwapPanel({
   // const balanceNotEnough = balanceAmount.lt(inputAmount || 0)
   //   ? t('error.balance_not_enough')
   //   : undefined;
-  // const isSolFeeNotEnough =
-  //   inputAmount &&
-  //   isSolWSol(inputMint || '') &&
-  //   balanceAmount.sub(inputAmount || 0).lt(DEFAULT_SOL_RESERVER);
+
   // const swapError =
   //   (error && i18n.exists(`swap.error_${error}`)
   //     ? t(`swap.error_${error}`)
@@ -227,26 +233,27 @@ export function SwapPanel({
   //   handleClickSwap();
   // });
 
-  // const handleClickSwap = () => {
-  //   if (!response) return;
-  //   sendingResult.current = response as ApiSwapV1OutSuccess;
-  //   onSending();
-  //   swapTokenAct({
-  //     swapResponse: response as ApiSwapV1OutSuccess,
-  //     wrapSol: tokenInput?.address === PublicKey.default.toString(),
-  //     unwrapSol: tokenOutput?.address === PublicKey.default.toString(),
-  //     onCloseToast: offSending,
-  //     onConfirmed: () => {
-  //       setAmountIn('');
-  //       setNeedPriceUpdatedAlert(false);
-  //       offSending();
-  //     },
-  //     onError: () => {
-  //       offSending();
-  //       mutate();
-  //     },
-  //   });
-  // };
+  const handleClickSwap = async () => {
+    // if (!response) return;
+    // sendingResult.current = response as ApiSwapV1OutSuccess;
+    onSending();
+    // TODO: WIP in next PR
+    // swapTokenAct({
+    //   swapResponse: response as ApiSwapV1OutSuccess,
+    //   wrapSol: tokenInput?.address === PublicKey.default.toString(),
+    //   unwrapSol: tokenOutput?.address === PublicKey.default.toString(),
+    //   onCloseToast: offSending,
+    //   onConfirmed: () => {
+    //     setAmountIn('');
+    //     setNeedPriceUpdatedAlert(false);
+    //     offSending();
+    //   },
+    //   onError: () => {
+    //     offSending();
+    //     mutate();
+    //   },
+    // });
+  };
 
   // const getCtrSx = (type: 'BaseIn' | 'BaseOut') => {
   //   if (!new Decimal(amountIn || 0).isZero() && swapType === type) {
@@ -285,15 +292,15 @@ export function SwapPanel({
           topLeftLabel="From"
           // ctrSx={getCtrSx('BaseIn')}
           token={tokenInput}
-          value={amountIn}
+          value={isSwapBaseIn ? amountIn : inputAmount?.toString()}
           readonly={swapDisabled || !isSwapBaseIn}
           // disableClickBalance={swapDisabled}
-          onChange={(v) => handleInputChange(v)}
           // filterFn={inputFilterFn}
-          onTokenChange={(token) => handleSelectToken(token, 'input')}
+          onChange={(v) => handleInputChange(v)}
+          // onTokenChange={(token) => handleSelectToken(token, 'input')}
           // defaultUnknownToken={unknownTokenA}
         />
-        <SwapIcon onClick={handleChangeSide} />
+        {/* <SwapIcon onClick={handleChangeSide} /> */}
         {/* <SwapIcon /> */}
         {/* output */}
         <TokenInput
@@ -301,11 +308,11 @@ export function SwapPanel({
           topLeftLabel="To"
           // ctrSx={getCtrSx('BaseOut')}
           token={tokenOutput}
-          value={outputAmount}
-          // readonly={swapDisabled || (isSwapBaseIn && isComputing)}
-          onChange={handleInput2Change}
+          value={isSwapBaseIn ? outputAmount.toString() : amountIn}
+          readonly={swapDisabled || isSwapBaseIn}
           // filterFn={outputFilterFn}
-          onTokenChange={(token) => handleSelectToken(token, 'output')}
+          onChange={handleInput2Change}
+          // onTokenChange={(token) => handleSelectToken(token, 'output')}
           // defaultUnknownToken={unknownTokenB}
         />
       </Flex>
@@ -342,7 +349,7 @@ export function SwapPanel({
             stroke={colors.semanticError}
           />
           <Text>
-            {t('swap.error_sol_fee_not_insufficient', {
+            {('swap.error_sol_fee_not_insufficient', {
               amount: formatToRawLocaleStr(DEFAULT_SOL_RESERVER),
             })}
           </Text>
@@ -382,32 +389,34 @@ export function SwapPanel({
           />
         </Flex>
       )} */}
-      {/* <ConnectedButton
-        isDisabled={
-          new Decimal(amountIn || 0).isZero() ||
-          !!swapError ||
-          needPriceUpdatedAlert ||
-          swapDisabled
-        }
-        isLoading={isComputing || isSending}
-        loadingText={
-          <div>
-            {isSending
-              ? t('transaction.transaction_initiating')
-              : isComputing
-                ? t('swap.computing')
-                : ''}
-          </div>
-        }
-        onClick={isHighRiskTx ? onHightRiskOpen : handleClickSwap}
+      <Button
+        // isDisabled={
+        //   new Decimal(amountIn || 0).isZero() ||
+        //   !!swapError ||
+        //   needPriceUpdatedAlert ||
+        //   swapDisabled
+        // }
+        // isLoading={isComputing || isSending}
+        // loadingText={
+        //   <div>
+        //     {isSending
+        //       ? ('transaction.transaction_initiating')
+        //       : isComputing
+        //         ? ('swap.computing')
+        //         : ''}
+        //   </div>
+        // }
+        // onClick={isHighRiskTx ? onHightRiskOpen : handleClickSwap}
+        onClick={handleClickSwap}
       >
         <Text>
-          {swapDisabled ? t('common.disabled') : swapError || t('swap.title')}
+          {/* {swapDisabled ? ('common.disabled') : swapError || ('swap.title')}
           {isPoolNotOpenError
             ? ` ${dayjs(Number(openTime) * 1000).format('YYYY/M/D HH:mm:ss')}`
-            : null}
+            : null} */}
+          {'Swap'}
         </Text>
-      </ConnectedButton> */}
+      </Button>
       {/* <HighRiskAlert
         isOpen={isHightRiskOpen}
         onClose={offHightRiskOpen}

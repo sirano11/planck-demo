@@ -1,9 +1,9 @@
 import { createAMMPool } from './createAmmPool';
 import { createMarket } from './createMarket';
-import { initSDK, txVersion } from './sdk';
+import { init, txVersion } from './sdk';
 
-export const Raydium = {
-  initSDK,
+export const RaydiumSDK = {
+  init,
   createMarket,
   createAMMPool,
   txVersion,

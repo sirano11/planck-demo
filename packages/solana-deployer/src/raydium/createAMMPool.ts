@@ -7,6 +7,7 @@ import {
 import { Keypair, PublicKey, VersionedTransaction } from '@solana/web3.js';
 import BN from 'bn.js';
 
+import { PROGRAMS } from '../constants';
 import { MarketInfo } from './createMarket';
 import { txVersion } from './sdk';
 
@@ -54,11 +55,11 @@ export const createAMMPool = async ({
       programId: DEVNET_PROGRAM_ID.OPENBOOK_MARKET, // devnet
     },
     baseMintInfo: {
-      mint: Keypair.fromSecretKey(mintSigner.secretKey).publicKey,
+      mint: PROGRAMS.wSOL,
       decimals: 9,
     },
     quoteMintInfo: {
-      mint: WSOLMint,
+      mint: PROGRAMS.wMEME,
       decimals: 9,
     },
     baseAmount: new BN(1 * 10 ** 9),

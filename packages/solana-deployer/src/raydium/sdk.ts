@@ -11,7 +11,7 @@ type InitRaydiumSDKParams = {
 };
 
 // https://github.com/raydium-io/raydium-sdk-V2-demo/blob/master/src/config.ts.template
-export const initSDK = async ({ keypair, loadToken }: InitRaydiumSDKParams) => {
+export const init = async ({ keypair, loadToken }: InitRaydiumSDKParams) => {
   const raydium = await Raydium.load({
     owner: keypair,
     connection,

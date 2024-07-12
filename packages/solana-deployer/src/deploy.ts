@@ -13,16 +13,26 @@ import { createUmi } from '@metaplex-foundation/umi-bundle-defaults';
 import * as bip39 from 'bip39';
 import dotenv from 'dotenv';
 
-import { connection } from './constants';
+import { TOKENS, connection } from './constants';
 import { getSolanaKeypair } from './keypair';
-import { Raydium } from './raydium';
+import { RaydiumSDK } from './raydium';
 import { revokeMintAuthority } from './revoke';
 
 dotenv.config();
 
+// const metadata = {
+//   name: 'Test Token',
+//   symbol: 'TEST',
+//   uri: '',
+// };
+// const metadata = {
+//   name: 'Wrapped SOL',
+//   symbol: 'wSOL',
+//   uri: '',
+// };
 const metadata = {
-  name: 'Test Token',
-  symbol: 'TEST',
+  name: 'Wrapped MEME',
+  symbol: 'wMEME',
   uri: '',
 };
 
@@ -66,8 +76,10 @@ const deploy = async () => {
     mint: mintSigner,
     authority: umi.identity,
     sellerFeeBasisPoints: percentAmount(0),
-    decimals: 9,
-    amount: BigInt(100_000_000) * BigInt(10 ** 9),
+    amount:
+      TOKENS.find((t) => t.symbol == metadata.symbol)?.initialSupply! *
+      BigInt(10 ** 9),
+    decimals: TOKENS.find((t) => t.symbol == metadata.symbol)?.decimals!,
     tokenOwner: publisherSigner.publicKey,
     tokenStandard: TokenStandard.Fungible,
   }).sendAndConfirm(umi, {
@@ -76,26 +88,11 @@ const deploy = async () => {
   console.log(res);
 
   // Revoke to fix token supply (optional)
-  await revokeMintAuthority(
-    mintSigner.publicKey.toString(),
-    connection,
-    keypair,
-  );
-
-  const raydium = await Raydium.initSDK({ keypair });
-
-  const { marketInfo, ...createMarketTxInfo } = await Raydium.createMarket({
-    raydium,
-    mintSigner,
-  });
-  console.log('createMarket', { ...createMarketTxInfo, marketInfo });
-
-  const { ammPoolInfo, ...createAMMPoolTxInfo } = await Raydium.createAMMPool({
-    raydium,
-    marketInfo,
-    mintSigner,
-  });
-  console.log('createAMMPool', { ...createAMMPoolTxInfo, ammPoolInfo });
+  // await revokeMintAuthority(
+  //   mintSigner.publicKey.toString(),
+  //   connection,
+  //   keypair,
+  // );
 };
 
 deploy()

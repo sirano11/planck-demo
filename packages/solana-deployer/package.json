@@ -1,17 +1,19 @@
 {
-  "name": "solana-deployer",
+  "name": "planck-demo-solana-deployer",
   "version": "1.0.0",
   "author": "Junho Yeo <i@junho.io>",
   "license": "MIT",
   "scripts": {
     "deploy": "tsx src/deploy.ts",
+    "pool": "tsx src/deployPool.ts",
+    "mnemonic": "tsx src/mnemonic.ts",
     "swap": "tsx src/swap.ts"
   },
   "dependencies": {
     "@metaplex-foundation/mpl-token-metadata": "^3.2.1",
     "@metaplex-foundation/umi": "^0.9.2",
     "@metaplex-foundation/umi-bundle-defaults": "^0.9.2",
-    "@raydium-io/raydium-sdk-v2": "^0.1.32-alpha",
+    "@raydium-io/raydium-sdk-v2": "^0.1.36-alpha",
     "@solana/spl-token": "^0.4.7",
     "@solana/web3.js": "^1.93.0",
     "bip39": "^3.1.0",

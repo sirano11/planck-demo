@@ -3,8 +3,6 @@ import { Address } from 'viem';
 import { ChainIdentifier, TOKEN_ADDRESS } from '@/helper/eth/config';
 import { PROTOCOL } from '@/helper/sui/config';
 
-import { CONTRACTS } from './contracts';
-
 export type TokenCategory = 'wbtc' | 'lmint' | 'cash' | 'wsol' | 'wmeme';
 
 export type Token = {
@@ -81,14 +79,14 @@ export const TOKENS: Token[] = [
   {
     symbol: 'wSOL',
     category: 'wsol',
-    address: CONTRACTS.wSOL,
+    address: TOKEN_ADDRESS.wSOL,
     decimals: 9,
     chain: ChainIdentifier.Solana,
   },
   {
     symbol: 'wMEME',
     category: 'wmeme',
-    address: CONTRACTS.wMEME,
+    address: TOKEN_ADDRESS.wMEME,
     decimals: 9,
     chain: ChainIdentifier.Solana,
   },

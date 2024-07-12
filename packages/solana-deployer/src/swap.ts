@@ -1,7 +1,10 @@
 import {
+  AMM_STABLE,
+  AMM_V4,
   AmmRpcData,
   AmmV4Keys,
   ApiV3PoolInfoStandardItem,
+  DEVNET_PROGRAM_ID,
 } from '@raydium-io/raydium-sdk-v2';
 import { NATIVE_MINT } from '@solana/spl-token';
 import * as bip39 from 'bip39';
@@ -10,8 +13,7 @@ import Decimal from 'decimal.js';
 import dotenv from 'dotenv';
 
 import { getSolanaKeypair } from './keypair';
-import { Raydium } from './raydium';
-import { isValidAmm } from './utils';
+import { RaydiumSDK } from './raydium';
 
 dotenv.config();
 
@@ -22,12 +24,21 @@ if (!mnemonic) {
   mnemonic = bip39.generateMnemonic();
   console.log({ mnemonic });
 }
+console.log(`SECRET!: ${mnemonic}`);
 
 const keypair = getSolanaKeypair(mnemonic);
 
-export const swap = async () => {
-  const raydium = await Raydium.initSDK({ keypair });
-  const amountIn = 500;
+const VALID_PROGRAM_ID = new Set([
+  AMM_V4.toBase58(),
+  AMM_STABLE.toBase58(),
+  DEVNET_PROGRAM_ID.AmmV4.toBase58(),
+  DEVNET_PROGRAM_ID.AmmStable.toBase58(),
+]);
+
+export const isValidAmm = (id: string) => VALID_PROGRAM_ID.has(id);
+
+export const swap = async (amountIn: number) => {
+  const raydium = await RaydiumSDK.init({ keypair });
   const inputMint = NATIVE_MINT.toBase58();
   const poolId = process.env.SOL_WSOL_POOL_ID || ''; // SOL/WSOL ammId
 
@@ -101,14 +112,14 @@ export const swap = async () => {
     `computed swap ${amountInStr} ${mintInStr} to ${amountOutStr} ${mintOutStr}, minimum amount out ${minAmountOutStr} ${mintOutStr}`,
   );
 
-  const { execute } = await raydium.liquidity.swap({
+  return raydium.liquidity.swap({
     poolInfo,
     poolKeys,
     amountIn: new BN(amountIn),
     amountOut: out.minAmountOut, // out.amountOut means amount 'without' slippage
     inputMint: mintIn.address,
     fixedSide: 'in',
-    txVersion: Raydium.txVersion,
+    txVersion: RaydiumSDK.txVersion,
 
     // optional: set up token account
     // config: {
@@ -123,11 +134,20 @@ export const swap = async () => {
     //   microLamports: 100000000,
     // },
   });
-
-  // don't want to wait confirm, set sendAndConfirm to false or don't pass any params to execute
-  const { txId } = await execute({ sendAndConfirm: true });
-  console.log(`swap successfully in amm pool:`, { txId });
 };
 
-/** uncomment code below to execute */
-swap();
+swap(500) // here is printSimulate
+  .then(async ({ execute }) => {
+    console.log('✨ Swap Ready');
+
+    /** uncomment code below to execute */
+    // don't want to wait confirm, set sendAndConfirm to false or don't pass any params to execute
+
+    const { txId } = await execute({ sendAndConfirm: true });
+    console.log(`swap successfully in amm pool:`, { txId });
+
+    process.exit(0);
+  })
+  .catch(console.error);
+
+// const { execute } = await swap(500);

@@ -6,6 +6,7 @@ import {
 } from '@raydium-io/raydium-sdk-v2';
 import { Keypair, VersionedTransaction } from '@solana/web3.js';
 
+import { PROGRAMS } from '../constants';
 import { txVersion } from './sdk';
 
 export type MarketInfo = {
@@ -37,11 +38,11 @@ export const createMarket = async ({
 }: CreateMarketParams): Promise<CreateMarketResult> => {
   const { execute, extInfo, transactions } = await raydium.marketV2.create({
     baseInfo: {
-      mint: Keypair.fromSecretKey(mintSigner.secretKey).publicKey,
+      mint: PROGRAMS.wSOL,
       decimals: 9,
     },
     quoteInfo: {
-      mint: WSOLMint,
+      mint: PROGRAMS.wMEME,
       decimals: 9,
     },
     lotSize: 1,
@@ -50,10 +51,10 @@ export const createMarket = async ({
     dexProgramId: DEVNET_PROGRAM_ID.OPENBOOK_MARKET, // devnet
     txVersion,
     // optional: set up priority fee here
-    // computeBudgetConfig: {
-    //   units: 600000,
-    //   microLamports: 100000000,
-    // },
+    computeBudgetConfig: {
+      units: 600000,
+      microLamports: 100000000,
+    },
   });
 
   const marketInfo = Object.keys(extInfo.address).reduce(
@@ -66,7 +67,7 @@ export const createMarket = async ({
 
   const { txIds, signedTxs } = await execute({
     // set sequentially to true means tx will be sent when previous one confirmed
-    sequentially: true,
+    sequentially: false,
   });
 
   return {
