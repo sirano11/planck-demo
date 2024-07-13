@@ -10,6 +10,7 @@ export const useRaydium = () => {
     Raydium.load({
       connection,
       cluster: 'devnet',
+      disableLoadToken: true,
     }).then(setRaydium);
   }, []);
 
