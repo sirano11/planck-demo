@@ -8,12 +8,13 @@ import {
   Text,
   useDisclosure,
 } from '@chakra-ui/react';
-import { ApiV3Token, TokenInfo } from '@raydium-io/raydium-sdk-v2';
+import { ApiV3Token, TokenInfo, TxVersion } from '@raydium-io/raydium-sdk-v2';
+import BN from 'bn.js';
 import Decimal from 'decimal.js';
 import { useCallback, useRef, useState } from 'react';
 
 import { PROGRAMS, TOKENS } from '@/constants';
-import { useComputeSwap } from '@/hooks/useComputeSwap';
+import { useComputeSwap, useRaydium } from '@/hooks';
 import { QuestionToolTip } from '@/raydium/components/QuestionToolTip';
 import TokenInput from '@/raydium/components/TokenInput';
 import { useEvent, useHover } from '@/raydium/hooks';
@@ -101,7 +102,9 @@ export function SwapPanel({
 
   const swapDisabled = false;
   const isSwapBaseIn = swapType === 'BaseIn';
-  const computeResult = useComputeSwap(inputMint, amountIn)!;
+
+  const raydium = useRaydium();
+  const computeResult = useComputeSwap(raydium!, inputMint, amountIn)!;
 
   // const { response, data, isLoading, isValidating, error, openTime, mutate } =
   //   useSwap({
@@ -233,11 +236,55 @@ export function SwapPanel({
   //   handleClickSwap();
   // });
 
+  async function swapSPLTokens(
+    raydium: any,
+    poolInfo: any,
+    poolKeys: any,
+    inputMint: any,
+    amountIn: any,
+    amountOut: any,
+  ) {
+    const data = await raydium?.liquidity.swap({
+      poolInfo,
+      poolKeys,
+      amountIn: new BN(amountIn),
+      amountOut, // amountOut means amount 'without' slippage
+      inputMint,
+      fixedSide: 'in',
+      txVersion: TxVersion.V0,
+
+      // optional: set up token account
+      // config: {
+      //   inputUseSolBalance: true, // default: true, if you want to use existed wsol token account to pay token in, pass false
+      //   outputUseSolBalance: true, // default: true, if you want to use existed wsol token account to receive token out, pass false
+      //   associatedOnly: true, // default: true, if you want to use ata only, pass true
+      // },
+
+      // optional: set up priority fee here
+      // computeBudgetConfig: {
+      //   units: 600000,
+      //   microLamports: 100000000,
+      // },
+    });
+    return data;
+  }
+
   const handleClickSwap = async () => {
     // if (!response) return;
     // sendingResult.current = response as ApiSwapV1OutSuccess;
     onSending();
-    // TODO: WIP in next PR
+    const commitData = await swapSPLTokens(
+      raydium,
+      computeResult.poolInfo,
+      computeResult.poolKeys,
+      computeResult.inputMint,
+      computeResult.inputAmount,
+      computeResult.minimumAmount,
+      // computeResult.outputAmount,
+    );
+    console.log(commitData);
+    console.log(commitData.transaction);
+    console.log(commitData.transaction.serialize());
     // swapTokenAct({
     //   swapResponse: response as ApiSwapV1OutSuccess,
     //   wrapSol: tokenInput?.address === PublicKey.default.toString(),

@@ -12,6 +12,7 @@ import BN from 'bn.js';
 import Decimal from 'decimal.js';
 import dotenv from 'dotenv';
 
+import { POOL_IDS, PROGRAMS } from './constants';
 import { getSolanaKeypair } from './keypair';
 import { RaydiumSDK } from './raydium';
 
@@ -39,8 +40,10 @@ export const isValidAmm = (id: string) => VALID_PROGRAM_ID.has(id);
 
 export const swap = async (amountIn: number) => {
   const raydium = await RaydiumSDK.init({ keypair });
-  const inputMint = NATIVE_MINT.toBase58();
-  const poolId = process.env.SOL_WSOL_POOL_ID || ''; // SOL/WSOL ammId
+  // const inputMint = NATIVE_MINT.toBase58();
+  const inputMint = PROGRAMS.wSOL.toBase58();
+  // const poolId = process.env.SOL_WSOL_POOL_ID || ''; // SOL/WSOL ammId
+  const poolId = POOL_IDS.wSOL_wMEME_POOL_ID;
 
   let poolInfo: ApiV3PoolInfoStandardItem | undefined;
   let poolKeys: AmmV4Keys | undefined;
@@ -136,15 +139,20 @@ export const swap = async (amountIn: number) => {
   });
 };
 
-swap(500) // here is printSimulate
-  .then(async ({ execute }) => {
+swap(10) // here is printSimulate
+  .then(async (data) => {
     console.log('✨ Swap Ready');
+    console.log('data:');
+    console.log(data);
 
     /** uncomment code below to execute */
     // don't want to wait confirm, set sendAndConfirm to false or don't pass any params to execute
+    const res = await data.execute({ sendAndConfirm: true });
+    console.log(`res:`);
+    console.log(res);
 
-    const { txId } = await execute({ sendAndConfirm: true });
-    console.log(`swap successfully in amm pool:`, { txId });
+    // const { txId } = await execute({ sendAndConfirm: true });
+    // console.log(`swap successfully in amm pool:`, { txId });
 
     process.exit(0);
   })

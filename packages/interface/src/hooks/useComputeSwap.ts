@@ -1,22 +1,29 @@
+import { Raydium } from '@raydium-io/raydium-sdk-v2';
 import BN from 'bn.js';
 import Decimal from 'decimal.js';
 import { useEffect, useState } from 'react';
 
 import { POOL_IDS } from '@/constants';
 
-import { useRaydium } from './useRaydium';
-
 type Response = {
   inputAmount: BN;
   outputAmount: BN;
   minimumAmount: BN;
+  poolInfo: any;
+  poolKeys: any;
+  inputMint: any;
+  amountIn: any;
+  amountOut: any;
 };
 
-export const useComputeSwap = (inputMint: any, amountIn: any) => {
+export const useComputeSwap = (
+  raydium: Raydium,
+  inputMint: any,
+  amountIn: any,
+) => {
   const [response, setResponse] = useState<Response | null>(null);
   const [count, setCount] = useState<number>(0);
   let flag = 0;
-  const raydium = useRaydium();
   useEffect(() => {
     if (count > 3) {
       if (flag === 0) {
@@ -89,6 +96,11 @@ export const useComputeSwap = (inputMint: any, amountIn: any) => {
             inputAmount: amountIn,
             outputAmount: out?.amountOut!,
             minimumAmount: out?.minAmountOut!,
+            poolInfo,
+            poolKeys,
+            inputMint: mintIn.address,
+            amountIn: new BN(amountIn),
+            amountOut: out.amountOut,
           };
 
           setResponse(res);
