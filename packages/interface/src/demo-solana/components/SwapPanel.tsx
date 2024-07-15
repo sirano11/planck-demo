@@ -12,6 +12,8 @@ import { useCallback, useRef, useState } from 'react';
 import { formatUnits } from 'viem';
 
 import { Token } from '@/constants';
+import { ChainIdentifier, HUB_CONTRACT_ADDRESS } from '@/helper/eth/config';
+import { commit } from '@/helper/eth/hub-builder';
 import { useComputeSwap, useRaydium } from '@/hooks';
 import TokenInput from '@/raydium/components/TokenInput';
 import { useHover } from '@/raydium/hooks';
@@ -62,9 +64,20 @@ export const SwapPanel: React.FC<SwapPanelProps> = ({
         fixedSide: 'in',
         txVersion: TxVersion.V0,
       });
-      console.log(commitData);
-      console.log(commitData.transaction);
-      console.log(commitData.transaction.serialize());
+      console.log({ commitData });
+
+      const rawTx = commitData.transaction.serialize();
+      console.log({ rawTx });
+
+      // TODO: Add approval logic for (asset, amountAtomics)
+
+      await commit(
+        HUB_CONTRACT_ADDRESS,
+        tokenInput.address,
+        BigInt(computeResult.inputAmount.toString()),
+        ChainIdentifier.Solana,
+        rawTx,
+      );
     } catch (e) {
       console.error(e);
     } finally {
