@@ -207,7 +207,7 @@ const MintDemoPage: NextPage = () => {
       HUB_CONTRACT_ADDRESS,
       offerCoinAddress,
       inputAtomics,
-      ChainIdentifier.Ethereum,
+      ChainIdentifier.Sui,
       rawTx,
     );
   }, [inputDraft, offerCoinAddress, askCoinAddress]);
