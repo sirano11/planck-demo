@@ -1,8 +1,7 @@
 import { Box, Grid, GridItem, HStack, Text } from '@chakra-ui/react';
-// import { ApiV3Token } from '@raydium-io/raydium-sdk-v2';
-import dayjs from 'dayjs';
 import { useState } from 'react';
 
+import { Token } from '@/constants';
 import Tabs from '@/raydium/components/Tabs';
 import TokenAvatarPair from '@/raydium/components/TokenAvatarPair';
 // import { TimeType } from '@/raydium/hooks/pool/useFetchPoolKLine';
@@ -19,16 +18,16 @@ import CandleChart from './CandleChart';
 export type TimeType = '15m' | '1H' | '4H' | '1D' | '1W';
 
 export function SwapKlinePanel({
-  // baseToken,
-  // quoteToken,
+  baseToken,
+  quoteToken,
   timeType,
   untilDate,
   onDirectionToggle,
   onTimeTypeChange,
 }: {
   untilDate: number;
-  // baseToken: ApiV3Token | undefined;
-  // quoteToken: ApiV3Token | undefined;
+  baseToken?: Token;
+  quoteToken?: Token;
   timeType: TimeType;
   onDirectionToggle?(): void;
   onTimeTypeChange?(timeType: TimeType): void;
@@ -53,11 +52,10 @@ export function SwapKlinePanel({
       >
         <GridItem gridArea="name" marginLeft="4px" marginBottom="12px">
           <HStack spacing={2}>
-            <TokenAvatarPair token1={undefined} token2={undefined} />
+            <TokenAvatarPair token1={baseToken} token2={quoteToken} />
             <HStack>
               <Text fontSize="20px" fontWeight="500">
-                {/* {baseToken?.symbol} / {quoteToken?.symbol} */}
-                SOL / MEME
+                {baseToken?.symbol} / {quoteToken?.symbol}
               </Text>
               <Box
                 cursor="pointer"

@@ -24,17 +24,9 @@ import { useEvent } from '@/raydium/hooks/useEvent';
 import BalanceWalletIcon from '@/raydium/icons/misc/BalanceWalletIcon';
 import ChevronDownIcon from '@/raydium/icons/misc/ChevronDownIcon';
 import { colors } from '@/raydium/theme/cssVariables';
-import {
-  formatCurrency,
-  formatToRawLocaleStr,
-  isIntlNumberFormatSupported,
-} from '@/raydium/utils/numberish/formatter';
+import { formatCurrency } from '@/raydium/utils/numberish/formatter';
 
 import TokenAvatar from './TokenAvatar';
-
-// import TokenSelectDialog, { TokenSelectDialogProps } from './TokenSelectDialog';
-// import TokenFreezeDialog from './TokenSelectDialog/components/TokenFreezeDialog';
-// import TokenUnknownAddDialog from './TokenSelectDialog/components/TokenUnknownAddDialog';
 
 const DEFAULT_SOL_RESERVER = 0.01;
 interface TokenInputProps {
@@ -61,9 +53,8 @@ interface TokenInputProps {
    * - upper grid py: 10px
    */
   size?: 'md' | 'sm';
-  // FIXME: ?
   token?: Token;
-  // token?: { decimals: number; address: string };
+
   /** <NumberInput> is disabled */
   readonly?: boolean;
   loading?: boolean;
@@ -157,12 +148,6 @@ function TokenInput(props: TokenInputProps) {
     onClose: onCloseFreezeTokenConfirm,
   } = useDisclosure();
 
-  const decimalSeparator = isIntlNumberFormatSupported
-    ? new Intl.NumberFormat('en')
-        .formatToParts(0.1)
-        .find((part) => part.type === 'decimal')?.value || '.'
-    : '.';
-
   const size = inputSize ?? isMobile ? 'sm' : 'md';
   const sizes = {
     inputText: size === 'sm' ? 'lg' : '28px',
@@ -197,11 +182,12 @@ function TokenInput(props: TokenInputProps) {
   //   mintList: [token?.address],
   // });
 
-  const value = shakeValueDecimal(inputValue, token?.decimals);
+  // const value = formatUnits(BigInt(inputValue || 0), token?.decimals || 9);
+  // console.log({ value });
   // const price = tokenPrice[token?.address || '']?.value;
-  const price = 0;
-  const totalPrice =
-    price && value ? new Decimal(price ?? 0).mul(value).toString() : '';
+  // const price = 0;
+  // const totalPrice =
+  //   price && value ? new Decimal(price ?? 0).mul(value).toString() : '';
 
   // balance
   // const getTokenBalanceUiAmount = useTokenAccountStore(
@@ -240,7 +226,7 @@ function TokenInput(props: TokenInputProps) {
   // })
 
   const handleFocus = useEvent(() => {
-    if (value === '0') {
+    if (inputValue === '0') {
       onChange?.('');
     }
     onFocus?.();
@@ -259,7 +245,7 @@ function TokenInput(props: TokenInputProps) {
     if (disableClickBalance) return;
     // if (!maxString) return;
     handleFocus();
-    onChange?.(String(tokenAmount));
+    onChange?.(formatUnits(tokenAmount, token?.decimals || 9));
   });
 
   // const handleClickHalf = useEvent(() => {
@@ -345,28 +331,6 @@ function TokenInput(props: TokenInputProps) {
   //   onCloseFreezeTokenConfirm();
   //   onClose();
   // });
-
-  const handleParseVal = useEvent((propVal: string) => {
-    const val =
-      propVal.match(new RegExp(`[0-9${decimalSeparator}]`, 'gi'))?.join('') ||
-      '';
-    if (!val) return '';
-    const splitArr = val.split(decimalSeparator);
-    if (splitArr.length > 2) return [splitArr[0], splitArr[1]].join('.');
-    if (token && splitArr[1] && splitArr[1].length > token.decimals) {
-      return [splitArr[0], splitArr[1].substring(0, token.decimals)].join('.');
-    }
-    return val === decimalSeparator ? '0.' : val.replace(decimalSeparator, '.');
-    // const val = propVal.match(/[0-9.]/gi)?.join('') || ''
-    // if (!val) return ''
-    // const splitArr = val.split('.')
-    // if (splitArr.length > 2) return [splitArr[0], splitArr[1]].join('.')
-    // if (token && splitArr[1] && splitArr[1].length > token.decimals) {
-    //   //.replace(/([1-9]+(\.[0-9]+[1-9])?)(\.?0+$)/, '$1')
-    //   return [splitArr[0], splitArr[1].substring(0, token.decimals)].join('.')
-    // }
-    // return val === '.' ? '0.' : val
-  });
 
   // useEffect(() => {
   //   if (!defaultUnknownToken) return;
@@ -485,7 +449,7 @@ function TokenInput(props: TokenInputProps) {
           >
             {hideTokenIcon ? null : (
               <TokenAvatar
-                token={token as undefined}
+                token={token}
                 size={
                   disableSelectToken
                     ? sizes.disableSelectTokenIconSize
@@ -513,11 +477,21 @@ function TokenInput(props: TokenInputProps) {
               variant="number"
               sx={{ '& input[inputmode=decimal]': { opacity: 1 } }}
               onChange={(e) => {
-                onChange?.(handleParseVal(e?.currentTarget?.value || ''));
+                let value = e.target.value
+
+                  // Only allow numbers and dot
+                  .replace(/[^0-9.]/g, '')
+
+                  // Ensure only one dot
+                  .replace(/(\.[\d]*?)\..*/g, '$1')
+
+                  .trim();
+
+                onChange?.(value);
               }}
               onFocus={handleFocus}
               isDisabled={readonly || loading}
-              value={formatToRawLocaleStr(value)}
+              value={inputValue}
               min={0}
               width={width || '100%'}
               opacity={loading ? 0.2 : 1}
@@ -542,8 +516,8 @@ function TokenInput(props: TokenInputProps) {
           fontSize={sizes.opacityVolume}
         >
           <Text textAlign="right">
-            ~
-            {formatCurrency(totalPrice, {
+            ~{/* FIXME: */}
+            {formatCurrency(0, {
               symbol: '$',
               maximumDecimalTrailingZeroes: 5,
             })}

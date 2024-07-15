@@ -3,6 +3,8 @@ import { Address } from 'viem';
 import { ChainIdentifier, TOKEN_ADDRESS } from '@/helper/eth/config';
 import { PROTOCOL } from '@/helper/sui/config';
 
+import { PROGRAMS } from './solanaConfigs';
+
 export type TokenCategory = 'wbtc' | 'lmint' | 'cash' | 'wsol' | 'wmeme';
 
 export type Token = {
@@ -15,6 +17,7 @@ export type Token = {
   typeArgument?: string;
   supplyId?: string;
   chain: ChainIdentifier;
+  mint?: string;
 };
 
 export const TOKENS: Token[] = [
@@ -81,13 +84,17 @@ export const TOKENS: Token[] = [
     category: 'wsol',
     address: TOKEN_ADDRESS.wSOL,
     decimals: 9,
+    logo: '/assets/solana.png',
     chain: ChainIdentifier.Solana,
+    mint: PROGRAMS.wSOL.toString(),
   },
   {
     symbol: 'wMEME',
     category: 'wmeme',
     address: TOKEN_ADDRESS.wMEME,
     decimals: 9,
+    logo: '/assets/meme.png',
     chain: ChainIdentifier.Solana,
+    mint: PROGRAMS.wMEME.toString(),
   },
 ];

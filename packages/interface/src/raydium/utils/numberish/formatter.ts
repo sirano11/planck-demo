@@ -13,28 +13,6 @@ function formatLocaleStr(
   return trimTrailZero(numArr.join('.'));
 }
 
-interface FormatDecimalParams {
-  val: number | string;
-  /** default is 8 */
-  maxDigitCount?: number;
-}
-
-const formatToMaxDigit = ({
-  val,
-  maxDigitCount = 8,
-}: FormatDecimalParams): string => {
-  const valStr = String(val);
-  const [int = '', decimal = ''] = valStr.split('.');
-  const [intDigit, decimalDigitLength] = [
-    int?.length || 1,
-    decimal?.length || 0,
-  ];
-  const totalLength = intDigit + decimalDigitLength;
-  if (totalLength <= maxDigitCount) return String(val);
-  const remainLength = Math.max(maxDigitCount - intDigit, 0);
-  return `${int}.${decimal.slice(0, remainLength - 1)}`;
-};
-
 export const trimTrailZero = (numberStr?: string) => {
   if (!numberStr || !numberStr.includes('.')) return numberStr;
   const splitNum = numberStr.split('.');
@@ -43,18 +21,7 @@ export const trimTrailZero = (numberStr?: string) => {
   return splitNum[1].length ? `${splitNum[0]}.${splitNum[1]}` : splitNum[0];
 };
 
-const numTransform = (value: any) => (isNaN(value) ? 0 : value);
-
 const stringNumberRegex = /(-?)([\d,_]*)\.?(\d*)/;
-function getFirstNonZeroDecimal(s: string) {
-  let str = s;
-  if (s.indexOf('e') > 0) {
-    str = new Decimal(s).toFixed(new Decimal(s).decimalPlaces());
-  }
-  const [, , , dec = ''] = str.match(stringNumberRegex) ?? [];
-  const index = dec.split('').findIndex((c) => Number(c) > 0);
-  return index + 1;
-}
 
 /**
  *

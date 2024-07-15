@@ -1,13 +1,13 @@
 import { Flex, FlexProps } from '@chakra-ui/react';
 
+import { Token } from '@/constants';
+
 // import { ApiV3Token, TokenInfo } from '@raydium-io/raydium-sdk-v2'
 import TokenAvatar, { TokenAvatarSize } from './TokenAvatar';
 
 type RawTokenAvatarPairProps = {
-  // token1?: TokenInfo | ApiV3Token;
-  // token2?: TokenInfo | ApiV3Token;
-  token1?: undefined;
-  token2?: undefined;
+  token1?: Token;
+  token2?: Token;
 
   tokenMint1?: string;
   tokenMint2?: string;

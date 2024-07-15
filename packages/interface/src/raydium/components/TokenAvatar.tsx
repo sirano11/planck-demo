@@ -8,6 +8,7 @@ import {
 // import { ApiV3Token } from '@raydium-io/raydium-sdk-v2';
 import { useEffect, useMemo, useState } from 'react';
 
+import { Token } from '@/constants';
 // import useTokenInfo from '@/raydium/hooks/token/useTokenInfo';
 import { colors } from '@/raydium/theme/cssVariables';
 
@@ -22,12 +23,7 @@ export type TokenAvatarSize =
   | (string & {});
 
 type RawTokenAvatarProps = {
-  /** pase token to contain all info */
-  // token?:
-  //   | ApiV3Token
-  //   | Pick<ApiV3Token, 'address' | 'symbol' | 'decimals' | 'logoURI'>;
-  // FIXME:
-  token?: undefined;
+  token?: Token;
   tokenMint?: string;
 
   /** xs: 16px | sm: 20px | smi: 24px | md: 32px | lg: 48px | 2xl: 80px | (default: md) */
@@ -89,8 +85,7 @@ export default forwardRef(function TokenAvatar(
   const token = originalToken;
 
   const iconSrc = useMemo(
-    // () => icon ?? (token ? token.logoURI : undefined),
-    () => icon ?? undefined,
+    () => icon ?? (token ? token.logo : undefined),
     [icon, token],
   );
 

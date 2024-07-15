@@ -1,12 +1,12 @@
-import { Box, Grid, GridItem, HStack, VStack } from '@chakra-ui/react';
-import { useRef, useState } from 'react';
+import { Box, Grid, GridItem, HStack } from '@chakra-ui/react';
+import { useCallback, useRef, useState } from 'react';
 
+import { PROGRAMS, TOKENS } from '@/constants';
 import PanelCard from '@/raydium/components/PanelCard';
 import { SlippageAdjuster } from '@/raydium/components/SlippageAdjuster';
 import SwapChatEmptyIcon from '@/raydium/icons/misc/SwapChatEmptyIcon';
 import SwapChatIcon from '@/raydium/icons/misc/SwapChatIcon';
 import SwapExchangeIcon from '@/raydium/icons/misc/SwapExchangeIcon';
-import { getVHExpression } from '@/raydium/theme/cssValue/getViewportExpression';
 import { colors } from '@/raydium/theme/cssVariables';
 
 import { SwapKlinePanel, TimeType } from './components/SwapKlinePanel';
@@ -19,19 +19,28 @@ const SolanaDemoPage = () => {
   const [isChartLeft, setIsChartLeft] = useState<boolean>(true);
 
   const isMobile = true;
-  const [directionReverse, setDirectionReverse] = useState<boolean>(false);
   const [selectedTimeType, setSelectedTimeType] = useState<TimeType>('15m');
   const untilDate = useRef(Math.floor(Date.now() / 1000));
   const swapPanelRef = useRef<HTMLDivElement>(null);
   const klineRef = useRef<HTMLDivElement>(null);
 
+  const [inputMint, setInputMint] = useState<string>(PROGRAMS.wSOL.toString());
+  const [outputMint, setOutputMint] = useState<string>(
+    PROGRAMS.wMEME.toString(),
+  );
+
+  const [tokenInput, tokenOutput] = [
+    TOKENS.find((t) => t.mint === inputMint)!,
+    TOKENS.find((t) => t.mint === outputMint)!,
+  ];
+
+  const handleChangeSide = useCallback(() => {
+    setInputMint(outputMint);
+    setOutputMint(inputMint);
+  }, [inputMint, outputMint]);
+
   return (
-    <VStack
-      pt={16}
-      mx={['unset', 'auto']}
-      mt={[0, getVHExpression([0, 800], [32, 1300])]}
-      width={!isMobile && isPCChartShown ? 'min(100%, 1300px)' : undefined}
-    >
+    <div className="px-4 pt-[96px] container mx-auto">
       <HStack alignSelf="flex-end" my={[1, 0]}>
         <SlippageAdjuster />
         {!isMobile && isPCChartShown && (
@@ -81,11 +90,9 @@ const SolanaDemoPage = () => {
         <GridItem ref={swapPanelRef} gridArea="panel">
           <PanelCard p={[3, 6]} flexGrow={['1', 'unset']}>
             <SwapPanel
-            // onInputMintChange={setInputMint}
-            // onOutputMintChange={setOutputMint}
-            // onDirectionNeedReverse={() =>
-            //   setIsDirectionNeedReverse((b) => !b)
-            // }
+              tokenInput={tokenInput}
+              tokenOutput={tokenOutput}
+              handleChangeSide={handleChangeSide}
             />
           </PanelCard>
         </GridItem>
@@ -100,16 +107,16 @@ const SolanaDemoPage = () => {
           >
             <SwapKlinePanel
               untilDate={untilDate.current}
-              // baseToken={baseToken}
-              // quoteToken={quoteToken}
+              baseToken={tokenInput}
+              quoteToken={tokenOutput}
               timeType={selectedTimeType}
-              onDirectionToggle={() => setDirectionReverse((b) => !b)}
+              onDirectionToggle={handleChangeSide}
               onTimeTypeChange={setSelectedTimeType}
             />
           </PanelCard>
         </GridItem>
       </Grid>
-    </VStack>
+    </div>
   );
 };
 
