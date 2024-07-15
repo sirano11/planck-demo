@@ -1,5 +1,10 @@
 import styled from '@emotion/styled';
-import { CoinStruct, SuiClient, getFullnodeUrl } from '@mysten/sui/client';
+import {
+  CoinStruct,
+  SuiClient,
+  SuiHTTPTransportError,
+  getFullnodeUrl,
+} from '@mysten/sui/client';
 import { NextPage } from 'next';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Address, formatUnits, parseUnits } from 'viem';
@@ -52,20 +57,18 @@ const MintDemoPage: NextPage = () => {
     [askCoinAddress],
   );
 
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
   useEffect(() => {
     const parsedInput = parseFloat(inputDraft);
-    if (isNaN(parsedInput)) {
+    if (isNaN(parsedInput) || parsedInput <= 0) {
       setEstimation('0');
-      return;
-    }
-    if (parsedInput <= 0) {
-      setEstimation('0');
+      setErrorMessage(null);
       return;
     }
 
     if (offerCoin.address === askCoin.address) return;
 
-    // TODO: Add error handling on simulation failure
     (async () => {
       const inputAtomics = parseUnits(
         parsedInput.toString(),
@@ -108,11 +111,44 @@ const MintDemoPage: NextPage = () => {
 
       if (est === null) {
         setEstimation('0');
+        setErrorMessage(null);
         return;
       }
 
       setEstimation(formatUnits(est, askCoin.decimals));
-    })();
+      setErrorMessage(null);
+    })().catch((err) => {
+      const error = err as SuiHTTPTransportError;
+
+      // other reasons
+      if (!error.message.startsWith('response error:')) {
+        setErrorMessage(error.message);
+        return;
+      }
+
+      // contract error
+      const errorCode = error.message.match(/Some\((\d+)\)/)?.[1];
+      const knownErrorsByModule = {
+        market: ['NotSupportedCoinType', 'InvalidCoinType', 'InvalidMath'],
+        oracle: [
+          '_', // ErrorWrongEpoch
+          'InvalidExchangeRate', // ErrorInvalidExchangeRate
+        ],
+      };
+      const knownErrors = error.message.includes('market::')
+        ? knownErrorsByModule.market
+        : error.message.includes('oracle::')
+          ? knownErrorsByModule.oracle
+          : [];
+      const knownError =
+        (errorCode && knownErrors[parseInt(errorCode, 10)]) || null;
+
+      if (knownError) {
+        setErrorMessage(`Contract Error: ${knownError}`);
+      } else {
+        setErrorMessage('Unknown Contract Error');
+      }
+    });
   }, [inputDraft, offerCoin, askCoin]);
 
   const onClickSwap = useCallback(async () => {
@@ -228,7 +264,19 @@ const MintDemoPage: NextPage = () => {
               <Input
                 id="from-token"
                 value={inputDraft}
-                onChange={(e) => setInputDraft(e.target.value)}
+                onChange={(e) => {
+                  let value = e.target.value
+
+                    // Only allow numbers and dot
+                    .replace(/[^0-9.]/g, '')
+
+                    // Ensure only one dot
+                    .replace(/(\.[\d]*?)\..*/g, '$1')
+
+                    .trim();
+
+                  setInputDraft(value);
+                }}
               />
             </div>
             <TokenSelector
@@ -329,6 +377,8 @@ const MintDemoPage: NextPage = () => {
                 ? 'Withdraw'
                 : 'Swap'}
         </Button>
+
+        {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
       </div>
     </div>
   );
@@ -392,4 +442,17 @@ const TokenBalance = styled.span`
   .dark & {
     color: #94a3b8;
   }
+`;
+
+const ErrorMessage = styled.span`
+  margin-top: 10px;
+  padding: 18px 16px;
+
+  border-radius: 12px;
+  background-color: #f05366;
+
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 100%;
+  color: white;
 `;
