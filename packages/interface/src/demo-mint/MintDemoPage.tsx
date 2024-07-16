@@ -70,6 +70,30 @@ const MintDemoPage: NextPage = () => {
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const handleAskCoinChange = useCallback(
+    (newAskCoin: Address) => {
+      if (offerCoinAddress === newAskCoin) {
+        setOfferCoinAddress(askCoinAddress);
+        setAskCoinAddress(offerCoinAddress);
+      } else {
+        setAskCoinAddress(newAskCoin);
+      }
+    },
+    [offerCoinAddress, askCoinAddress],
+  );
+
+  const handleOfferCoinChange = useCallback(
+    (newOfferCoin: Address) => {
+      if (askCoinAddress === newOfferCoin) {
+        setAskCoinAddress(offerCoinAddress);
+        setOfferCoinAddress(askCoinAddress);
+      } else {
+        setOfferCoinAddress(newOfferCoin);
+      }
+    },
+    [askCoinAddress, offerCoinAddress],
+  );
+
   useEffect(() => {
     const parsedInput = parseFloat(inputDraft);
     if (isNaN(parsedInput) || parsedInput <= 0) {
@@ -337,7 +361,7 @@ const MintDemoPage: NextPage = () => {
               id="offer"
               selectedToken={offerCoin}
               tokens={SUI_TOKENS}
-              onChange={setOfferCoinAddress}
+              onChange={handleOfferCoinChange}
               tokenBalances={tokenBalances}
             />
           </div>
@@ -383,7 +407,7 @@ const MintDemoPage: NextPage = () => {
               id="ask"
               selectedToken={askCoin}
               tokens={SUI_TOKENS}
-              onChange={setAskCoinAddress}
+              onChange={handleAskCoinChange}
               tokenBalances={tokenBalances}
             />
           </div>
