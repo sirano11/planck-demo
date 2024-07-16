@@ -5,11 +5,12 @@ import {
   getFullnodeUrl,
 } from '@mysten/sui/client';
 import { waitForTransactionReceipt } from '@wagmi/core';
+import axios from 'axios';
 import { NextPage } from 'next';
 import { BridgeToken__factory } from 'planck-demo-contracts/typechain/factories/BridgeToken__factory';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Address, formatUnits, parseUnits } from 'viem';
-import { useWriteContract } from 'wagmi';
+import { useAccount, useWriteContract } from 'wagmi';
 
 import { useJobStatus } from '@/components/JobStatusContext';
 import { TokenSelector } from '@/components/TokenSelector';
@@ -49,6 +50,7 @@ const MintDemoPage: NextPage = () => {
   const [inputDraft, setInputDraft] = useState<string>('1');
   const [estimation, setEstimation] = useState<string>('0');
 
+  const { address } = useAccount();
   const { tokenBalances } = useTokenBalances();
   const { tokenAllowances, refresh: refreshAllowances } = useTokenAllowances();
 
@@ -215,7 +217,11 @@ const MintDemoPage: NextPage = () => {
     const ask = TOKENS.find((v) => v.address === askCoinAddress)!;
     const inputAtomics = parseUnits(parsedInput.toString(), offer.decimals);
 
-    const actorAddress = '0xadf'; // FIXME: get actor address by querying
+    const { actorAddress } = (
+      await axios.get<{ actorAddress: string }>('/api/actor', {
+        params: { address, chain: 'sui' },
+      })
+    ).data;
 
     const { coinObjectIds: offerCoinObjectIds, coinTotal: offerCoinTotal } =
       await getCoinObject({
