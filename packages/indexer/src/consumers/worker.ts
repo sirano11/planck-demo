@@ -1,15 +1,18 @@
-import { Job, Worker } from 'bullmq';
+import { Job, QueueEvents, Worker } from 'bullmq';
+import { Server } from 'socket.io';
 
-import { QUEUE_CONFIG, QUEUE_NAME } from '@/config';
+import { Config, QUEUE_CONFIG, QUEUE_NAME } from '@/config';
 
 import { SolanaConsumer } from './SolanaConsumer';
 import { SuiConsumer } from './SuiConsumer';
+
+const io = new Server(Config.WEBSOCKET_PORT);
 
 const suiWorker = new Worker(
   QUEUE_NAME.Sui,
   async (job: Job) => {
     const consumer = SuiConsumer.getInstance();
-    await consumer.processTx(job.data);
+    await consumer.processTx(job);
   },
   {
     connection: QUEUE_CONFIG.connection,
@@ -19,12 +22,33 @@ const suiWorker = new Worker(
 const solanaWorker = new Worker(
   QUEUE_NAME.Solana,
   async (job: Job) => {
-    // console.log(`solana`);
+    const consumer = SolanaConsumer.getInstance();
+    await consumer.processTx(job);
   },
   {
     connection: QUEUE_CONFIG.connection,
   },
 );
+
+for (const worker of [suiWorker, solanaWorker]) {
+  worker.on('progress', (job: Job, progress: number | object) => {
+    if (typeof progress === 'object' && job.id) {
+      io.emit(`job-${job.id}`, { ...progress, error: false });
+    }
+  });
+
+  worker.on('completed', (job: Job) => {
+    if (job.id) {
+      io.emit(`job-${job.id}`, { status: 'completed', error: false });
+    }
+  });
+
+  worker.on('failed', (job: Job | undefined, error: Error) => {
+    if (job && job.id && error.message) {
+      io.emit(`job-${job.id}`, { status: error.message, error: true });
+    }
+  });
+}
 
 //https://docs.bullmq.io/guide/going-to-production#gracefully-shut-down-workers
 const gracefulShutdown = async (signal: string) => {

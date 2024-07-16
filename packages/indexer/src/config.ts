@@ -19,6 +19,7 @@ type Config = {
   REDIS_URL: string;
   SOLANA_MINT_MNEMONIC: string;
   HUB_OWNER_MNEMONIC: string;
+  WEBSOCKET_PORT: number;
 };
 
 const getConfig = (): Config => {
@@ -31,9 +32,11 @@ const getConfig = (): Config => {
     'REDIS_URL',
     'SOLANA_MINT_MNEMONIC',
     'HUB_OWNER_MNEMONIC',
+    'WEBSOCKET_PORT',
   ]);
 
   config.START_HEIGHT = Number.parseInt(config.START_HEIGHT || 0, 10);
+  config.WEBSOCKET_PORT = Number.parseInt(config.WEBSOCKET_PORT || 3000, 10);
 
   return config;
 };

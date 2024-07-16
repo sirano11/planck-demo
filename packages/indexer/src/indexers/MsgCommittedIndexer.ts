@@ -35,11 +35,13 @@ export default class MsgCommittedIndexer
       };
 
       if (chain === ChainIdentifier.Solana) {
-        this.solanaQueue.add(QUEUE_NAME.Solana, tx, {
+        await this.solanaQueue.add(QUEUE_NAME.Solana, tx, {
           jobId: event.transactionHash,
         });
       } else if (chain === ChainIdentifier.Sui) {
-        this.suiQueue.add(QUEUE_NAME.Sui, tx, { jobId: event.transactionHash });
+        await this.suiQueue.add(QUEUE_NAME.Sui, tx, {
+          jobId: event.transactionHash,
+        });
       } else {
         // TODO: Handle other chains
       }
@@ -50,9 +52,11 @@ export default class MsgCommittedIndexer
 
   mockHandle = async (tx: Tx, transactionHash: string) => {
     if (tx.chain === ChainIdentifier.Solana) {
-      this.solanaQueue.add(QUEUE_NAME.Solana, tx, { jobId: transactionHash });
+      await this.solanaQueue.add(QUEUE_NAME.Solana, tx, {
+        jobId: transactionHash,
+      });
     } else if (tx.chain === ChainIdentifier.Sui) {
-      this.suiQueue.add(QUEUE_NAME.Sui, tx, { jobId: transactionHash });
+      await this.suiQueue.add(QUEUE_NAME.Sui, tx, { jobId: transactionHash });
     } else {
       // TODO: Handle other chains
     }

@@ -1,5 +1,5 @@
 import { Queue, QueueEvents } from 'bullmq';
-import { BigNumber, ethers } from 'ethers';
+import { ethers } from 'ethers';
 import findWorkspaceRoot from 'find-yarn-workspace-root';
 import path from 'path';
 import { MsgCommittedEvent } from 'planck-demo-contracts/typechain/Hub';

@@ -1,30 +1,34 @@
-import { fromHEX, toHEX } from '@mysten/bcs';
+import { fromHEX } from '@mysten/bcs';
 import { SuiClient, getFullnodeUrl } from '@mysten/sui/client';
 import { SuiTransactionBlockResponse } from '@mysten/sui/client';
-import { Keypair } from '@mysten/sui/cryptography';
 import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
 import { Transaction } from '@mysten/sui/transactions';
+import { Job } from 'bullmq';
 import { BigNumber, ethers } from 'ethers';
 import { BridgeToken__factory } from 'planck-demo-contracts/typechain/factories/BridgeToken__factory';
 import { Hub__factory } from 'planck-demo-contracts/typechain/factories/Hub__factory';
-import { CONTRACTS } from 'planck-demo-interface/src/constants/contracts';
+import {
+  HUB_CONTRACT_ADDRESS,
+  TOKEN_ADDRESS,
+} from 'planck-demo-interface/src/helper/eth/config';
 import { CUSTODY, PROTOCOL } from 'planck-demo-interface/src/helper/sui/config';
 import { createClient } from 'redis';
 
 import { Config } from '@/config';
 
-import { Asset, BaseConsumer, ChainIdentifier, Tx } from './Consumer';
+import { BaseConsumer, ChainIdentifier, Tx } from './Consumer';
 
 const addressToCoinType = new Map<string, string>([
-  [CUSTODY.TYPE_ARGUMENT.BTC, CONTRACTS.wBTC],
-  [PROTOCOL.TYPE_ARGUMENT.LIQUID_MINT, CONTRACTS.lMINT],
-  [PROTOCOL.TYPE_ARGUMENT.CASH_JPY, CONTRACTS.cashJPY],
-  [PROTOCOL.TYPE_ARGUMENT.CASH_KRW, CONTRACTS.cashKRW],
-  [PROTOCOL.TYPE_ARGUMENT.CASH_LIVRE, CONTRACTS.cashLIVRE],
+  [CUSTODY.TYPE_ARGUMENT.BTC, TOKEN_ADDRESS.wBTC],
+  [PROTOCOL.TYPE_ARGUMENT.LIQUID_MINT, TOKEN_ADDRESS.lMINT],
+  [PROTOCOL.TYPE_ARGUMENT.CASH_JPY, TOKEN_ADDRESS.cashJPY],
+  [PROTOCOL.TYPE_ARGUMENT.CASH_KRW, TOKEN_ADDRESS.cashKRW],
+  [PROTOCOL.TYPE_ARGUMENT.CASH_LIVRE, TOKEN_ADDRESS.cashLIVRE],
 ]);
 
 export class SuiConsumer extends BaseConsumer {
   private static instance: SuiConsumer;
+
   private suiClient: SuiClient;
   private ethSigner: ethers.Signer;
   constructor() {
@@ -46,16 +50,29 @@ export class SuiConsumer extends BaseConsumer {
     return new SuiConsumer();
   }
 
-  public async processTx(tx: Tx) {
+  async getKeypair(ethAddress: string): Promise<Ed25519Keypair | null> {
+    const mnemonics = await this.getMnemonic(ethAddress);
+    return mnemonics ? Ed25519Keypair.deriveKeypair(mnemonics) : null;
+  }
+
+  public async processTx(job: Job) {
+    const tx = job.data as Tx;
+    const { sender, data } = tx;
+
+    await job.updateProgress({ status: 'event-received' });
+
+    const keypair = await this.getKeypair(sender);
+    if (!keypair) {
+      throw new Error('actor-not-found');
+    }
+
+    const rawSuiTx = fromHEX(data);
+    const suiTx = Transaction.fromKind(rawSuiTx);
+
+    suiTx.setSender(keypair.toSuiAddress());
+    let result: SuiTransactionBlockResponse | undefined;
     try {
-      const { asset, chain, sender, data } = tx;
-      const keypair = (await this.getKeyPair(sender)) as Ed25519Keypair;
-
-      const rawSuiTx = fromHEX(data);
-      const suiTx = Transaction.fromKind(rawSuiTx);
-
-      suiTx.setSender(keypair.toSuiAddress());
-      const result = await this.suiClient.signAndExecuteTransaction({
+      result = await this.suiClient.signAndExecuteTransaction({
         transaction: suiTx,
         signer: keypair,
         requestType: 'WaitForLocalExecution',
@@ -66,14 +83,25 @@ export class SuiConsumer extends BaseConsumer {
           showObjectChanges: true,
         },
       });
-
-      await this.postProcess(tx, result);
+      await job.updateProgress({ status: 'send-tx-to-dest' });
     } catch (e) {
-      console.log(e);
+      console.error(e);
+      throw new Error('send-tx-to-dest');
+    }
+
+    try {
+      await this.postProcess(tx, result);
+      await job.updateProgress({ status: 'mint-asset-to-sender' });
+    } catch (e) {
+      console.error(e);
+      throw new Error('mint-asset-to-sender');
     }
   }
 
-  public async postProcess(tx: Tx, result: SuiTransactionBlockResponse) {
+  public async postProcess(
+    { asset, sender }: Tx,
+    result: SuiTransactionBlockResponse,
+  ) {
     const mintInfo: { address: string; amount: BigNumber }[] = [];
     const payBackInfo: {
       address: string;
@@ -84,9 +112,9 @@ export class SuiConsumer extends BaseConsumer {
     // It needs to pay back to asset from Hub contract to user.
     if (result.effects?.status.status === 'failure') {
       payBackInfo.push({
-        address: tx.asset.address,
-        sender: tx.sender,
-        amount: tx.asset.amount,
+        address: asset.address,
+        sender: sender,
+        amount: asset.amount,
       });
     } else {
       if (result.balanceChanges) {
@@ -102,15 +130,15 @@ export class SuiConsumer extends BaseConsumer {
             // So it needs to pay back reamaind amount to user from lock asset.
             if (
               (balance.coinType === PROTOCOL.TYPE_ARGUMENT.LIQUID_MINT &&
-                tx.asset.address === CONTRACTS.lMINT) ||
+                asset.address === TOKEN_ADDRESS.lMINT) ||
               (balance.coinType === CUSTODY.TYPE_ARGUMENT.BTC &&
-                tx.asset.address === CONTRACTS.wBTC)
+                asset.address === TOKEN_ADDRESS.wBTC)
             ) {
-              const returnedAmount = tx.asset.amount.add(changedAmount);
+              const returnedAmount = asset.amount.add(changedAmount);
               if (returnedAmount.gt(BigNumber.from(0))) {
                 payBackInfo.push({
-                  address: tx.asset.address,
-                  sender: tx.sender,
+                  address: asset.address,
+                  sender: sender,
                   amount: returnedAmount,
                 });
               }
@@ -118,14 +146,14 @@ export class SuiConsumer extends BaseConsumer {
           } else {
             const address = addressToCoinType.get(balance.coinType);
             if (address) {
-              mintInfo.push({ address, amount: tx.asset.amount });
+              mintInfo.push({ address, amount: asset.amount });
             }
           }
         }
 
         for (const info of payBackInfo) {
           const hubContract = Hub__factory.connect(
-            CONTRACTS.Hub,
+            HUB_CONTRACT_ADDRESS,
             this.ethSigner,
           );
           const receipt = await (
@@ -134,7 +162,7 @@ export class SuiConsumer extends BaseConsumer {
 
           if (!receipt.status) {
             throw new Error(
-              `Failed to postProcess. hub transfer => address : ${tx.asset.address}, amount :  ${tx.asset.amount}, sender: ${tx.sender}`,
+              `Failed to postProcess. hub transfer => address : ${asset.address}, amount :  ${asset.amount}, sender: ${sender}`,
             );
           }
         }
@@ -145,13 +173,11 @@ export class SuiConsumer extends BaseConsumer {
             this.ethSigner,
           );
 
-          const receipt = await (
-            await erc20.mint(tx.sender, info.amount)
-          ).wait();
+          const receipt = await (await erc20.mint(sender, info.amount)).wait();
 
           if (!receipt.status) {
             throw new Error(
-              `Failed to postProcess. mint => address : ${info.address}, amount :  ${info.amount}, sender: ${tx.sender}`,
+              `Failed to postProcess. mint => address : ${info.address}, amount :  ${info.amount}, sender: ${sender}`,
             );
           }
         }

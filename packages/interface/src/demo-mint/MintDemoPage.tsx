@@ -11,6 +11,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Address, formatUnits, parseUnits } from 'viem';
 import { useWriteContract } from 'wagmi';
 
+import { useJobStatus } from '@/components/JobStatusContext';
 import { TokenSelector } from '@/components/TokenSelector';
 import { Button } from '@/components/ui/button';
 import { TOKENS } from '@/constants/tokens';
@@ -50,6 +51,8 @@ const MintDemoPage: NextPage = () => {
 
   const { tokenBalances } = useTokenBalances();
   const { tokenAllowances, refresh: refreshAllowances } = useTokenAllowances();
+
+  const jobStatus = useJobStatus();
 
   const rpcUrl = getFullnodeUrl('testnet');
   const client = new SuiClient({ url: rpcUrl });
@@ -276,13 +279,21 @@ const MintDemoPage: NextPage = () => {
       );
     }
 
-    await commit(
-      HUB_CONTRACT_ADDRESS,
-      offerCoinAddress,
-      inputAtomics,
-      ChainIdentifier.Sui,
-      rawTx,
-    );
+    try {
+      const hash = await commit(
+        HUB_CONTRACT_ADDRESS,
+        offerCoinAddress,
+        inputAtomics,
+        ChainIdentifier.Sui,
+        rawTx,
+      );
+
+      jobStatus.dispatch({ type: 'SET_JOB_HASH', payload: hash });
+
+      const receipt = await waitForTransactionReceipt(config, { hash });
+    } catch (e) {
+      console.error(e);
+    }
   }, [inputDraft, offerCoinAddress, askCoinAddress]);
 
   return (

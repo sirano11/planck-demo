@@ -14,6 +14,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { formatUnits, parseUnits } from 'viem';
 import { useWriteContract } from 'wagmi';
 
+import { useJobStatus } from '@/components/JobStatusContext';
 import { Token } from '@/constants';
 import { config } from '@/constants/wagmi';
 import { ChainIdentifier, HUB_CONTRACT_ADDRESS } from '@/helper/eth/config';
@@ -54,6 +55,7 @@ export const SwapPanel: React.FC<SwapPanelProps> = ({
 
   const raydium = useRaydium();
   const computeResult = useComputeSwap(raydium!, tokenInput.mint, amountIn);
+  const jobStatus = useJobStatus();
 
   const inputAmount = (computeResult && computeResult.inputAmount) || null;
   const outputAmount = (computeResult && computeResult.outputAmount) || null;
@@ -125,13 +127,17 @@ export const SwapPanel: React.FC<SwapPanelProps> = ({
 
       // TODO: Add approval logic for (asset, amountAtomics)
 
-      await commit(
+      const hash = await commit(
         HUB_CONTRACT_ADDRESS,
         tokenInput.address,
         BigInt(computeResult.inputAmount.toString()),
         ChainIdentifier.Solana,
         rawTx,
       );
+
+      jobStatus.dispatch({ type: 'SET_JOB_HASH', payload: hash });
+
+      const receipt = await waitForTransactionReceipt(config, { hash });
     } catch (e) {
       console.error(e);
     } finally {

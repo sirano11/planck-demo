@@ -5,8 +5,11 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from 'next-themes';
 import type { AppProps } from 'next/app';
 import Head from 'next/head';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { WagmiProvider } from 'wagmi';
 
+import { JobStatusProvider } from '@/components/JobStatusContext';
 import NavigationBar from '@/components/NavigationBar';
 import GlobalColorProvider from '@/raydium/provider/GlobalColorProvider';
 import { theme } from '@/raydium/theme';
@@ -38,8 +41,11 @@ const App: React.FC<AppProps> = ({ Component, pageProps }) => {
             <WagmiProvider config={config}>
               <QueryClientProvider client={queryClient}>
                 <RainbowKitProvider>
-                  <NavigationBar />
-                  <Component {...pageProps} />
+                  <JobStatusProvider>
+                    <NavigationBar />
+                    <Component {...pageProps} />
+                  </JobStatusProvider>
+                  <ToastContainer />
                 </RainbowKitProvider>
               </QueryClientProvider>
             </WagmiProvider>
