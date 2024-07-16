@@ -1,7 +1,7 @@
 import { waitForTransactionReceipt } from '@wagmi/core';
+import { writeContract } from '@wagmi/core';
 import { Hub__factory } from 'planck-demo-contracts/typechain/factories/Hub__factory';
-import { Address, parseEther } from 'viem';
-import { useWriteContract } from 'wagmi';
+import { Address } from 'viem';
 
 import { config } from '@/constants/wagmi';
 
@@ -12,9 +12,8 @@ export async function commit(
   chain: number,
   data: Uint8Array,
 ) {
-  const { writeContractAsync } = useWriteContract();
   try {
-    const hash = await writeContractAsync({
+    const hash = await writeContract(config, {
       address: contractAddress,
       abi: Hub__factory.abi,
       functionName: 'commit',
