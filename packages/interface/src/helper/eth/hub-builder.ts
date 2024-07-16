@@ -1,8 +1,11 @@
-import { writeContract } from '@wagmi/core';
+import { waitForTransactionReceipt, writeContract } from '@wagmi/core';
 import { Hub__factory } from 'planck-demo-contracts/typechain/factories/Hub__factory';
 import { Address } from 'viem';
 
-import { config } from '@/constants/wagmi';
+import { config } from '../../constants/wagmi';
+
+export const encodeRawTx = (data: Uint8Array) =>
+  `0x${data.reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '')}`;
 
 export async function commit(
   contractAddress: Address,
@@ -11,15 +14,17 @@ export async function commit(
   chain: number,
   data: Uint8Array,
 ) {
-  return writeContract(config, {
-    address: contractAddress,
-    abi: Hub__factory.abi,
-    functionName: 'commit',
-    args: [
-      asset,
-      amountAtomics,
-      chain,
-      `0x${data.reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '')}`,
-    ],
-  });
+  try {
+    const hash = await writeContract(config, {
+      address: contractAddress,
+      abi: Hub__factory.abi,
+      functionName: 'commit',
+      args: [asset, amountAtomics, chain, encodeRawTx(data)],
+    });
+
+    const receipt = await waitForTransactionReceipt(config, { hash });
+    return receipt;
+  } catch (e) {
+    console.error(e);
+  }
 }

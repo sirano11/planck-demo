@@ -1,8 +1,7 @@
 import { Address } from 'viem';
 
-import { ChainIdentifier, TOKEN_ADDRESS } from '@/helper/eth/config';
-import { PROTOCOL } from '@/helper/sui/config';
-
+import { ChainIdentifier, TOKEN_ADDRESS } from '../helper/eth/config';
+import { CUSTODY, PROTOCOL } from '../helper/sui/config';
 import { PROGRAMS } from './solanaConfigs';
 
 export type TokenCategory = 'wbtc' | 'lmint' | 'cash' | 'wsol' | 'wmeme';
@@ -27,6 +26,7 @@ export const TOKENS: Token[] = [
     address: TOKEN_ADDRESS.wBTC,
     decimals: 8,
     logo: '/assets/bitcoin.png',
+    typeArgument: CUSTODY.TYPE_ARGUMENT.BTC,
     chain: ChainIdentifier.Sui,
   },
   {
