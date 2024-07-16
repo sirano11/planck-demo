@@ -1,6 +1,5 @@
 import styled from '@emotion/styled';
 import {
-  CoinStruct,
   SuiClient,
   SuiHTTPTransportError,
   getFullnodeUrl,
@@ -33,6 +32,7 @@ import {
   simulate_swap,
   swap,
 } from '@/helper/sui/tx-builder';
+import { getCoinObject } from '@/helper/sui/utils';
 import { useTokenAllowances } from '@/hooks/useTokenAllowances';
 import { useTokenBalances } from '@/hooks/useTokenBalances';
 
@@ -214,31 +214,17 @@ const MintDemoPage: NextPage = () => {
 
     const actorAddress = '0xadf'; // FIXME: get actor address by querying
 
-    let nextCursor: string | null | undefined;
-    let offerCoins: CoinStruct[] = [];
-    let offerCoinTotal = 0n;
-    do {
-      const coins = await client.getCoins({
-        owner: actorAddress,
-        cursor: nextCursor,
-        coinType: offer.typeArgument,
+    const { coinObjectIds: offerCoinObjectIds, coinTotal: offerCoinTotal } =
+      await getCoinObject({
+        client,
+        coinType: offer.typeArgument!,
+        actorAddress,
       });
 
-      offerCoins = [...offerCoins, ...coins.data];
-      offerCoinTotal += coins.data.reduce(
-        (acc, v) => acc + BigInt(v.balance),
-        0n,
-      );
-
-      nextCursor = coins.hasNextPage ? coins.nextCursor : undefined;
-    } while (nextCursor);
-
-    if (offerCoins.length === 0) {
+    if (offerCoinObjectIds.length === 0) {
       console.log('No coin found in actor wallet');
       return;
     }
-
-    const offerCoinObjectIds = offerCoins.map((v) => v.coinObjectId);
 
     let rawTx: Uint8Array | undefined;
     if (offer.category === 'wbtc' && ask.category === 'lmint') {
