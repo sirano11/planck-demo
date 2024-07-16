@@ -7,14 +7,19 @@ import {
   useDisclosure,
 } from '@chakra-ui/react';
 import { TxVersion } from '@raydium-io/raydium-sdk-v2';
+import { waitForTransactionReceipt } from '@wagmi/core';
 import BN from 'bn.js';
-import { useCallback, useRef, useState } from 'react';
-import { formatUnits } from 'viem';
+import { BridgeToken__factory } from 'planck-demo-contracts/typechain/factories/BridgeToken__factory';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { formatUnits, parseUnits } from 'viem';
+import { useWriteContract } from 'wagmi';
 
 import { Token } from '@/constants';
+import { config } from '@/constants/wagmi';
 import { ChainIdentifier, HUB_CONTRACT_ADDRESS } from '@/helper/eth/config';
 import { commit } from '@/helper/eth/hub-builder';
 import { useComputeSwap, useRaydium } from '@/hooks';
+import { useTokenAllowances } from '@/hooks/useTokenAllowances';
 import { useTokenBalances } from '@/hooks/useTokenBalances';
 import TokenInput from '@/raydium/components/TokenInput';
 import { useHover } from '@/raydium/hooks';
@@ -42,6 +47,7 @@ export const SwapPanel: React.FC<SwapPanelProps> = ({
   } = useDisclosure();
 
   const { tokenBalances } = useTokenBalances();
+  const { tokenAllowances, refresh: refreshAllowances } = useTokenAllowances();
 
   const [amountIn, setAmountIn] = useState<string>('');
   const swapDisabled = false;
@@ -49,8 +55,53 @@ export const SwapPanel: React.FC<SwapPanelProps> = ({
   const raydium = useRaydium();
   const computeResult = useComputeSwap(raydium!, tokenInput.mint, amountIn);
 
-  const outputAmount =
-    (computeResult && tokenOutput && computeResult.outputAmount) || null;
+  const inputAmount = (computeResult && computeResult.inputAmount) || null;
+  const outputAmount = (computeResult && computeResult.outputAmount) || null;
+
+  const hasEnoughAllowance = useMemo(() => {
+    try {
+      return (
+        tokenAllowances[tokenInput.address] &&
+        tokenAllowances[tokenInput.address] >=
+          parseUnits(amountIn, tokenInput.decimals)
+      );
+    } catch (e) {
+      return false;
+    }
+  }, [tokenAllowances, amountIn, tokenInput]);
+
+  const { writeContractAsync } = useWriteContract();
+  const handleClickApprove = useCallback(() => {
+    if (hasEnoughAllowance) {
+      return;
+    }
+    (async () => {
+      const amount = parseUnits(amountIn, tokenInput.decimals);
+
+      const hash = await writeContractAsync({
+        address: tokenInput.address,
+        abi: BridgeToken__factory.abi,
+        functionName: 'approve',
+        args: [HUB_CONTRACT_ADDRESS, amount],
+      });
+
+      const receipt = await waitForTransactionReceipt(config, { hash });
+
+      // TODO: Toast Result
+      console.log({ receipt });
+    })()
+      .catch((err) => {
+        // TODO: Toast Failure
+        console.error(err);
+      })
+      .finally(() => refreshAllowances());
+  }, [
+    hasEnoughAllowance,
+    amountIn,
+    tokenInput,
+    writeContractAsync,
+    refreshAllowances,
+  ]);
 
   const handleClickSwap = useCallback(async () => {
     if (!computeResult || !raydium) {
@@ -130,8 +181,12 @@ export const SwapPanel: React.FC<SwapPanelProps> = ({
         />
       </Box>
 
-      <Button onClick={handleClickSwap}>
-        <Text>Swap</Text>
+      <Button
+        onClick={!hasEnoughAllowance ? handleClickApprove : handleClickSwap}
+      >
+        <Text>
+          {!hasEnoughAllowance ? `Approve ${tokenInput.symbol}` : 'Swap'}
+        </Text>
       </Button>
     </>
   );
