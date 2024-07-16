@@ -15,6 +15,7 @@ import { Token } from '@/constants';
 import { ChainIdentifier, HUB_CONTRACT_ADDRESS } from '@/helper/eth/config';
 import { commit } from '@/helper/eth/hub-builder';
 import { useComputeSwap, useRaydium } from '@/hooks';
+import { useTokenBalances } from '@/hooks/useTokenBalances';
 import TokenInput from '@/raydium/components/TokenInput';
 import { useHover } from '@/raydium/hooks';
 import SwapButtonOneTurnIcon from '@/raydium/icons/misc/SwapButtonOneTurnIcon';
@@ -39,6 +40,8 @@ export const SwapPanel: React.FC<SwapPanelProps> = ({
     onOpen: onSending,
     onClose: offSending,
   } = useDisclosure();
+
+  const { tokenBalances } = useTokenBalances();
 
   const [amountIn, setAmountIn] = useState<string>('');
   const swapDisabled = false;
@@ -93,6 +96,7 @@ export const SwapPanel: React.FC<SwapPanelProps> = ({
           name="swap"
           topLeftLabel="From"
           token={tokenInput}
+          tokenBalance={tokenBalances[tokenInput.address]}
           value={amountIn}
           readonly={swapDisabled}
           onChange={setAmountIn}
@@ -104,6 +108,7 @@ export const SwapPanel: React.FC<SwapPanelProps> = ({
           name="swap"
           topLeftLabel="To"
           token={tokenOutput}
+          tokenBalance={tokenBalances[tokenOutput.address]}
           value={formatUnits(
             BigInt(outputAmount?.toString() || '0'),
             tokenOutput.decimals,

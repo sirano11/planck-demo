@@ -14,12 +14,10 @@ import {
   useDisclosure,
 } from '@chakra-ui/react';
 import { ApiV3Token, TokenInfo } from '@raydium-io/raydium-sdk-v2';
-import Decimal from 'decimal.js';
 import React, { ReactNode } from 'react';
 import { formatUnits } from 'viem';
 
 import { Token } from '@/constants/tokens';
-import { useTokenBalances } from '@/hooks/useTokenBalances';
 import { useEvent } from '@/raydium/hooks/useEvent';
 import BalanceWalletIcon from '@/raydium/icons/misc/BalanceWalletIcon';
 import ChevronDownIcon from '@/raydium/icons/misc/ChevronDownIcon';
@@ -53,7 +51,8 @@ interface TokenInputProps {
    * - upper grid py: 10px
    */
   size?: 'md' | 'sm';
-  token?: Token;
+  token: Token;
+  tokenBalance: bigint;
 
   /** <NumberInput> is disabled */
   readonly?: boolean;
@@ -100,7 +99,8 @@ function TokenInput(props: TokenInputProps) {
     id,
     name,
     size: inputSize,
-    token: inputToken,
+    token,
+    tokenBalance,
     hideBalance = false,
     hideTokenIcon = false,
     hideControlButton = false,
@@ -130,23 +130,10 @@ function TokenInput(props: TokenInputProps) {
     // defaultUnknownToken,
   } = props;
   const isMobile = false;
-  // const isMobile = useAppStore((s) => s.isMobile);
-  // const setExtraTokenListAct = useTokenStore((s) => s.setExtraTokenListAct);
-  // const whiteListMap = useTokenStore((s) => s.whiteListMap);
 
   const { colorMode } = useColorMode();
   const isLight = colorMode === 'light';
-  const { isOpen, onOpen, onClose } = useDisclosure();
-  const {
-    isOpen: isOpenUnknownTokenConfirm,
-    onOpen: onOpenUnknownTokenConfirm,
-    onClose: onCloseUnknownTokenConfirm,
-  } = useDisclosure();
-  const {
-    isOpen: isOpenFreezeTokenConfirm,
-    onOpen: onOpenFreezeTokenConfirm,
-    onClose: onCloseFreezeTokenConfirm,
-  } = useDisclosure();
+  const { onOpen } = useDisclosure();
 
   const size = inputSize ?? isMobile ? 'sm' : 'md';
   const sizes = {
@@ -160,71 +147,6 @@ function TokenInput(props: TokenInputProps) {
     upperGridPy: size === 'sm' ? '10px' : '12px',
   };
 
-  const shakeValueDecimal = (
-    value: number | string | undefined,
-    decimals?: number,
-  ) =>
-    value &&
-    !String(value).endsWith('.') &&
-    decimals != null &&
-    new Decimal(value).decimalPlaces() > decimals
-      ? new Decimal(value)
-          .toDecimalPlaces(decimals, Decimal.ROUND_DOWN)
-          .toString()
-      : value;
-
-  // price
-  // const tokenMap = useTokenStore((s) => s.tokenMap);
-  const { tokenBalances } = useTokenBalances();
-  // const token = typeof inputToken === 'string' ? tokenMap.get(inputToken) : inputToken;
-  const token = inputToken;
-  // const { data: tokenPrice } = useTokenPrice({
-  //   mintList: [token?.address],
-  // });
-
-  // const value = formatUnits(BigInt(inputValue || 0), token?.decimals || 9);
-  // console.log({ value });
-  // const price = tokenPrice[token?.address || '']?.value;
-  // const price = 0;
-  // const totalPrice =
-  //   price && value ? new Decimal(price ?? 0).mul(value).toString() : '';
-
-  // balance
-  // const getTokenBalanceUiAmount = useTokenAccountStore(
-  //   (s) => s.getTokenBalanceUiAmount,
-  // );
-  // const balanceInfo = getTokenBalanceUiAmount({
-  //   mint: token?.address || '',
-  //   decimals: token?.decimals,
-  // });
-
-  // const balanceAmount = balanceInfo.amount;
-
-  const tokenAmount = tokenBalances[token?.address!];
-
-  // const balanceMaxString = hideBalance
-  //   ? null
-  //   : trimTrailZero(
-  //       balanceAmount
-  //         .mul(maxMultiplier || 1)
-  //         .toFixed(token?.decimals ?? 6, Decimal.ROUND_FLOOR),
-  //     );
-  // const maxString = forceBalanceAmount
-  //   ? trimTrailZero(String(forceBalanceAmount))
-  //   : balanceMaxString;
-  // const maxDecimal = forceBalanceAmount
-  //   ? new Decimal(forceBalanceAmount)
-  //   : balanceAmount;
-
-  // const displayTokenSettings = useAppStore((s) => s.displayTokenSettings);
-
-  // const [unknownToken, setUnknownToken] = useState<TokenInfo | ApiV3Token>();
-  // const [freezeToken, setFreezeToken] = useState<TokenInfo | ApiV3Token>();
-
-  // const handleValidate = useEvent((value: string) => {
-  //   return numberRegExp.test(value)
-  // })
-
   const handleFocus = useEvent(() => {
     if (inputValue === '0') {
       onChange?.('');
@@ -232,110 +154,12 @@ function TokenInput(props: TokenInputProps) {
     onFocus?.();
   });
 
-  // const getBalanceString = useEvent((amount: string) => {
-  //   if (token?.address !== SOL_INFO.address || !balanceMaxString) return amount;
-  //   if (new Decimal(balanceMaxString).sub(amount).gte(solReserveAmount))
-  //     return amount;
-  //   let decimal = new Decimal(amount).sub(solReserveAmount);
-  //   if (decimal.lessThan(0)) decimal = new Decimal(0);
-  //   return trimTrailZero(decimal.toFixed(token.decimals))!;
-  // });
-
   const handleClickMax = useEvent(() => {
     if (disableClickBalance) return;
     // if (!maxString) return;
     handleFocus();
-    onChange?.(formatUnits(tokenAmount, token?.decimals || 9));
+    onChange?.(formatUnits(tokenBalance, token.decimals || 9));
   });
-
-  // const handleClickHalf = useEvent(() => {
-  //   if (!maxString) return;
-  //   handleFocus();
-  //   onChange?.(getBalanceString(maxDecimal.div(2).toString()));
-  // });
-
-  // const isUnknownToken = useEvent((token: TokenInfo) => {
-  //   const isUnknown =
-  //     !token.type || token.type === 'unknown' || token.tags.includes('unknown');
-  //   const isTrusted = isUnknown && !!tokenMap.get(token.address)?.userAdded;
-  //   const isUserAddedTokenEnable = displayTokenSettings.userAdded;
-  //   return isUnknown && (!isTrusted || !isUserAddedTokenEnable);
-  // });
-
-  // const isFreezeToken = useEvent((token: TokenInfo | ApiV3Token) => {
-  //   return (
-  //     token?.tags.includes('hasFreeze') && !whiteListMap.has(token.address)
-  //   );
-  // });
-
-  // const handleSelectToken = useEvent((token: TokenInfo) => {
-  //   const isFreeze = isFreezeToken(token);
-  //   if (isFreeze) {
-  //     setFreezeToken(token);
-  //   }
-
-  //   const shouldShowUnknownTokenConfirm = isUnknownToken(token);
-  //   if (shouldShowUnknownTokenConfirm) {
-  //     setUnknownToken(token);
-  //     onOpenUnknownTokenConfirm();
-  //     return;
-  //   }
-
-  //   if (isFreeze) {
-  //     if (name === 'swap') {
-  //       onOpenFreezeTokenConfirm();
-  //     } else {
-  //       toastSubject.next({
-  //         title: t('token_selector.token_freeze_warning'),
-  //         description: t('token_selector.token_has_freeze_disable'),
-  //         status: 'warning',
-  //       });
-  //     }
-  //     return;
-  //   }
-  //   onTokenChange?.(token);
-  //   onClose();
-  // });
-
-  // const handleUnknownTokenConfirm = useEvent(
-  //   (token: TokenInfo | ApiV3Token) => {
-  //     setExtraTokenListAct({
-  //       token: { ...token, userAdded: true } as TokenInfo,
-  //       addToStorage: true,
-  //       update: true,
-  //     });
-  //     onCloseUnknownTokenConfirm();
-  //     const isFreeze = isFreezeToken(token);
-  //     if (isFreeze) {
-  //       if (name === 'swap') {
-  //         onOpenFreezeTokenConfirm();
-  //       } else {
-  //         toastSubject.next({
-  //           title: t('token_selector.token_freeze_warning'),
-  //           description: t('token_selector.token_has_freeze_disable'),
-  //           status: 'warning',
-  //         });
-  //       }
-  //       return;
-  //     }
-  //     onTokenChange?.(token);
-  //     setTimeout(() => {
-  //       onTokenChange?.(token);
-  //     }, 0);
-  //     onClose();
-  //   },
-  // );
-
-  // const handleFreezeTokenConfirm = useEvent((token: TokenInfo | ApiV3Token) => {
-  //   onTokenChange?.(token);
-  //   onCloseFreezeTokenConfirm();
-  //   onClose();
-  // });
-
-  // useEffect(() => {
-  //   if (!defaultUnknownToken) return;
-  //   handleSelectToken(defaultUnknownToken);
-  // }, [defaultUnknownToken?.address]);
 
   return (
     <Box
@@ -387,34 +211,12 @@ function TokenInput(props: TokenInputProps) {
                 textUnderlineOffset: '2px',
               }}
             >
-              {typeof tokenAmount === 'undefined'
+              {typeof tokenBalance === 'undefined'
                 ? '-' // 값이 없을 땐 0 과 구별해서 표시
-                : formatUnits(tokenAmount, token?.decimals!)}
+                : formatUnits(tokenBalance, token.decimals!)}
             </Text>
           </HStack>
         )}
-
-        {/* buttons */}
-        {/* {hideControlButton ? null : (
-          <HStack>
-            <Button
-              disabled={disableClickBalance}
-              onClick={handleClickMax}
-              variant="rect-rounded-radio"
-              size="xs"
-            >
-              {'input.max_button'}
-            </Button>
-            <Button
-              disabled={disableClickBalance}
-              onClick={handleClickHalf}
-              variant="rect-rounded-radio"
-              size="xs"
-            >
-              50%
-            </Button>
-          </HStack>
-        )} */}
       </HStack>
 
       <Grid
@@ -458,7 +260,7 @@ function TokenInput(props: TokenInputProps) {
               />
             )}
             <Text color={isLight ? colors.secondary : colors.textPrimary}>
-              {token?.symbol || ' '}
+              {token.symbol}
             </Text>
             {disableSelectToken ? undefined : (
               <ChevronDownIcon width={20} height={20} />
