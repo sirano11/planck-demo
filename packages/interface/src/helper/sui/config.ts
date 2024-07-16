@@ -31,7 +31,7 @@ export const PROTOCOL = {
   },
 };
 
-export const CUSTODY_PACKAGE_ID = `0x2b46e1b7e6243bacf028f1e8bc0c827a5e8f62206ddf6a32e8dcfa6a8f098760`;
+export const CUSTODY_PACKAGE_ID = `0x104e22273d7186577f5f588abfc07fe2042f2349d0e69d79d2500a1ad91daf79`;
 
 export const CUSTODY = {
   PACKAGE_ID: CUSTODY_PACKAGE_ID,
