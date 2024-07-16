@@ -6,7 +6,10 @@ import { CUSTODY, PROTOCOL } from './config';
 
 const mergeCoins = (tx: Transaction, coinIds: string[]) =>
   coinIds.length > 2
-    ? tx.mergeCoins(tx.object(coinIds[0]), coinIds.slice(1).map(tx.object))[0]
+    ? tx.mergeCoins(
+        tx.object(coinIds[0]),
+        coinIds.slice(1).map((v) => tx.object(v)),
+      )[0]
     : tx.object(coinIds[0]);
 
 export const swap = async (
@@ -83,17 +86,20 @@ export const btc_to_lmint = async (
 ): Promise<Uint8Array> => {
   const tx = new Transaction();
 
-  const [mintedBtcCoin] = tx.moveCall({
-    target: CUSTODY.TARGET.BTC_MINT,
-    arguments: [
-      tx.object(CUSTODY.OBJECT_ID.BTC_TREASURY),
-      tx.pure.u64(btcAmount - btcCoinTotal),
-    ],
-  });
+  const mintedBtcCoin =
+    btcAmount > btcCoinTotal
+      ? tx.moveCall({
+          target: CUSTODY.TARGET.BTC_MINT,
+          arguments: [
+            tx.object(CUSTODY.OBJECT_ID.BTC_TREASURY),
+            tx.pure.u64(btcAmount - btcCoinTotal),
+          ],
+        })[0]
+      : null;
 
   const [mergedBtcCoin] = tx.mergeCoins(tx.object(btcCoinIds[0]), [
-    ...btcCoinIds.slice(1).map(tx.object),
-    mintedBtcCoin,
+    ...btcCoinIds.slice(1).map((v) => tx.object(v)),
+    ...(mintedBtcCoin ? [mintedBtcCoin] : []),
   ]);
 
   const [btcCoin] = tx.splitCoins(mergedBtcCoin, [tx.pure.u64(btcAmount)]);
@@ -123,17 +129,20 @@ export const btc_to_cash = async (
 ): Promise<Uint8Array> => {
   const tx = new Transaction();
 
-  const [mintedBtcCoin] = tx.moveCall({
-    target: CUSTODY.TARGET.BTC_MINT,
-    arguments: [
-      tx.object(CUSTODY.OBJECT_ID.BTC_TREASURY),
-      tx.pure.u64(btcAmount - btcCoinTotal),
-    ],
-  });
+  const mintedBtcCoin =
+    btcAmount > btcCoinTotal
+      ? tx.moveCall({
+          target: CUSTODY.TARGET.BTC_MINT,
+          arguments: [
+            tx.object(CUSTODY.OBJECT_ID.BTC_TREASURY),
+            tx.pure.u64(btcAmount - btcCoinTotal),
+          ],
+        })[0]
+      : null;
 
   const [mergedBtcCoin] = tx.mergeCoins(tx.object(btcCoinIds[0]), [
-    ...btcCoinIds.slice(1).map(tx.object),
-    mintedBtcCoin,
+    ...btcCoinIds.slice(1).map((v) => tx.object(v)),
+    ...(mintedBtcCoin ? [mintedBtcCoin] : []),
   ]);
 
   const [btcCoin] = tx.splitCoins(mergedBtcCoin, [tx.pure.u64(btcAmount)]);
