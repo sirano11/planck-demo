@@ -5,13 +5,17 @@ import {
   SuiHTTPTransportError,
   getFullnodeUrl,
 } from '@mysten/sui/client';
+import { waitForTransactionReceipt } from '@wagmi/core';
 import { NextPage } from 'next';
+import { BridgeToken__factory } from 'planck-demo-contracts/typechain/factories/BridgeToken__factory';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Address, formatUnits, parseUnits } from 'viem';
+import { useWriteContract } from 'wagmi';
 
 import { TokenSelector } from '@/components/TokenSelector';
 import { Button } from '@/components/ui/button';
 import { TOKENS } from '@/constants/tokens';
+import { config } from '@/constants/wagmi';
 import {
   ChainIdentifier,
   HUB_CONTRACT_ADDRESS,
@@ -29,6 +33,7 @@ import {
   simulate_swap,
   swap,
 } from '@/helper/sui/tx-builder';
+import { useTokenAllowances } from '@/hooks/useTokenAllowances';
 import { useTokenBalances } from '@/hooks/useTokenBalances';
 
 const SUI_TOKENS = TOKENS.filter((v) => v.chain === ChainIdentifier.Sui);
@@ -44,6 +49,7 @@ const MintDemoPage: NextPage = () => {
   const [estimation, setEstimation] = useState<string>('0');
 
   const { tokenBalances } = useTokenBalances();
+  const { tokenAllowances, refresh: refreshAllowances } = useTokenAllowances();
 
   const rpcUrl = getFullnodeUrl('testnet');
   const client = new SuiClient({ url: rpcUrl });
@@ -150,6 +156,51 @@ const MintDemoPage: NextPage = () => {
       }
     });
   }, [inputDraft, offerCoin, askCoin]);
+
+  const hasEnoughAllowance = useMemo(() => {
+    try {
+      return (
+        tokenAllowances[offerCoin.address] &&
+        tokenAllowances[offerCoin.address] >=
+          parseUnits(inputDraft, offerCoin.decimals)
+      );
+    } catch (e) {
+      return false;
+    }
+  }, [tokenAllowances, inputDraft, offerCoin]);
+
+  const { writeContractAsync } = useWriteContract();
+  const onClickApprove = useCallback(() => {
+    if (hasEnoughAllowance) {
+      return;
+    }
+    (async () => {
+      const amount = parseUnits(inputDraft, offerCoin.decimals);
+
+      const hash = await writeContractAsync({
+        address: offerCoin.address,
+        abi: BridgeToken__factory.abi,
+        functionName: 'approve',
+        args: [HUB_CONTRACT_ADDRESS, amount],
+      });
+
+      const receipt = await waitForTransactionReceipt(config, { hash });
+
+      // TODO: Toast Result
+      console.log({ receipt });
+    })()
+      .catch((err) => {
+        // TODO: Toast Failure
+        console.error(err);
+      })
+      .finally(() => refreshAllowances());
+  }, [
+    hasEnoughAllowance,
+    inputDraft,
+    offerCoin,
+    writeContractAsync,
+    refreshAllowances,
+  ]);
 
   const onClickSwap = useCallback(async () => {
     const parsedInput = parseFloat(inputDraft);
@@ -366,16 +417,25 @@ const MintDemoPage: NextPage = () => {
         </TokenInputContainer>
 
         <Button
-          onClick={onClickSwap}
+          disabled={offerCoinAddress === askCoinAddress}
+          onClick={
+            offerCoinAddress === askCoinAddress
+              ? undefined
+              : !hasEnoughAllowance
+                ? onClickApprove
+                : onClickSwap
+          }
           className="w-full py-8 text-[22px] font-bold bg-emerald-300 hover:bg-emerald-400 text-slate-800 rounded-[12px] transition-colors duration-200"
         >
           {offerCoinAddress === askCoinAddress
             ? 'Invalid Route'
-            : offerCoinAddress === TOKEN_ADDRESS.wBTC
-              ? 'Deposit'
-              : askCoinAddress === TOKEN_ADDRESS.wBTC
-                ? 'Withdraw'
-                : 'Swap'}
+            : !hasEnoughAllowance
+              ? `Approve ${offerCoin.symbol}`
+              : offerCoinAddress === TOKEN_ADDRESS.wBTC
+                ? 'Deposit'
+                : askCoinAddress === TOKEN_ADDRESS.wBTC
+                  ? 'Withdraw'
+                  : 'Swap'}
         </Button>
 
         {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
