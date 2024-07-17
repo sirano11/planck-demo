@@ -7,24 +7,16 @@ import { config } from '../../constants/wagmi';
 export const encodeRawTx = (data: Uint8Array) =>
   `0x${data.reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '')}`;
 
-export async function commit(
+export const commit = (
   contractAddress: Address,
   asset: Address,
   amountAtomics: bigint,
   chain: number,
   data: Uint8Array,
-) {
-  try {
-    const hash = await writeContract(config, {
-      address: contractAddress,
-      abi: Hub__factory.abi,
-      functionName: 'commit',
-      args: [asset, amountAtomics, chain, encodeRawTx(data)],
-    });
-
-    const receipt = await waitForTransactionReceipt(config, { hash });
-    return receipt;
-  } catch (e) {
-    console.error(e);
-  }
-}
+) =>
+  writeContract(config, {
+    address: contractAddress,
+    abi: Hub__factory.abi,
+    functionName: 'commit',
+    args: [asset, amountAtomics, chain, encodeRawTx(data)],
+  });

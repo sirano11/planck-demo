@@ -320,7 +320,7 @@ const MintDemoPage: NextPage = () => {
 
       jobStatus.dispatch({ type: 'SET_JOB_HASH', payload: hash });
 
-      const receipt = await waitForTransactionReceipt(config, { hash });
+      await waitForTransactionReceipt(config, { hash });
     } catch (e) {
       console.error(e);
     }

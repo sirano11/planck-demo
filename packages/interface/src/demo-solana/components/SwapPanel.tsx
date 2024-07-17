@@ -125,8 +125,6 @@ export const SwapPanel: React.FC<SwapPanelProps> = ({
       const rawTx = commitData.transaction.serialize();
       console.log({ rawTx });
 
-      // TODO: Add approval logic for (asset, amountAtomics)
-
       const hash = await commit(
         HUB_CONTRACT_ADDRESS,
         tokenInput.address,
@@ -137,7 +135,7 @@ export const SwapPanel: React.FC<SwapPanelProps> = ({
 
       jobStatus.dispatch({ type: 'SET_JOB_HASH', payload: hash });
 
-      const receipt = await waitForTransactionReceipt(config, { hash });
+      await waitForTransactionReceipt(config, { hash });
     } catch (e) {
       console.error(e);
     } finally {
