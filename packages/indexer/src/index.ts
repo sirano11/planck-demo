@@ -75,7 +75,7 @@ const main = async (): Promise<void> => {
         await msgCommittedIndexer.handle(pendingEvents, true);
         pendingEvents = [];
       }
-      await msgCommittedIndexer.handle([event], true);
+      await msgCommittedIndexer.handle([event], false);
 
       if (latestEventBlockNumber !== event.blockNumber) {
         console.log(`[*] Processing block ${event.blockNumber}`);

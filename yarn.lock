@@ -4430,6 +4430,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@redis/client@npm:1.5.17":
+  version: 1.5.17
+  resolution: "@redis/client@npm:1.5.17"
+  dependencies:
+    cluster-key-slot: "npm:1.1.2"
+    generic-pool: "npm:3.9.0"
+    yallist: "npm:4.0.0"
+  checksum: 10c0/967ea3e00b5471de4f5b9aeec4fcc29ad6890deccea197731e891c99edc8ed1e43ad02480a4ed6aac50b29bf337421d893f2d8393271a27d510c644fe92647a7
+  languageName: node
+  linkType: hard
+
 "@redis/graph@npm:1.1.1":
   version: 1.1.1
   resolution: "@redis/graph@npm:1.1.1"
@@ -16722,6 +16733,7 @@ __metadata:
     react-dom: "npm:^18.3.1"
     react-feather: "npm:^2.0.10"
     react-toastify: "npm:^10.0.5"
+    redis: "npm:^4.6.15"
     socket.io-client: "npm:^4.7.5"
     tailwind-merge: "npm:^2.3.0"
     tailwindcss: "npm:^3.4.1"
@@ -17667,6 +17679,20 @@ __metadata:
     "@redis/search": "npm:1.1.6"
     "@redis/time-series": "npm:1.0.5"
   checksum: 10c0/b031399a558fd6f06bf12bfe7722b67901a5cb46128ef3fb7634fbd1d3ce7dfc801ddab2500960ea7cd1c8f4a4cdda93657a4aa0eb8b705b5ed63154834ed91e
+  languageName: node
+  linkType: hard
+
+"redis@npm:^4.6.15":
+  version: 4.6.15
+  resolution: "redis@npm:4.6.15"
+  dependencies:
+    "@redis/bloom": "npm:1.2.0"
+    "@redis/client": "npm:1.5.17"
+    "@redis/graph": "npm:1.1.1"
+    "@redis/json": "npm:1.0.6"
+    "@redis/search": "npm:1.1.6"
+    "@redis/time-series": "npm:1.0.5"
+  checksum: 10c0/6c8e3fd5af8154686c2a4320728a1f032f11fea1d57b66ad6dc7ef9e3e67fc9656d5d52445bb38b574cfc8598e88703178f1d42d388cfd392c2e7a66631aa189
   languageName: node
   linkType: hard
 

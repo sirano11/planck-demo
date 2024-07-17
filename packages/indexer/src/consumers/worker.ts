@@ -1,4 +1,4 @@
-import { Job, QueueEvents, Worker } from 'bullmq';
+import { Job, Worker } from 'bullmq';
 import { Server } from 'socket.io';
 
 import { Config, QUEUE_CONFIG, QUEUE_NAME } from '@/config';
@@ -6,7 +6,11 @@ import { Config, QUEUE_CONFIG, QUEUE_NAME } from '@/config';
 import { SolanaConsumer } from './SolanaConsumer';
 import { SuiConsumer } from './SuiConsumer';
 
-const io = new Server(Config.WEBSOCKET_PORT);
+const io = new Server(Config.WEBSOCKET_PORT, {
+  cors: {
+    origin: Config.WEBSOCKET_CORS_ORIGIN,
+  },
+});
 
 const suiWorker = new Worker(
   QUEUE_NAME.Sui,

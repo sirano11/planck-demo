@@ -1,6 +1,12 @@
-import { kv } from '@vercel/kv';
 import { NextApiRequest, NextApiResponse } from 'next';
+import { createClient } from 'redis';
 import { z } from 'zod';
+
+const client = await createClient({
+  url: process.env.REDIS_URL!,
+})
+  .on('error', (err) => console.log('Redis Client Error', err))
+  .connect();
 
 export default async function handler(
   request: NextApiRequest,
@@ -18,7 +24,7 @@ export default async function handler(
   }
 
   try {
-    const actorAddress = await kv.hget<string>(`eth:${address}`, chain);
+    const actorAddress = await client.hGet(`eth:${address}`, chain);
 
     if (!actorAddress) {
       response

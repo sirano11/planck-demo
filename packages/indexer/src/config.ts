@@ -26,6 +26,7 @@ type Config = {
   SOLANA_MINT_MNEMONIC: string;
   HUB_OWNER_MNEMONIC: string;
   WEBSOCKET_PORT: number;
+  WEBSOCKET_CORS_ORIGIN: string;
 };
 
 const getConfig = (): Config => {
@@ -40,6 +41,7 @@ const getConfig = (): Config => {
     'SOLANA_MINT_MNEMONIC',
     'HUB_OWNER_MNEMONIC',
     'WEBSOCKET_PORT',
+    'WEBSOCKET_CORS_ORIGIN',
   ]);
 
   config.START_HEIGHT = Number.parseInt(config.START_HEIGHT || 0, 10);
