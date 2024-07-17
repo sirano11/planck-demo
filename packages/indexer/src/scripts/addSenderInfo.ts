@@ -52,6 +52,8 @@ const putSenderPair = async (
     eth: ethAddr,
     mnemonic: mnemonic,
   });
+
+  console.log({ ethAddr, suiAddr, solAddr, result });
 };
 
 const putSenderPairs = async (

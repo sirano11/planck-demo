@@ -93,10 +93,15 @@ export const btc_to_lmint = async (
         })[0]
       : null;
 
-  const [mergedBtcCoin] = tx.mergeCoins(tx.object(btcCoinIds[0]), [
-    ...btcCoinIds.slice(1).map((v) => tx.object(v)),
+  const btcCoins = [
+    ...btcCoinIds.map((v) => tx.object(v)),
     ...(mintedBtcCoin ? [mintedBtcCoin] : []),
-  ]);
+  ];
+
+  const mergedBtcCoin =
+    btcCoins.length > 1
+      ? tx.mergeCoins(btcCoins[0], btcCoins.slice(1))[0]
+      : btcCoins[0];
 
   const [btcCoin] = tx.splitCoins(mergedBtcCoin, [tx.pure.u64(btcAmount)]);
 
@@ -136,10 +141,15 @@ export const btc_to_cash = async (
         })[0]
       : null;
 
-  const [mergedBtcCoin] = tx.mergeCoins(tx.object(btcCoinIds[0]), [
-    ...btcCoinIds.slice(1).map((v) => tx.object(v)),
+  const btcCoins = [
+    ...btcCoinIds.map((v) => tx.object(v)),
     ...(mintedBtcCoin ? [mintedBtcCoin] : []),
-  ]);
+  ];
+
+  const mergedBtcCoin =
+    btcCoins.length > 1
+      ? tx.mergeCoins(btcCoins[0], btcCoins.slice(1))[0]
+      : btcCoins[0];
 
   const [btcCoin] = tx.splitCoins(mergedBtcCoin, [tx.pure.u64(btcAmount)]);
 
