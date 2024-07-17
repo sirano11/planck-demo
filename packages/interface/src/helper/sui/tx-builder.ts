@@ -1,5 +1,6 @@
 import { SuiClient } from '@mysten/sui/client';
 import { Transaction } from '@mysten/sui/transactions';
+import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui/utils';
 
 import { CUSTODY, PROTOCOL } from './config';
 import {
@@ -30,11 +31,11 @@ export const swap = async (
     target: PROTOCOL.TARGET.MARKET_SWAP,
     arguments: [
       tx.object(fromSupplyId),
-      tx.object(PROTOCOL.OBJECT_ID.SUPPLY_SDR),
       tx.object(toSupplyId),
       fromCoin,
       tx.object(PROTOCOL.OBJECT_ID.LIQUIDTY_POOL_PARAM),
       tx.object(PROTOCOL.OBJECT_ID.ORACLE),
+      tx.object(SUI_CLOCK_OBJECT_ID),
     ],
     typeArguments: [fromTypeArgument, toTypeArgument],
   });
@@ -234,7 +235,11 @@ export const simulate_swap = async (
   const tx = new Transaction();
   tx.moveCall({
     target: PROTOCOL.TARGET.MARKET_SIMULATE_SWAP,
-    arguments: [tx.pure.u64(fromAmount), tx.object(PROTOCOL.OBJECT_ID.ORACLE)],
+    arguments: [
+      tx.pure.u64(fromAmount),
+      tx.object(PROTOCOL.OBJECT_ID.ORACLE),
+      tx.object(SUI_CLOCK_OBJECT_ID),
+    ],
     typeArguments: [fromTypeArgument, toTypeArgument],
   });
 
