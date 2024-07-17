@@ -1,15 +1,16 @@
 import { ReactNode, createContext, useEffect, useReducer } from 'react';
 import { toast } from 'react-toastify';
+import { Hash } from 'viem';
 
 import { socket } from '@/utils/socket';
 
 interface JobStatus {
-  jobHash?: string;
+  jobHash?: Hash;
 }
 
 type JobStatusAction = {
   type: 'SET_JOB_HASH';
-  payload: string;
+  payload: Hash;
 };
 
 const initialState: JobStatus = {
