@@ -254,8 +254,8 @@ const MintDemoPage: NextPage = () => {
         actorAddress,
       });
 
-    if (offerCoinObjectIds.length === 0) {
-      console.log('No coin found in actor wallet');
+    if (offer.category !== 'wbtc' && offerCoinObjectIds.length === 0) {
+      console.error('No coin found in actor wallet');
       return;
     }
 
