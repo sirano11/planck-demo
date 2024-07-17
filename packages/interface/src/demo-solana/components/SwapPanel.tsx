@@ -54,7 +54,7 @@ export const SwapPanel: React.FC<SwapPanelProps> = ({
   const swapDisabled = false;
 
   const raydium = useRaydium();
-  const computeResult = useComputeSwap(raydium!, tokenInput.mint, amountIn);
+  const computeResult = useComputeSwap(raydium!, tokenInput, amountIn);
   const jobStatus = useJobStatus();
 
   const inputAmount = (computeResult && computeResult.inputAmount) || null;

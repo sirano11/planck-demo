@@ -9,7 +9,7 @@ import Decimal from 'decimal.js';
 import { useEffect, useState } from 'react';
 import { parseUnits } from 'viem';
 
-import { POOL_IDS } from '@/constants';
+import { POOL_IDS, Token } from '@/constants';
 
 type ComputeSwapOutput = {
   inputAmount: BN;
@@ -22,7 +22,7 @@ type ComputeSwapOutput = {
 
 export const useComputeSwap = (
   raydium: Raydium,
-  inputMint: any,
+  inputToken: Token,
   amountInDraft: string,
 ) => {
   const [response, setResponse] = useState<ComputeSwapOutput | null>(null);
@@ -59,9 +59,11 @@ export const useComputeSwap = (
           return null;
         }
 
-        // TODO: Replace hardcoded decimals
         const amountIn = new BN(
-          parseUnits(parsedInput.toString(), 9).toString(),
+          parseUnits(
+            parsedInput.toFixed(inputToken.decimals).toString(),
+            inputToken.decimals,
+          ).toString(),
         );
 
         const [baseReserve, quoteReserve, status] = [
@@ -71,12 +73,12 @@ export const useComputeSwap = (
         ];
 
         if (
-          poolInfo.mintA.address !== inputMint &&
-          poolInfo.mintB.address !== inputMint
+          poolInfo.mintA.address !== inputToken.mint &&
+          poolInfo.mintB.address !== inputToken.mint
         )
           throw new Error('input mint does not match pool');
 
-        const isInputMintA = inputMint === poolInfo?.mintA.address;
+        const isInputMintA = inputToken.mint === poolInfo?.mintA.address;
         const [mintIn, mintOut] = isInputMintA
           ? [poolInfo.mintA, poolInfo.mintB]
           : [poolInfo.mintB, poolInfo.mintA];
@@ -122,7 +124,7 @@ export const useComputeSwap = (
         console.error(err);
       });
     }
-  }, [amountInDraft, inputMint]);
+  }, [amountInDraft, inputToken]);
 
   return response;
 };
