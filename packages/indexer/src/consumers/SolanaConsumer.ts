@@ -5,6 +5,7 @@ import {
   PublicKey,
   TokenBalance,
   Transaction,
+  VersionedTransaction,
   sendAndConfirmTransaction,
 } from '@solana/web3.js';
 import * as bip39 from 'bip39';
@@ -15,7 +16,7 @@ import { ERC20Mock__factory } from 'planck-demo-contracts/typechain/factories/ER
 import { Hub__factory } from 'planck-demo-contracts/typechain/factories/Hub__factory';
 import { createClient } from 'redis';
 
-import { Config } from '@/config';
+import { Config, connection } from '@/config';
 
 import { BaseConsumer, ChainIdentifier, Tx } from './Consumer';
 
@@ -33,6 +34,11 @@ const getKeypairFromMnemonic = (mnemonic: string): Keypair => {
   const path = `m/44'/501'/0'/0'`;
   return Keypair.fromSeed(hd.derive(path).privateKey);
 };
+
+const fromHexString = (hexString: string) =>
+  Uint8Array.from(
+    hexString.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16)),
+  );
 
 export class SolanaConsumer extends BaseConsumer {
   private static instance: SolanaConsumer;
@@ -96,24 +102,22 @@ export class SolanaConsumer extends BaseConsumer {
     }
 
     // sign with actor
-    const transaction = Transaction.from(Buffer.from(data));
-    transaction.sign(actorKeypair);
+    const tx_bytes = fromHexString(data);
+    const transaction = VersionedTransaction.deserialize(tx_bytes.slice(1));
+
+    transaction.sign([actorKeypair]);
 
     // send transaction
-    let rawTxSignature: string | undefined;
+    let txSignature: string | undefined;
     try {
-      rawTxSignature = await sendAndConfirmTransaction(
-        this.connection,
-        transaction,
-        [actorKeypair],
-      );
+      txSignature = await connection.sendTransaction(transaction);
       await job.updateProgress({ status: 'send-tx-to-dest' });
     } catch (e) {
       console.error(e);
       throw new Error('send-tx-to-dest');
     }
 
-    const rawTxResponse = await this.connection.getTransaction(rawTxSignature, {
+    const rawTxResponse = await this.connection.getTransaction(txSignature, {
       commitment: 'confirmed',
       maxSupportedTransactionVersion: 0,
     });

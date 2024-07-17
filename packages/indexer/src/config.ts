@@ -1,4 +1,9 @@
+import { Connection } from '@solana/web3.js';
 import { configDotenv } from 'dotenv';
+
+export const connection = new Connection('https://api.devnet.solana.com', {
+  commitment: 'confirmed',
+});
 
 configDotenv({ path: `.env` });
 
