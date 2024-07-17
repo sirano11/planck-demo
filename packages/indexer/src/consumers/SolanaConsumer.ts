@@ -56,7 +56,7 @@ export class SolanaConsumer extends BaseConsumer {
     this.connection = new Connection(Config.SOLANA_RPC_ENDPOINT);
     this.mintKeypair = getKeypairFromMnemonic(Config.SOLANA_MINT_MNEMONIC);
     this.ethersProvider = new ethers.providers.JsonRpcProvider(
-      Config.ETH_RPC_ENDPOINT,
+      Config.ETH_HTTP_ENDPOINT,
     );
     this.hubOwnerSigner = ethers.Wallet.fromMnemonic(Config.HUB_OWNER_MNEMONIC);
   }

@@ -36,7 +36,7 @@ export class SuiConsumer extends BaseConsumer {
     super(redisClient, ChainIdentifier.Sui);
     this.suiClient = new SuiClient({ url: getFullnodeUrl('testnet') });
     const ethProvider = new ethers.providers.JsonRpcProvider(
-      Config.ETH_RPC_ENDPOINT,
+      Config.ETH_HTTP_ENDPOINT,
     );
     this.ethSigner = ethers.Wallet.fromMnemonic(
       Config.HUB_OWNER_MNEMONIC,

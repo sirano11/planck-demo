@@ -16,7 +16,8 @@ const pick = (obj: Record<string, any>, keys: string[]) => {
 };
 
 type Config = {
-  ETH_RPC_ENDPOINT: string;
+  ETH_WSS_ENDPOINT: string;
+  ETH_HTTP_ENDPOINT: string;
   SUI_RPC_ENDPOINT: string;
   SOLANA_RPC_ENDPOINT: string;
   START_HEIGHT: number;
@@ -29,7 +30,8 @@ type Config = {
 
 const getConfig = (): Config => {
   let config: any = pick(process.env, [
-    'ETH_RPC_ENDPOINT',
+    'ETH_WSS_ENDPOINT',
+    'ETH_HTTP_ENDPOINT',
     'SUI_RPC_ENDPOINT',
     'SOLANA_RPC_ENDPOINT',
     'START_HEIGHT',
