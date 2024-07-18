@@ -58,7 +58,11 @@ export class SolanaConsumer extends BaseConsumer {
     this.ethersProvider = new ethers.providers.JsonRpcProvider(
       Config.ETH_HTTP_ENDPOINT,
     );
-    this.hubOwnerSigner = ethers.Wallet.fromMnemonic(Config.HUB_OWNER_MNEMONIC);
+
+    this.hubOwnerSigner = new ethers.Wallet(
+      Config.HUB_OWNER_PRIVATE_KEY,
+      this.ethersProvider,
+    );
   }
 
   static getInstance() {

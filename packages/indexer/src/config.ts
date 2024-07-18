@@ -24,7 +24,7 @@ type Config = {
   CONTRACT_ADDRESS_HUB: string;
   REDIS_URL: string;
   SOLANA_MINT_MNEMONIC: string;
-  HUB_OWNER_MNEMONIC: string;
+  HUB_OWNER_PRIVATE_KEY: string;
   WEBSOCKET_PORT: number;
   WEBSOCKET_CORS_ORIGIN: string;
 };
@@ -39,7 +39,7 @@ const getConfig = (): Config => {
     'CONTRACT_ADDRESS_HUB',
     'REDIS_URL',
     'SOLANA_MINT_MNEMONIC',
-    'HUB_OWNER_MNEMONIC',
+    'HUB_OWNER_PRIVATE_KEY',
     'WEBSOCKET_PORT',
     'WEBSOCKET_CORS_ORIGIN',
   ]);

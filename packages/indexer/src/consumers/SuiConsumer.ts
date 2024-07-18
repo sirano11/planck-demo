@@ -35,12 +35,15 @@ export class SuiConsumer extends BaseConsumer {
     const redisClient = createClient({ url: Config.REDIS_URL });
     super(redisClient, ChainIdentifier.Sui);
     this.suiClient = new SuiClient({ url: getFullnodeUrl('testnet') });
+
     const ethProvider = new ethers.providers.JsonRpcProvider(
       Config.ETH_HTTP_ENDPOINT,
     );
-    this.ethSigner = ethers.Wallet.fromMnemonic(
-      Config.HUB_OWNER_MNEMONIC,
-    ).connect(ethProvider);
+
+    this.ethSigner = new ethers.Wallet(
+      Config.HUB_OWNER_PRIVATE_KEY,
+      ethProvider,
+    );
   }
 
   static getInstance() {
@@ -59,19 +62,19 @@ export class SuiConsumer extends BaseConsumer {
     const tx = job.data as Tx;
     const { sender, data } = tx;
 
-    await job.updateProgress({ status: 'event-received' });
-
-    const keypair = await this.getKeypair(sender);
-    if (!keypair) {
-      throw new Error('actor-not-found');
-    }
-
-    const rawSuiTx = fromHEX(data);
-    const suiTx = Transaction.fromKind(rawSuiTx);
-
-    suiTx.setSender(keypair.toSuiAddress());
     let result: SuiTransactionBlockResponse | undefined;
     try {
+      await job.updateProgress({ status: 'event-received' });
+      const keypair = await this.getKeypair(sender);
+      if (!keypair) {
+        throw new Error('actor-not-found');
+      }
+
+      const rawSuiTx = fromHEX(data);
+      const suiTx = Transaction.fromKind(rawSuiTx);
+
+      suiTx.setSender(keypair.toSuiAddress());
+
       result = await this.suiClient.signAndExecuteTransaction({
         transaction: suiTx,
         signer: keypair,
