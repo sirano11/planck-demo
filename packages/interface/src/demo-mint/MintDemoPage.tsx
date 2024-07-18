@@ -24,7 +24,7 @@ import {
   TOKEN_ADDRESS,
 } from '@/helper/eth/config';
 import { commit } from '@/helper/eth/hub-builder';
-import { PROTOCOL } from '@/helper/sui/config';
+import { CUSTODY, PROTOCOL } from '@/helper/sui/config';
 import {
   btc_to_cash,
   btc_to_lmint,
@@ -51,9 +51,14 @@ const MintDemoPage: NextPage = () => {
   );
   const [inputDraft, setInputDraft] = useState<string>('1');
   const [estimation, setEstimation] = useState<string>('0');
+  const [actorAddress, setActorAddress] = useState<Address | null>(null);
+  const [actorBtcTotal, setActorBtcTotal] = useState<bigint>(0n);
+  const [tokenBalances, setTokenBalances] = useState<Record<Address, bigint>>(
+    {},
+  );
 
   const { address } = useAccount();
-  const { tokenBalances } = useTokenBalances();
+  const { tokenBalances: senderTokenBalances } = useTokenBalances();
   const { tokenAllowances, refresh: refreshAllowances } = useTokenAllowances();
 
   const jobStatus = useJobStatus();
@@ -95,6 +100,36 @@ const MintDemoPage: NextPage = () => {
     },
     [askCoinAddress, offerCoinAddress],
   );
+
+  useEffect(() => {
+    (async () => {
+      if (!address) return;
+
+      try {
+        const { actorAddress } = (
+          await axios.get<{ actorAddress: string }>('/api/actor', {
+            params: { address, chain: 'sui' },
+          })
+        ).data;
+
+        setActorAddress(actorAddress as Address);
+
+        const { coinTotal: btcCoinTotal } = await getCoinObject({
+          client,
+          coinType: CUSTODY.TYPE_ARGUMENT.BTC,
+          actorAddress,
+        });
+        setActorBtcTotal(btcCoinTotal);
+        setTokenBalances({
+          ...senderTokenBalances,
+          [TOKEN_ADDRESS.wBTC]:
+            senderTokenBalances[TOKEN_ADDRESS.wBTC] + btcCoinTotal,
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    })();
+  }, [address, senderTokenBalances]);
 
   useEffect(() => {
     const parsedInput = parseFloat(inputDraft);
@@ -250,6 +285,11 @@ const MintDemoPage: NextPage = () => {
   ]);
 
   const onClickSwap = useCallback(async () => {
+    if (!actorAddress) {
+      console.error('No actor address found');
+      return;
+    }
+
     try {
       const parsedInput = parseFloat(inputDraft);
       if (isNaN(parsedInput)) {
@@ -259,12 +299,6 @@ const MintDemoPage: NextPage = () => {
       const offer = TOKENS.find((v) => v.address === offerCoinAddress)!;
       const ask = TOKENS.find((v) => v.address === askCoinAddress)!;
       const inputAtomics = parseUnits(parsedInput.toString(), offer.decimals);
-
-      const { actorAddress } = (
-        await axios.get<{ actorAddress: string }>('/api/actor', {
-          params: { address, chain: 'sui' },
-        })
-      ).data;
 
       const { coinObjectIds: offerCoinObjectIds, coinTotal: offerCoinTotal } =
         await getCoinObject({

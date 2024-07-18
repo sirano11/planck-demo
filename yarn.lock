@@ -5709,15 +5709,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@upstash/redis@npm:^1.31.3":
-  version: 1.32.0
-  resolution: "@upstash/redis@npm:1.32.0"
-  dependencies:
-    crypto-js: "npm:^4.2.0"
-  checksum: 10c0/1644d18e7f7a89a149715d5ce64c067e6a8f39f8ae0cceb49ca4469564f6c2f987110b2bfdd39f52bd7ba301e822dd859606a7e5916026b1bce555204b5267eb
-  languageName: node
-  linkType: hard
-
 "@vanilla-extract/css@npm:1.14.0":
   version: 1.14.0
   resolution: "@vanilla-extract/css@npm:1.14.0"
@@ -5759,15 +5750,6 @@ __metadata:
   peerDependencies:
     "@vanilla-extract/css": ^1.0.0
   checksum: 10c0/7ddd2ab7c88b5740260e09aba5399d938d9a46142a0652842e8cd3fe34cd2fd2fbeb75060718bb44cb1a81dce280bb9955ae35defd89f7045e3a6822baf2b5ae
-  languageName: node
-  linkType: hard
-
-"@vercel/kv@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "@vercel/kv@npm:2.0.0"
-  dependencies:
-    "@upstash/redis": "npm:^1.31.3"
-  checksum: 10c0/4b05600727d97342631f07850df76487ac0b9160bdf40e2ff8b3908cc71ee277ff555b0e67bd7b2f7d84ef158be8608400a8eaf6eb1c5e2a2678f9d8ef67f6af
   languageName: node
   linkType: hard
 
@@ -9217,13 +9199,6 @@ __metadata:
   version: 1.3.0
   resolution: "crypto-hash@npm:1.3.0"
   checksum: 10c0/651003421dce76fd686eb3ed4981117f9cd3f309a4af41697a646aecbbfc49179547bdd7146f7a74e2c8c7ab703227c25ce03e85fea2da3189ab65e32971ecce
-  languageName: node
-  linkType: hard
-
-"crypto-js@npm:^4.2.0":
-  version: 4.2.0
-  resolution: "crypto-js@npm:4.2.0"
-  checksum: 10c0/8fbdf9d56f47aea0794ab87b0eb9833baf80b01a7c5c1b0edc7faf25f662fb69ab18dc2199e2afcac54670ff0cd9607a9045a3f7a80336cccd18d77a55b9fdf0
   languageName: node
   linkType: hard
 
@@ -16714,7 +16689,6 @@ __metadata:
     "@types/bn.js": "npm:^5.1.5"
     "@types/node": "npm:^20.11.20"
     "@types/react": "npm:^18.2.58"
-    "@vercel/kv": "npm:^2.0.0"
     autoprefixer: "npm:^10.4.17"
     axios: "npm:^1.7.2"
     bn.js: "npm:^5.2.1"
