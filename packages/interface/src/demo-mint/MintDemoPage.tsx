@@ -6,6 +6,7 @@ import {
 } from '@mysten/sui/client';
 import { waitForTransactionReceipt } from '@wagmi/core';
 import axios from 'axios';
+import { Loader2Icon } from 'lucide-react';
 import { NextPage } from 'next';
 import { BridgeToken__factory } from 'planck-demo-contracts/typechain/factories/BridgeToken__factory';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -41,6 +42,7 @@ import { useTokenBalances } from '@/hooks/useTokenBalances';
 const SUI_TOKENS = TOKENS.filter((v) => v.chain === ChainIdentifier.Sui);
 
 const MintDemoPage: NextPage = () => {
+  const [isTxInFlight, setTxInFlight] = useState<boolean>(false);
   const [offerCoinAddress, setOfferCoinAddress] = useState<Address>(
     TOKEN_ADDRESS.wBTC,
   );
@@ -198,12 +200,25 @@ const MintDemoPage: NextPage = () => {
     }
   }, [tokenAllowances, inputDraft, offerCoin]);
 
+  const hasEnoughBalance = useMemo(() => {
+    try {
+      return (
+        tokenBalances[offerCoin.address] &&
+        tokenBalances[offerCoin.address] >=
+          parseUnits(inputDraft, offerCoin.decimals)
+      );
+    } catch (e) {
+      return false;
+    }
+  }, [tokenBalances, inputDraft, offerCoin]);
+
   const { writeContractAsync } = useWriteContract();
   const onClickApprove = useCallback(() => {
     if (hasEnoughAllowance) {
       return;
     }
     (async () => {
+      setTxInFlight(true);
       const amount = parseUnits(inputDraft, offerCoin.decimals);
 
       const hash = await writeContractAsync({
@@ -222,7 +237,10 @@ const MintDemoPage: NextPage = () => {
         // TODO: Toast Failure
         console.error(err);
       })
-      .finally(() => refreshAllowances());
+      .finally(() => {
+        setTxInFlight(false);
+        refreshAllowances();
+      });
   }, [
     hasEnoughAllowance,
     inputDraft,
@@ -232,84 +250,84 @@ const MintDemoPage: NextPage = () => {
   ]);
 
   const onClickSwap = useCallback(async () => {
-    const parsedInput = parseFloat(inputDraft);
-    if (isNaN(parsedInput)) {
-      return;
-    }
-
-    const offer = TOKENS.find((v) => v.address === offerCoinAddress)!;
-    const ask = TOKENS.find((v) => v.address === askCoinAddress)!;
-    const inputAtomics = parseUnits(parsedInput.toString(), offer.decimals);
-
-    const { actorAddress } = (
-      await axios.get<{ actorAddress: string }>('/api/actor', {
-        params: { address, chain: 'sui' },
-      })
-    ).data;
-
-    const { coinObjectIds: offerCoinObjectIds, coinTotal: offerCoinTotal } =
-      await getCoinObject({
-        client,
-        coinType: offer.typeArgument!,
-        actorAddress,
-      });
-
-    if (offer.category !== 'wbtc' && offerCoinObjectIds.length === 0) {
-      console.error('No coin found in actor wallet');
-      return;
-    }
-
-    let rawTx: Uint8Array | undefined;
-    if (offer.category === 'wbtc' && ask.category === 'lmint') {
-      rawTx = await btc_to_lmint(
-        client,
-        offerCoinObjectIds,
-        offerCoinTotal,
-        inputAtomics,
-        0n,
-        actorAddress,
-      );
-    } else if (offer.category === 'lmint' && ask.category === 'wbtc') {
-      rawTx = await lmint_to_btc(
-        client,
-        offerCoinObjectIds,
-        inputAtomics,
-        0n,
-        actorAddress,
-      );
-    } else if (offer.category === 'wbtc' && ask.category === 'cash') {
-      rawTx = await btc_to_cash(
-        client,
-        offerCoinObjectIds,
-        offerCoinTotal,
-        inputAtomics,
-        ask.supplyId!,
-        ask.typeArgument!,
-        actorAddress,
-      );
-    } else if (offer.category === 'cash' && ask.category === 'wbtc') {
-      rawTx = await cash_to_btc(
-        client,
-        offerCoinObjectIds,
-        inputAtomics,
-        offer.supplyId!,
-        offer.typeArgument!,
-        actorAddress,
-      );
-    } else {
-      rawTx = await swap(
-        client,
-        offer.supplyId!,
-        ask.supplyId!,
-        offerCoinObjectIds,
-        inputAtomics,
-        offer.typeArgument!,
-        ask.typeArgument!,
-        actorAddress,
-      );
-    }
-
     try {
+      const parsedInput = parseFloat(inputDraft);
+      if (isNaN(parsedInput)) {
+        return;
+      }
+
+      const offer = TOKENS.find((v) => v.address === offerCoinAddress)!;
+      const ask = TOKENS.find((v) => v.address === askCoinAddress)!;
+      const inputAtomics = parseUnits(parsedInput.toString(), offer.decimals);
+
+      const { actorAddress } = (
+        await axios.get<{ actorAddress: string }>('/api/actor', {
+          params: { address, chain: 'sui' },
+        })
+      ).data;
+
+      const { coinObjectIds: offerCoinObjectIds, coinTotal: offerCoinTotal } =
+        await getCoinObject({
+          client,
+          coinType: offer.typeArgument!,
+          actorAddress,
+        });
+
+      if (offer.category !== 'wbtc' && offerCoinObjectIds.length === 0) {
+        console.error('No coin found in actor wallet');
+        return;
+      }
+
+      let rawTx: Uint8Array | undefined;
+      if (offer.category === 'wbtc' && ask.category === 'lmint') {
+        rawTx = await btc_to_lmint(
+          client,
+          offerCoinObjectIds,
+          offerCoinTotal,
+          inputAtomics,
+          0n,
+          actorAddress,
+        );
+      } else if (offer.category === 'lmint' && ask.category === 'wbtc') {
+        rawTx = await lmint_to_btc(
+          client,
+          offerCoinObjectIds,
+          inputAtomics,
+          0n,
+          actorAddress,
+        );
+      } else if (offer.category === 'wbtc' && ask.category === 'cash') {
+        rawTx = await btc_to_cash(
+          client,
+          offerCoinObjectIds,
+          offerCoinTotal,
+          inputAtomics,
+          ask.supplyId!,
+          ask.typeArgument!,
+          actorAddress,
+        );
+      } else if (offer.category === 'cash' && ask.category === 'wbtc') {
+        rawTx = await cash_to_btc(
+          client,
+          offerCoinObjectIds,
+          inputAtomics,
+          offer.supplyId!,
+          offer.typeArgument!,
+          actorAddress,
+        );
+      } else {
+        rawTx = await swap(
+          client,
+          offer.supplyId!,
+          ask.supplyId!,
+          offerCoinObjectIds,
+          inputAtomics,
+          offer.typeArgument!,
+          ask.typeArgument!,
+          actorAddress,
+        );
+      }
+
       const hash = await commit(
         HUB_CONTRACT_ADDRESS,
         offerCoinAddress,
@@ -323,8 +341,43 @@ const MintDemoPage: NextPage = () => {
       await waitForTransactionReceipt(config, { hash });
     } catch (e) {
       console.error(e);
+    } finally {
+      setTxInFlight(false);
     }
   }, [inputDraft, offerCoinAddress, askCoinAddress]);
+
+  const [isSwapDisabled, ctaTitle] = useMemo(() => {
+    let disabled: boolean = false;
+    let title: React.ReactNode = 'Swap';
+
+    if (isTxInFlight) {
+      disabled = true;
+      title = (
+        <Loader2Icon size={32} className="animate-spin" strokeWidth={2.2} />
+      );
+    } else if (offerCoinAddress === askCoinAddress) {
+      disabled = true;
+      title = 'Invalid Route';
+    } else if (!hasEnoughBalance) {
+      disabled = true;
+      title = 'Insufficient Balance';
+    } else if (!hasEnoughAllowance) {
+      disabled = false; // to allow Approve tx
+      title = `Approve ${offerCoin.symbol}`;
+    } else if (offerCoinAddress === TOKEN_ADDRESS.wBTC) {
+      title = 'Deposit';
+    } else if (askCoinAddress === TOKEN_ADDRESS.wBTC) {
+      title = 'Withdraw';
+    }
+
+    return [disabled, title];
+  }, [
+    isTxInFlight,
+    offerCoinAddress,
+    askCoinAddress,
+    hasEnoughBalance,
+    hasEnoughAllowance,
+  ]);
 
   return (
     <div
@@ -444,25 +497,17 @@ const MintDemoPage: NextPage = () => {
         </TokenInputContainer>
 
         <Button
-          disabled={offerCoinAddress === askCoinAddress}
+          disabled={isSwapDisabled}
           onClick={
-            offerCoinAddress === askCoinAddress
+            isSwapDisabled
               ? undefined
               : !hasEnoughAllowance
                 ? onClickApprove
                 : onClickSwap
           }
-          className="w-full py-8 text-[22px] font-bold bg-emerald-300 hover:bg-emerald-400 text-slate-800 rounded-[12px] transition-colors duration-200"
+          className="w-full h-[64px] py-0 text-[22px] font-bold bg-emerald-300 hover:bg-emerald-400 text-slate-800 rounded-[12px] transition-colors duration-200"
         >
-          {offerCoinAddress === askCoinAddress
-            ? 'Invalid Route'
-            : !hasEnoughAllowance
-              ? `Approve ${offerCoin.symbol}`
-              : offerCoinAddress === TOKEN_ADDRESS.wBTC
-                ? 'Deposit'
-                : askCoinAddress === TOKEN_ADDRESS.wBTC
-                  ? 'Withdraw'
-                  : 'Swap'}
+          {ctaTitle}
         </Button>
 
         {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
