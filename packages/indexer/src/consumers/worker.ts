@@ -1,7 +1,7 @@
 import { Job, Worker } from 'bullmq';
 import { Server } from 'socket.io';
 
-import { Config, QUEUE_CONFIG, QUEUE_NAME } from '@/config';
+import { Config, QUEUE_CONFIG, QUEUE_NAME, WORKER_CONFIG } from '@/config';
 
 import { SolanaConsumer } from './SolanaConsumer';
 import { SuiConsumer } from './SuiConsumer';
@@ -20,6 +20,7 @@ const suiWorker = new Worker(
   },
   {
     connection: QUEUE_CONFIG.connection,
+    lockDuration: WORKER_CONFIG.lockDuration,
   },
 );
 
@@ -31,6 +32,7 @@ const solanaWorker = new Worker(
   },
   {
     connection: QUEUE_CONFIG.connection,
+    lockDuration: WORKER_CONFIG.lockDuration,
   },
 );
 

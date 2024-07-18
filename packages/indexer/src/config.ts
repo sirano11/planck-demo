@@ -68,6 +68,11 @@ export const QUEUE_CONFIG = {
   },
 };
 
+const MINUTES = 60 * 1_000;
+export const WORKER_CONFIG = {
+  lockDuration: 2 * MINUTES,
+};
+
 export const QUEUE_NAME = {
   Sui: 'sui',
   Solana: 'solana',
