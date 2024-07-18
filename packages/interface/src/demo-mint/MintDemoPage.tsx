@@ -192,6 +192,9 @@ const MintDemoPage: NextPage = () => {
     })().catch((err) => {
       const error = err as SuiHTTPTransportError;
 
+      // Reset estimation
+      setEstimation('0');
+
       // other reasons
       if (!error.message.startsWith('response error:')) {
         setErrorMessage(error.message);
@@ -201,9 +204,16 @@ const MintDemoPage: NextPage = () => {
       // contract error
       const errorCode = error.message.match(/Some\((\d+)\)/)?.[1];
       const knownErrorsByModule = {
-        market: ['NotSupportedCoinType', 'InvalidCoinType', 'InvalidMath'],
+        market: [
+          'NotSupportedCoinType', // ENotSupportedCoinType
+          'InvalidCoinType', // EInvalidCoinType
+          'InvalidMath', // EInvalidMath
+        ],
         oracle: [
-          '_', // ErrorWrongEpoch
+          '', // ErrorPrevoteNotFound
+          '', // ErrorVoteHashInvalid
+          '', // ErrorVoteDataInvalid
+          '', // ErrorVotesNotFound
           'InvalidExchangeRate', // ErrorInvalidExchangeRate
         ],
       };
@@ -395,8 +405,10 @@ const MintDemoPage: NextPage = () => {
     } else if (!hasEnoughBalance) {
       disabled = true;
       title = 'Insufficient Balance';
+    } else if (!!errorMessage) {
+      disabled = true;
+      title = 'Estimation Failed';
     } else if (!hasEnoughAllowance) {
-      disabled = false; // to allow Approve tx
       title = `Approve ${offerCoin.symbol}`;
     } else if (offerCoinAddress === TOKEN_ADDRESS.wBTC) {
       title = 'Deposit';
@@ -411,6 +423,7 @@ const MintDemoPage: NextPage = () => {
     askCoinAddress,
     hasEnoughBalance,
     hasEnoughAllowance,
+    errorMessage,
   ]);
 
   return (
