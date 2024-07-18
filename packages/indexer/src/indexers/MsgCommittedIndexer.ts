@@ -28,7 +28,7 @@ export default class MsgCommittedIndexer
       const { asset, amount, chain, sender, data } = event.args;
 
       const tx: Tx = {
-        asset: { address: asset, amount },
+        asset: { address: asset, amount: amount.toString() },
         chain,
         sender: sender,
         data: data,
@@ -56,7 +56,9 @@ export default class MsgCommittedIndexer
         jobId: transactionHash,
       });
     } else if (tx.chain === ChainIdentifier.Sui) {
-      await this.suiQueue.add(QUEUE_NAME.Sui, tx, { jobId: transactionHash });
+      await this.suiQueue.add(QUEUE_NAME.Sui, tx, {
+        jobId: transactionHash,
+      });
     } else {
       // TODO: Handle other chains
     }

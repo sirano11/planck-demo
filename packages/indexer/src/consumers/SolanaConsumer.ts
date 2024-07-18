@@ -4,9 +4,7 @@ import {
   Keypair,
   PublicKey,
   TokenBalance,
-  Transaction,
   VersionedTransaction,
-  sendAndConfirmTransaction,
 } from '@solana/web3.js';
 import * as bip39 from 'bip39';
 import { Job } from 'bullmq';
@@ -80,6 +78,7 @@ export class SolanaConsumer extends BaseConsumer {
   public async processTx(job: Job) {
     const tx = job.data as Tx;
     const { asset, sender, data } = tx;
+    const assetAmount = BigInt(asset.amount);
 
     await job.updateProgress({ status: 'event-received' });
 
@@ -96,7 +95,7 @@ export class SolanaConsumer extends BaseConsumer {
         new PublicKey(ETH2SOL_ASSET_PAIRS[asset.address]),
         actorKeypair.publicKey,
         this.mintKeypair.publicKey,
-        asset.amount.toBigInt(),
+        assetAmount,
       );
       console.log(mintTxSignature);
       await job.updateProgress({ status: 'mint-asset-to-actor' });
@@ -181,7 +180,7 @@ export class SolanaConsumer extends BaseConsumer {
     } else if (!preTokenBalances && !postTokenBalances && error) {
       remainedDelta.push({
         address: asset.address,
-        amount: asset.amount.toBigInt(),
+        amount: BigInt(asset.amount),
       });
     }
 

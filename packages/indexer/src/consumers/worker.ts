@@ -36,18 +36,21 @@ const solanaWorker = new Worker(
 
 for (const worker of [suiWorker, solanaWorker]) {
   worker.on('progress', (job: Job, progress: number | object) => {
+    console.log({ id: job.id, progress }, 'Job progress');
     if (typeof progress === 'object' && job.id) {
       io.emit(`job-${job.id}`, { ...progress, error: false });
     }
   });
 
   worker.on('completed', (job: Job) => {
+    console.log({ id: job.id }, 'Job completed');
     if (job.id) {
       io.emit(`job-${job.id}`, { status: 'completed', error: false });
     }
   });
 
   worker.on('failed', (job: Job | undefined, error: Error) => {
+    console.log({ id: job?.id }, 'Job failed');
     if (job && job.id && error.message) {
       io.emit(`job-${job.id}`, { status: error.message, error: true });
     }

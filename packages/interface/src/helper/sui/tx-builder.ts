@@ -99,12 +99,11 @@ export const btc_to_lmint = async (
     ...(mintedBtcCoin ? [mintedBtcCoin] : []),
   ];
 
-  const mergedBtcCoin =
-    btcCoins.length > 1
-      ? tx.mergeCoins(btcCoins[0], btcCoins.slice(1))[0]
-      : btcCoins[0];
+  if (btcCoins.length > 1) {
+    tx.mergeCoins(btcCoins[0], btcCoins.slice(1));
+  }
 
-  const [btcCoin] = tx.splitCoins(mergedBtcCoin, [tx.pure.u64(btcAmount)]);
+  const [btcCoin] = tx.splitCoins(btcCoins[0], [tx.pure.u64(btcAmount)]);
 
   const [outBtcCoin, outLmintCoin] = tx.moveCall({
     target: PROTOCOL.TARGET.MARKET_SWAP_BTC_TO_LMINT,
@@ -115,7 +114,7 @@ export const btc_to_lmint = async (
       tx.pure.u64(minLmintOut),
     ],
   });
-  tx.transferObjects([outBtcCoin, outLmintCoin], recipient);
+  tx.transferObjects([btcCoins[0], outBtcCoin, outLmintCoin], recipient);
 
   return tx.build({ client, onlyTransactionKind: true });
 };
@@ -147,12 +146,11 @@ export const btc_to_cash = async (
     ...(mintedBtcCoin ? [mintedBtcCoin] : []),
   ];
 
-  const mergedBtcCoin =
-    btcCoins.length > 1
-      ? tx.mergeCoins(btcCoins[0], btcCoins.slice(1))[0]
-      : btcCoins[0];
+  if (btcCoins.length > 1) {
+    tx.mergeCoins(btcCoins[0], btcCoins.slice(1));
+  }
 
-  const [btcCoin] = tx.splitCoins(mergedBtcCoin, [tx.pure.u64(btcAmount)]);
+  const [btcCoin] = tx.splitCoins(btcCoins[0], [tx.pure.u64(btcAmount)]);
 
   const [outBtcCoin, outLmintCoin] = tx.moveCall({
     target: PROTOCOL.TARGET.MARKET_SWAP_BTC_TO_LMINT,
@@ -163,21 +161,21 @@ export const btc_to_cash = async (
       tx.pure.u64(0),
     ],
   });
-  tx.transferObjects([outBtcCoin], recipient);
 
   const [cashCoin] = tx.moveCall({
     target: PROTOCOL.TARGET.MARKET_SWAP,
     arguments: [
       tx.object(PROTOCOL.OBJECT_ID.SUPPLY_LIQUID_MINT),
-      tx.object(PROTOCOL.OBJECT_ID.SUPPLY_SDR),
       tx.object(toSupplyId),
       outLmintCoin,
       tx.object(PROTOCOL.OBJECT_ID.LIQUIDTY_POOL_PARAM),
       tx.object(PROTOCOL.OBJECT_ID.ORACLE),
+      tx.object(SUI_CLOCK_OBJECT_ID),
     ],
     typeArguments: [PROTOCOL.TYPE_ARGUMENT.LIQUID_MINT, toTypeArgument],
   });
-  tx.transferObjects([cashCoin], recipient);
+
+  tx.transferObjects([btcCoins[0], outBtcCoin, cashCoin], recipient);
 
   return tx.build({ client, onlyTransactionKind: true });
 };
@@ -202,11 +200,11 @@ export const cash_to_btc = async (
     target: PROTOCOL.TARGET.MARKET_SWAP,
     arguments: [
       tx.object(fromSupplyId),
-      tx.object(PROTOCOL.OBJECT_ID.SUPPLY_SDR),
       tx.object(PROTOCOL.OBJECT_ID.SUPPLY_LIQUID_MINT),
       fromCoin,
       tx.object(PROTOCOL.OBJECT_ID.LIQUIDTY_POOL_PARAM),
       tx.object(PROTOCOL.OBJECT_ID.ORACLE),
+      tx.object(SUI_CLOCK_OBJECT_ID),
     ],
     typeArguments: [fromTypeArgument, PROTOCOL.TYPE_ARGUMENT.LIQUID_MINT],
   });

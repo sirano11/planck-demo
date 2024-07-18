@@ -109,7 +109,7 @@ const app = command({
     const suiTx: Tx = {
       asset: {
         address: offerCoin.address,
-        amount: BigNumber.from(amount),
+        amount: amount.toString(),
       },
       chain: ChainIdentifier.Sui,
       sender: Faker.ethereumAddress(),

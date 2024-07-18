@@ -1,5 +1,4 @@
 import { Job } from 'bullmq';
-import { BigNumber } from 'ethers';
 import * as redis from 'redis';
 
 export type RedisClient = ReturnType<typeof redis.createClient>;
@@ -13,7 +12,7 @@ export enum ChainIdentifier {
 
 export interface Asset {
   address: string;
-  amount: BigNumber;
+  amount: string;
 }
 
 export interface Tx {

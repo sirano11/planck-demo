@@ -4,7 +4,7 @@ import { SuiTransactionBlockResponse } from '@mysten/sui/client';
 import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
 import { Transaction } from '@mysten/sui/transactions';
 import { Job } from 'bullmq';
-import { BigNumber, ethers } from 'ethers';
+import { ethers } from 'ethers';
 import { BridgeToken__factory } from 'planck-demo-contracts/typechain/factories/BridgeToken__factory';
 import { Hub__factory } from 'planck-demo-contracts/typechain/factories/Hub__factory';
 import {
@@ -105,19 +105,20 @@ export class SuiConsumer extends BaseConsumer {
     { asset, sender }: Tx,
     result: SuiTransactionBlockResponse,
   ) {
-    const mintInfo: { address: string; amount: BigNumber }[] = [];
+    const mintInfo: { address: string; amount: bigint }[] = [];
     const payBackInfo: {
       address: string;
       sender: string;
-      amount: BigNumber;
+      amount: bigint;
     }[] = [];
+    const inAmount = BigInt(asset.amount);
 
     // It needs to pay back to asset from Hub contract to user.
     if (result.effects?.status.status === 'failure') {
       payBackInfo.push({
         address: asset.address,
         sender: sender,
-        amount: asset.amount,
+        amount: BigInt(asset.amount),
       });
     } else {
       if (result.balanceChanges) {
@@ -127,29 +128,29 @@ export class SuiConsumer extends BaseConsumer {
             continue;
           }
 
-          const changedAmount = BigNumber.from(balance.amount);
-          if (changedAmount.isNegative()) {
+          const deltaAmount = BigInt(balance.amount);
+          if (deltaAmount < 0) {
             // When executing the btc_to_lmint or lmint_to_btc, it returned back used coin object as parameter.
-            // So it needs to pay back reamaind amount to user from lock asset.
+            // So it needs to pay back remained amount to user from lock asset.
             if (
               (balance.coinType === PROTOCOL.TYPE_ARGUMENT.LIQUID_MINT &&
                 asset.address === TOKEN_ADDRESS.lMINT) ||
               (balance.coinType === CUSTODY.TYPE_ARGUMENT.BTC &&
                 asset.address === TOKEN_ADDRESS.wBTC)
             ) {
-              const returnedAmount = asset.amount.add(changedAmount);
-              if (returnedAmount.gt(BigNumber.from(0))) {
+              const remainedAmount = inAmount + deltaAmount;
+              if (remainedAmount > 0) {
                 payBackInfo.push({
                   address: asset.address,
                   sender: sender,
-                  amount: returnedAmount,
+                  amount: remainedAmount,
                 });
               }
             }
-          } else {
+          } else if (deltaAmount > 0) {
             const address = addressToCoinType.get(balance.coinType);
             if (address) {
-              mintInfo.push({ address, amount: asset.amount });
+              mintInfo.push({ address, amount: deltaAmount });
             }
           }
         }
