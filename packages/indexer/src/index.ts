@@ -27,6 +27,10 @@ const CACHE_FILE_PATH = path.join(
   'cache.json',
 );
 
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 const suiQueue = new Queue(QUEUE_NAME.Sui, {
   connection: QUEUE_CONFIG.connection,
   defaultJobOptions: QUEUE_CONFIG.defaultJobOptions,
@@ -67,28 +71,7 @@ const main = async (): Promise<void> => {
     solanaQueue,
   );
 
-  let historicEventsProcessed = false;
-  let pendingEvents: MsgCommittedEvent[] = [];
-  let latestEventBlockNumber: number | null = null;
-
-  hubContract.on(msgCommittedFilter, async (_0, _1, _2, _3, _4, event) => {
-    if (historicEventsProcessed) {
-      if (pendingEvents.length > 0) {
-        await msgCommittedIndexer.handle(pendingEvents, true);
-        pendingEvents = [];
-      }
-      await msgCommittedIndexer.handle([event], false);
-
-      if (latestEventBlockNumber !== event.blockNumber) {
-        console.log(`[*] Processing block ${event.blockNumber}`);
-        latestEventBlockNumber = event.blockNumber;
-      }
-    } else {
-      pendingEvents.push(event);
-    }
-  });
-
-  const latestBlock = await provider.getBlockNumber();
+  let latestBlock = await provider.getBlockNumber();
   const batchSize = 1000;
 
   for (let i = startHeight; i <= latestBlock; i += batchSize) {
@@ -100,10 +83,33 @@ const main = async (): Promise<void> => {
       fromBlock,
       toBlock,
     );
-    await msgCommittedIndexer.handle(events, true);
+    await msgCommittedIndexer.handle(events);
   }
 
-  historicEventsProcessed = true;
+  await repository.save(latestBlock);
+
+  let currentBlock = latestBlock + 1; // already fetched latest block
+  latestBlock = await provider.getBlockNumber();
+  while (true) {
+    if (currentBlock > latestBlock) {
+      latestBlock = await provider.getBlockNumber();
+
+      // Avoid to limit RPC request rate.
+      // Also avoid to block node js event-loop.
+      // Sepolia networks generates block each 12 sec.
+      await sleep(5000);
+      continue;
+    }
+    console.log(`fetching block ${currentBlock}`);
+    const events = await hubContract.queryFilter(
+      msgCommittedFilter,
+      currentBlock,
+      currentBlock,
+    );
+
+    await msgCommittedIndexer.handle(events);
+    currentBlock = currentBlock + 1;
+  }
 };
 
 main()

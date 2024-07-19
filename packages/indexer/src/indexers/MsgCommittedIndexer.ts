@@ -23,7 +23,7 @@ export default class MsgCommittedIndexer
     this.solanaQueue = solanaQueue;
   }
 
-  handle = async (events: MsgCommittedEvent[], historic: boolean) => {
+  handle = async (events: MsgCommittedEvent[]) => {
     for (const event of events) {
       const { asset, amount, chain, sender, data } = event.args;
 
@@ -33,6 +33,8 @@ export default class MsgCommittedIndexer
         sender: sender,
         data: data,
       };
+
+      console.log(tx);
 
       if (chain === ChainIdentifier.Solana) {
         await this.solanaQueue.add(QUEUE_NAME.Solana, tx, {
