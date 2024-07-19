@@ -55,9 +55,11 @@ const main = async (): Promise<void> => {
 
   const msgCommittedFilter = hubContract.filters.MsgCommitted();
 
-  const startHeight = Config.START_HEIGHT;
-
-  const repository = saveLastSyncedHeightInJSON(startHeight, CACHE_FILE_PATH);
+  const repository = saveLastSyncedHeightInJSON(
+    Config.START_HEIGHT,
+    CACHE_FILE_PATH,
+  );
+  const startHeight = await repository.load();
 
   const msgCommittedIndexer = new MsgCommittedIndexer(
     repository.save,
