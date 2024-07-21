@@ -120,13 +120,13 @@ main()
 suiQueueEvents.on('completed', ({ jobId, returnvalue }) => {
   // Called every time a job is completed in any worker.
   const date = new Date().toISOString();
-  console.log(`Completed tx job ${jobId} time ${date}`);
+  console.log(`Completed Sui tx job ${jobId} time ${date}`);
 });
 
 solanaQueueEvents.on('completed', ({ jobId, returnvalue }) => {
   // Called every time a job is completed in any worker.
   const date = new Date().toISOString();
-  console.log(`Completed tx job ${jobId} time ${date}`);
+  console.log(`Completed Solana tx job ${jobId} time ${date}`);
 });
 
 //<--- Queue Event handler

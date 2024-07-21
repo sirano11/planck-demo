@@ -25,8 +25,8 @@ export interface Tx {
 type ActorInfo = {
   eth: string;
   sui: string;
-  solana: string;
-  mnemonic: string;
+  sol: string;
+  mnemonic?: string;
 };
 
 const isObjectEmpty = (obj: object) => {

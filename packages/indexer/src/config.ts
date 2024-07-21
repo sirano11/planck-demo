@@ -19,7 +19,7 @@ type Config = {
   ETH_WSS_ENDPOINT: string;
   ETH_HTTP_ENDPOINT: string;
   SUI_RPC_ENDPOINT: string;
-  SOLANA_RPC_ENDPOINT: string;
+  SOLANA_DEVNET_RPC_ENDPOINT: string;
   START_HEIGHT: number;
   CONTRACT_ADDRESS_HUB: string;
   REDIS_URL: string;
@@ -34,7 +34,7 @@ const getConfig = (): Config => {
     'ETH_WSS_ENDPOINT',
     'ETH_HTTP_ENDPOINT',
     'SUI_RPC_ENDPOINT',
-    'SOLANA_RPC_ENDPOINT',
+    'SOLANA_DEVNET_RPC_ENDPOINT',
     'START_HEIGHT',
     'CONTRACT_ADDRESS_HUB',
     'REDIS_URL',

@@ -1,4 +1,4 @@
-import { mintTo } from '@solana/spl-token';
+import { getOrCreateAssociatedTokenAccount, transfer } from '@solana/spl-token';
 import {
   Connection,
   Keypair,
@@ -19,15 +19,21 @@ import { Config, connection } from '@/config';
 import { BaseConsumer, ChainIdentifier, Tx } from './Consumer';
 
 const SOL2ETH_ASSET_PAIRS: Record<string, string> = {
-  abcdef: '0x1234', // FIXME: replace with real address
+  '5L9yR1bF4gdzZBfGxxLkidgUmjFa7CGBppKZPBYaPL3F':
+    '0xD308f37Ec20a11D2f979274afe06802595BBBEab',
+  iAo1RFXsYotAEf3vVj4tmxAPGrX8QmZnbFxumqRZ7xb:
+    '0xFf47d172CEa82096b8B82e916697beB306C4C685',
 };
 
 const ETH2SOL_ASSET_PAIRS: Record<string, string> = {
-  '0x1234': 'abcdef', // FIXME: replace with real address
+  '0xD308f37Ec20a11D2f979274afe06802595BBBEab':
+    '5L9yR1bF4gdzZBfGxxLkidgUmjFa7CGBppKZPBYaPL3F',
+  '0xFf47d172CEa82096b8B82e916697beB306C4C685':
+    'iAo1RFXsYotAEf3vVj4tmxAPGrX8QmZnbFxumqRZ7xb',
 };
 
 const getKeypairFromMnemonic = (mnemonic: string): Keypair => {
-  const seed = bip39.mnemonicToSeedSync(mnemonic, '');
+  const seed = bip39.mnemonicToSeedSync(mnemonic, 'mint');
   const hd = HDKey.fromMasterSeed(seed.toString('hex'));
   const path = `m/44'/501'/0'/0'`;
   return Keypair.fromSeed(hd.derive(path).privateKey);
@@ -49,9 +55,13 @@ export class SolanaConsumer extends BaseConsumer {
 
   constructor() {
     const redisClient = createClient({ url: Config.REDIS_URL });
-    super(redisClient, ChainIdentifier.Sui);
+    super(redisClient, ChainIdentifier.Solana);
 
-    this.connection = new Connection(Config.SOLANA_RPC_ENDPOINT);
+    this.connection = new Connection(
+      Config.SOLANA_DEVNET_RPC_ENDPOINT,
+      'confirmed',
+    );
+
     this.mintKeypair = getKeypairFromMnemonic(Config.SOLANA_MINT_MNEMONIC);
     this.ethersProvider = new ethers.providers.JsonRpcProvider(
       Config.ETH_HTTP_ENDPOINT,
@@ -61,6 +71,8 @@ export class SolanaConsumer extends BaseConsumer {
       Config.HUB_OWNER_PRIVATE_KEY,
       this.ethersProvider,
     );
+    // this.hubOwnerSigner = ethers.Wallet.fromMnemonic(Config.HUB_OWNER_MNEMONIC);
+    // this.hubOwnerSigner = new ethers.Wallet(Config.HUB_OWNER_PRIVATE_KEY);
   }
 
   static getInstance() {
@@ -72,6 +84,8 @@ export class SolanaConsumer extends BaseConsumer {
 
   async getKeypair(ethAddress: string): Promise<Keypair | null> {
     const mnemonic = await this.getMnemonic(ethAddress);
+    // const privateKey = await this.getPrivateKey(ethAddress);
+
     return mnemonic ? getKeypairFromMnemonic(mnemonic) : null;
   }
 
@@ -82,22 +96,45 @@ export class SolanaConsumer extends BaseConsumer {
 
     await job.updateProgress({ status: 'event-received' });
 
-    const actorKeypair = await this.getKeypair(sender);
-    if (!actorKeypair) {
-      throw new Error('actor-not-found');
+    let actorKeypair = await this.getKeypair(sender);
+    const actorPrivateKey = await this.getActorAddress(sender);
+
+    if (!(actorKeypair || actorPrivateKey)) {
+      console.log(new Error('actor-not-found'));
+      // throw new Error('actor-not-found');
+      process.exit(1);
     }
+
+    const solAddrBytes = fromHexString(actorPrivateKey!);
+    actorKeypair = Keypair.fromSecretKey(solAddrBytes.slice(1));
+
+    const tokenOwner = await getOrCreateAssociatedTokenAccount(
+      connection,
+      this.mintKeypair,
+      new PublicKey(ETH2SOL_ASSET_PAIRS[asset.address]),
+      this.mintKeypair.publicKey,
+    );
+
+    const tokenReceiver = await getOrCreateAssociatedTokenAccount(
+      connection,
+      this.mintKeypair,
+      new PublicKey(ETH2SOL_ASSET_PAIRS[asset.address]),
+      actorKeypair.publicKey,
+    );
 
     // mint `asset.address` of `asset.amount` on Solana to actorAddress
     try {
-      const mintTxSignature = await mintTo(
+      const transferTxSignature = await transfer(
         this.connection,
         this.mintKeypair,
-        new PublicKey(ETH2SOL_ASSET_PAIRS[asset.address]),
-        actorKeypair.publicKey,
+        tokenOwner.address,
+        tokenReceiver.address,
         this.mintKeypair.publicKey,
         assetAmount,
       );
-      console.log(mintTxSignature);
+      console.log('# transferTxSignature:');
+      console.log(transferTxSignature);
+
       await job.updateProgress({ status: 'mint-asset-to-actor' });
     } catch (e) {
       console.error(e);
@@ -107,13 +144,16 @@ export class SolanaConsumer extends BaseConsumer {
     // sign with actor
     const tx_bytes = fromHexString(data);
     const transaction = VersionedTransaction.deserialize(tx_bytes.slice(1));
-
-    transaction.sign([actorKeypair]);
+    transaction.sign([this.mintKeypair]);
 
     // send transaction
     let txSignature: string | undefined;
     try {
-      txSignature = await connection.sendTransaction(transaction);
+      console.log('txSignature?'); // FIXME: needs to be solved
+      txSignature = await connection.sendTransaction(transaction, {
+        preflightCommitment: 'confirmed',
+      });
+      console.log(txSignature);
       await job.updateProgress({ status: 'send-tx-to-dest' });
     } catch (e) {
       console.error(e);
@@ -192,7 +232,7 @@ export class SolanaConsumer extends BaseConsumer {
     for (const balance of mintDelta) {
       const erc20Contract = ERC20Mock__factory.connect(
         balance.address,
-        this.ethersProvider,
+        this.hubOwnerSigner,
       );
       await (await erc20Contract.mint(sender, balance.amount)).wait();
     }

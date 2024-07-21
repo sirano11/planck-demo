@@ -1,5 +1,5 @@
 import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
-import { Keypair as SolKeypair } from '@solana/web3.js';
+import { Keypair, Keypair as SolKeypair } from '@solana/web3.js';
 import * as bip39 from 'bip39';
 import * as ethers from 'ethers';
 import { HDKey } from 'micro-ed25519-hdkey';
@@ -47,13 +47,35 @@ const putSenderPair = async (
   const solAddr = getSolanaAddress(mnemonic);
 
   const result = await redisClient.hSet(`eth:${ethAddr}`, {
+    eth: ethAddr,
     sui: suiAddr,
     solana: solAddr,
-    eth: ethAddr,
     mnemonic: mnemonic,
   });
 
   console.log({ ethAddr, suiAddr, solAddr, result });
+};
+
+const putRandomSenderPairWithPrivateKey = async (
+  redisClient: RedisClient,
+  privateKey: string,
+): Promise<void> => {
+  if (!redisClient.isOpen) {
+    await redisClient.connect();
+  }
+
+  const ethAddr = new ethers.Wallet(privateKey).address;
+  const suiAddr = Ed25519Keypair.generate().getSecretKey();
+  const solAddr = Keypair.generate().secretKey;
+  const solHex = `0x${solAddr.reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '')}`;
+
+  const result = await redisClient.hSet(`eth:${ethAddr}`, {
+    eth: privateKey,
+    sui: suiAddr,
+    sol: solHex,
+  });
+
+  console.log({ ethAddr, privateKey, suiAddr, solHex, result });
 };
 
 const putSenderPairs = async (
@@ -74,7 +96,10 @@ const main = async (): Promise<void> => {
   await redisClient.connect();
 
   await putSenderPairs(redisClient, mnemonics);
-
+  await putRandomSenderPairWithPrivateKey(
+    redisClient,
+    '6fd6fd72124f84a73dc8cb332483bfac3f1964020907370539d07f3e990c9ab8',
+  );
   await redisClient.disconnect();
 };
 
