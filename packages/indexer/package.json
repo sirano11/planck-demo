@@ -11,7 +11,8 @@
     "solana-worker": "tsx src/consumers/SolanaWorker.ts",
     "add-tx": "tsx src/scripts/addTx.ts",
     "add-sender": "tsx src/scripts/addSenderInfo.ts",
-    "drain-queue": "tsx src/scripts/drainQueue.ts"
+    "drain-queue": "tsx src/scripts/drainQueue.ts",
+    "socket": "tsx src/socket.ts"
   },
   "dependencies": {
     "@mysten/sui": "^1.2.1",
@@ -27,7 +28,8 @@
     "planck-demo-contracts": "workspace:^",
     "planck-demo-interface": "workspace:^",
     "redis": "^4.6.14",
-    "socket.io": "^4.7.5"
+    "socket.io": "^4.7.5",
+    "socket.io-client": "^4.7.5"
   },
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^4.3.0",

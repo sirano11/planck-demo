@@ -1,15 +1,13 @@
 import { Job, Worker } from 'bullmq';
-import { Server } from 'socket.io';
+import { io } from 'socket.io-client';
 
 import { Config, QUEUE_CONFIG, QUEUE_NAME, WORKER_CONFIG } from '@/config';
 
 import { SolanaConsumer } from './SolanaConsumer';
 import { SuiConsumer } from './SuiConsumer';
 
-const io = new Server(Config.WEBSOCKET_PORT, {
-  cors: {
-    origin: Config.WEBSOCKET_CORS_ORIGIN,
-  },
+const socket = io(`http://localhost:${Config.WEBSOCKET_PORT}`, {
+  autoConnect: true,
 });
 
 const suiWorker = new Worker(
@@ -40,21 +38,29 @@ for (const worker of [suiWorker, solanaWorker]) {
   worker.on('progress', (job: Job, progress: number | object) => {
     console.log({ id: job.id, progress }, 'Job progress');
     if (typeof progress === 'object' && job.id) {
-      io.emit(`job-${job.id}`, { ...progress, error: false });
+      socket.emit('job-status', { ...progress, id: job.id, error: false });
     }
   });
 
   worker.on('completed', (job: Job) => {
     console.log({ id: job.id }, 'Job completed');
     if (job.id) {
-      io.emit(`job-${job.id}`, { status: 'completed', error: false });
+      socket.emit('job-status', {
+        id: job.id,
+        status: 'completed',
+        error: false,
+      });
     }
   });
 
   worker.on('failed', (job: Job | undefined, error: Error) => {
     console.log({ id: job?.id }, 'Job failed');
     if (job && job.id && error.message) {
-      io.emit(`job-${job.id}`, { status: error.message, error: true });
+      socket.emit('job-status', {
+        id: job.id,
+        status: error.message,
+        error: true,
+      });
     }
   });
 }
