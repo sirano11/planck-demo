@@ -12,6 +12,7 @@ import { ethers } from 'ethers';
 import { HDKey } from 'micro-ed25519-hdkey';
 import { ERC20Mock__factory } from 'planck-demo-contracts/typechain/factories/ERC20Mock__factory';
 import { Hub__factory } from 'planck-demo-contracts/typechain/factories/Hub__factory';
+import { SPL_TOKENS } from 'planck-demo-interface/src/constants/solanaConfigs';
 import { TOKEN_ADDRESS } from 'planck-demo-interface/src/helper/eth/config';
 import { createClient } from 'redis';
 
@@ -20,13 +21,13 @@ import { Config, connection } from '@/config';
 import { BaseConsumer, ChainIdentifier, Tx } from './Consumer';
 
 const SOL2ETH_ASSET_PAIRS: Record<string, string> = {
-  '5L9yR1bF4gdzZBfGxxLkidgUmjFa7CGBppKZPBYaPL3F': TOKEN_ADDRESS.wSOL,
-  iAo1RFXsYotAEf3vVj4tmxAPGrX8QmZnbFxumqRZ7xb: TOKEN_ADDRESS.wMEME,
+  [SPL_TOKENS.wSOL.toBase58()]: TOKEN_ADDRESS.wSOL,
+  [SPL_TOKENS.wMEME.toBase58()]: TOKEN_ADDRESS.wMEME,
 };
 
 const ETH2SOL_ASSET_PAIRS: Record<string, string> = {
-  [TOKEN_ADDRESS.wSOL]: '5L9yR1bF4gdzZBfGxxLkidgUmjFa7CGBppKZPBYaPL3F',
-  [TOKEN_ADDRESS.wMEME]: 'iAo1RFXsYotAEf3vVj4tmxAPGrX8QmZnbFxumqRZ7xb',
+  [TOKEN_ADDRESS.wSOL]: SPL_TOKENS.wSOL.toBase58(),
+  [TOKEN_ADDRESS.wMEME]: SPL_TOKENS.wMEME.toBase58(),
 };
 
 const getKeypairFromMnemonic = (mnemonic: string): Keypair => {

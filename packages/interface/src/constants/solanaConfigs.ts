@@ -4,7 +4,7 @@ export const connection = new Connection('https://api.devnet.solana.com', {
   commitment: 'confirmed',
 });
 
-export const PROGRAMS = {
+export const SPL_TOKENS = {
   wSOL: new PublicKey('5L9yR1bF4gdzZBfGxxLkidgUmjFa7CGBppKZPBYaPL3F'),
   wMEME: new PublicKey('iAo1RFXsYotAEf3vVj4tmxAPGrX8QmZnbFxumqRZ7xb'),
 } as const;

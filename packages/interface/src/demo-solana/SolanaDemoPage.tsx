@@ -1,7 +1,7 @@
 import { Box, Grid, GridItem, HStack } from '@chakra-ui/react';
 import { useCallback, useRef, useState } from 'react';
 
-import { PROGRAMS, TOKENS } from '@/constants';
+import { SPL_TOKENS, TOKENS } from '@/constants';
 import PanelCard from '@/raydium/components/PanelCard';
 import { SlippageAdjuster } from '@/raydium/components/SlippageAdjuster';
 import SwapChatEmptyIcon from '@/raydium/icons/misc/SwapChatEmptyIcon';
@@ -24,9 +24,11 @@ const SolanaDemoPage = () => {
   const swapPanelRef = useRef<HTMLDivElement>(null);
   const klineRef = useRef<HTMLDivElement>(null);
 
-  const [inputMint, setInputMint] = useState<string>(PROGRAMS.wSOL.toString());
+  const [inputMint, setInputMint] = useState<string>(
+    SPL_TOKENS.wSOL.toString(),
+  );
   const [outputMint, setOutputMint] = useState<string>(
-    PROGRAMS.wMEME.toString(),
+    SPL_TOKENS.wMEME.toString(),
   );
 
   const [tokenInput, tokenOutput] = [
