@@ -2,7 +2,7 @@ export const HUB_CONTRACT_ADDRESS =
   '0x2912d6e766f136dfa1ebfea5c77bb4a61fb68cf4';
 
 export const TOKEN_ADDRESS = {
-  wBTC: '0xb208e00838e3ac40e33bd40bca262ab56200c770',
+  wBTC: '0x7daee33986ac827989bb32f9962d5e54080cc859',
   lMINT: '0xacb2528d9b730129a3637ca41fe160bb15ec26a0',
   cashJPY: '0xebdaed142b1e9b2fbb8cd7ccbb5c095821a718a7',
   cashKRW: '0xf518ed302d4e3a4dfdde4abc6b58445b84cbfe63',

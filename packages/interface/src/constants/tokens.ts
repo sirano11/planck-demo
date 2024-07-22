@@ -24,7 +24,7 @@ export const TOKENS: Token[] = [
     symbol: 'wBTC',
     category: 'wbtc',
     address: TOKEN_ADDRESS.wBTC,
-    decimals: 8,
+    decimals: 9,
     logo: '/assets/bitcoin.png',
     typeArgument: CUSTODY.TYPE_ARGUMENT.BTC,
     chain: ChainIdentifier.Sui,

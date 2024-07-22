@@ -9,8 +9,8 @@ export const TOKENS: TokenParameters[] = [
   {
     name: 'Wrapped Bitcoin',
     symbol: 'wBTC',
-    initialSupply: 21_000_000n,
-    decimals: 8,
+    initialSupply: 100_000n,
+    decimals: 9,
   },
   {
     // Ethereum Bridged lMINT
