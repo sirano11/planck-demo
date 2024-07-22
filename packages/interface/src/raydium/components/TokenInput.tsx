@@ -277,7 +277,7 @@ function TokenInput(props: TokenInputProps) {
           <InputGroup sx={{ width }}>
             <Input
               variant="number"
-              sx={{ '& input[inputmode=decimal]': { opacity: 1 } }}
+              sx={{ '&[disabled]': { opacity: 1 } }}
               onChange={(e) => {
                 let value = e.target.value
 
@@ -296,7 +296,7 @@ function TokenInput(props: TokenInputProps) {
               value={inputValue}
               min={0}
               width={width || '100%'}
-              opacity={loading ? 0.2 : 1}
+              opacity={loading ? 0.5 : 1}
               id={id}
               name={name}
               textAlign="end"

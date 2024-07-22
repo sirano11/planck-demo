@@ -5,13 +5,19 @@ import {
   Flex,
   SimpleGrid,
   Text,
-  useDisclosure,
 } from '@chakra-ui/react';
 import { TxVersion } from '@raydium-io/raydium-sdk-v2';
 import { waitForTransactionReceipt } from '@wagmi/core';
 import BN from 'bn.js';
+import { Loader2Icon } from 'lucide-react';
 import { BridgeToken__factory } from 'planck-demo-contracts/typechain/factories/BridgeToken__factory';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { toast } from 'react-toastify';
 import { formatUnits, parseUnits } from 'viem';
 import { useWriteContract } from 'wagmi';
@@ -56,17 +62,12 @@ export const SwapPanel: React.FC<SwapPanelProps> = ({
   tokenOutput,
   handleChangeSide,
 }) => {
-  const {
-    isOpen: isSending,
-    onOpen: onSending,
-    onClose: offSending,
-  } = useDisclosure();
+  const [isTxInFlight, setTxInFlight] = useState<boolean>(false);
 
   const { tokenBalances } = useTokenBalances();
   const { tokenAllowances, refresh: refreshAllowances } = useTokenAllowances();
 
   const [amountIn, setAmountIn] = useState<string>('');
-  const swapDisabled = false;
   const [hasValidAmountOut, setHasValidAmountOut] = useState(false);
 
   const raydium = useRaydium();
@@ -96,14 +97,28 @@ export const SwapPanel: React.FC<SwapPanelProps> = ({
   const hasEnoughAllowance = useMemo(() => {
     try {
       return (
-        tokenAllowances[tokenInput.address] &&
-        tokenAllowances[tokenInput.address] >=
-          parseUnits(amountIn, tokenInput.decimals)
+        (tokenAllowances[tokenInput.address] &&
+          tokenAllowances[tokenInput.address] >=
+            parseUnits(amountIn, tokenInput.decimals)) ||
+        false
       );
     } catch (e) {
       return false;
     }
   }, [tokenAllowances, amountIn, tokenInput]);
+
+  const hasEnoughBalance = useMemo(() => {
+    try {
+      return (
+        (tokenBalances[tokenInput.address] &&
+          tokenBalances[tokenInput.address] >=
+            parseUnits(amountIn, tokenInput.decimals)) ||
+        false
+      );
+    } catch (e) {
+      return false;
+    }
+  }, [tokenBalances, amountIn, tokenInput]);
 
   const { writeContractAsync } = useWriteContract();
   const handleClickApprove = useCallback(() => {
@@ -111,7 +126,7 @@ export const SwapPanel: React.FC<SwapPanelProps> = ({
       return;
     }
 
-    onSending();
+    setTxInFlight(true);
 
     const promise = (async () => {
       const amount = parseUnits(amountIn, tokenInput.decimals);
@@ -127,7 +142,7 @@ export const SwapPanel: React.FC<SwapPanelProps> = ({
     })();
 
     toastTransaction(promise).finally(() => {
-      offSending();
+      setTxInFlight(false);
       refreshAllowances();
     });
   }, [
@@ -136,15 +151,15 @@ export const SwapPanel: React.FC<SwapPanelProps> = ({
     tokenInput,
     writeContractAsync,
     refreshAllowances,
-    onSending,
-    offSending,
   ]);
 
   const handleClickSwap = useCallback(async () => {
     if (!computeSwapResult || !raydium) {
       return;
     }
-    onSending();
+
+    setTxInFlight(true);
+
     try {
       const commitData = await raydium.liquidity.swap({
         poolInfo: computeSwapResult.poolInfo,
@@ -180,9 +195,45 @@ export const SwapPanel: React.FC<SwapPanelProps> = ({
       toast.error('Error while constructing transaction');
       console.error(e);
     } finally {
-      offSending();
+      setTxInFlight(false);
     }
-  }, [raydium, computeSwapResult, tokenInput, onSending, offSending]);
+  }, [raydium, computeSwapResult, tokenInput]);
+
+  const [isSwapDisabled, ctaTitle, onClickCTA] = useMemo(() => {
+    let disabled: boolean = false;
+    let title: React.ReactNode = 'Swap';
+    let onClick: React.MouseEventHandler<HTMLButtonElement> | undefined =
+      undefined;
+
+    if (!hasValidAmountOut) {
+      disabled = true;
+    } else if (isTxInFlight) {
+      disabled = true;
+      title = <Loader2Icon className="animate-spin" />;
+    } else if (!hasEnoughBalance) {
+      disabled = true;
+      title = 'Insufficient Balance';
+    } else if (!hasEnoughAllowance) {
+      // Approve
+      title = `Approve ${tokenInput.symbol}`;
+      onClick = handleClickApprove;
+    } else {
+      // Swap
+      onClick = handleClickSwap;
+    }
+
+    return [disabled, title, onClick];
+  }, [
+    hasValidAmountOut,
+    isTxInFlight,
+    hasEnoughBalance,
+    hasEnoughAllowance,
+    handleClickApprove,
+    handleClickSwap,
+    tokenInput,
+  ]);
+
+  console.log({ isTxInFlight, ctaTitle });
 
   return (
     <>
@@ -194,7 +245,7 @@ export const SwapPanel: React.FC<SwapPanelProps> = ({
           token={tokenInput}
           tokenBalance={tokenBalances[tokenInput.address]}
           value={amountIn}
-          readonly={swapDisabled}
+          readonly={false}
           onChange={setAmountIn}
         />
 
@@ -209,7 +260,7 @@ export const SwapPanel: React.FC<SwapPanelProps> = ({
             BigInt(outputAmount?.toString() || '0'),
             tokenOutput.decimals,
           )}
-          readonly={swapDisabled}
+          readonly
           onChange={(value) => {
             // on max balance
             handleChangeSide();
@@ -230,11 +281,11 @@ export const SwapPanel: React.FC<SwapPanelProps> = ({
       </Collapse>
 
       <Button
-        onClick={!hasEnoughAllowance ? handleClickApprove : handleClickSwap}
+        isLoading={isTxInFlight}
+        disabled={isSwapDisabled}
+        onClick={onClickCTA}
       >
-        <Text>
-          {!hasEnoughAllowance ? `Approve ${tokenInput.symbol}` : 'Swap'}
-        </Text>
+        <Text>{ctaTitle}</Text>
       </Button>
     </>
   );

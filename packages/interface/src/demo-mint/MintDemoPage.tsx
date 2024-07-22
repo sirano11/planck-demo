@@ -250,9 +250,10 @@ const MintDemoPage: NextPage = () => {
   const hasEnoughAllowance = useMemo(() => {
     try {
       return (
-        tokenAllowances[offerCoin.address] &&
-        tokenAllowances[offerCoin.address] >=
-          parseUnits(inputDraft, offerCoin.decimals)
+        (tokenAllowances[offerCoin.address] &&
+          tokenAllowances[offerCoin.address] >=
+            parseUnits(inputDraft, offerCoin.decimals)) ||
+        false
       );
     } catch (e) {
       return false;
@@ -262,9 +263,10 @@ const MintDemoPage: NextPage = () => {
   const hasEnoughBalance = useMemo(() => {
     try {
       return (
-        tokenBalances[offerCoin.address] &&
-        tokenBalances[offerCoin.address] >=
-          parseUnits(inputDraft, offerCoin.decimals)
+        (tokenBalances[offerCoin.address] &&
+          tokenBalances[offerCoin.address] >=
+            parseUnits(inputDraft, offerCoin.decimals)) ||
+        false
       );
     } catch (e) {
       return false;
