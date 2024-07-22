@@ -20,11 +20,16 @@ type Config = {
   ETH_HTTP_ENDPOINT: string;
   SUI_RPC_ENDPOINT: string;
   SOLANA_DEVNET_RPC_ENDPOINT: string;
+
   START_HEIGHT: number;
-  CONTRACT_ADDRESS_HUB: string;
   REDIS_URL: string;
+
+  CONTRACT_ADDRESS_HUB: string;
+
+  PRIVATE_KEY_SUI_CONSUMER: string;
+  PRIVATE_KEY_SOLANA_CONSUMER: string;
   SOLANA_MINT_MNEMONIC: string;
-  HUB_OWNER_PRIVATE_KEY: string;
+
   WEBSOCKET_PORT: number;
   WEBSOCKET_CORS_ORIGIN: string;
 };
@@ -35,11 +40,16 @@ const getConfig = (): Config => {
     'ETH_HTTP_ENDPOINT',
     'SUI_RPC_ENDPOINT',
     'SOLANA_DEVNET_RPC_ENDPOINT',
+    //
     'START_HEIGHT',
-    'CONTRACT_ADDRESS_HUB',
     'REDIS_URL',
+    //
+    'CONTRACT_ADDRESS_HUB',
+    //
+    'PRIVATE_KEY_SUI_CONSUMER',
+    'PRIVATE_KEY_SOLANA_CONSUMER',
     'SOLANA_MINT_MNEMONIC',
-    'HUB_OWNER_PRIVATE_KEY',
+    //
     'WEBSOCKET_PORT',
     'WEBSOCKET_CORS_ORIGIN',
   ]);

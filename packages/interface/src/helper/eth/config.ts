@@ -1,15 +1,15 @@
 export const HUB_CONTRACT_ADDRESS =
-  '0xD5289b6Ab577A815582DA85675D7086189696034';
+  '0x2912d6e766f136dfa1ebfea5c77bb4a61fb68cf4';
 
 export const TOKEN_ADDRESS = {
-  wBTC: '0x1ac7242ed5c58cf97cb6747347b86a5a63fb87cb',
-  lMINT: '0xd43c99c2655d20ccbb6f571ee810e23e454c2336',
-  cashJPY: '0x7412956391c213348695ba0af7ff96aafef481eb',
-  cashKRW: '0x205e1293916138b91f831f150c814acc414bd8f5',
-  cashLIVRE: '0x99671dabae4801b025a34a3ee7787da28fd2624a',
-  cashSDR: '0x9edaa3ddb03cfde2d54f5e73af317742f5723844',
-  wSOL: '0xD308f37Ec20a11D2f979274afe06802595BBBEab',
-  wMEME: '0xFf47d172CEa82096b8B82e916697beB306C4C685',
+  wBTC: '0xb208e00838e3ac40e33bd40bca262ab56200c770',
+  lMINT: '0xacb2528d9b730129a3637ca41fe160bb15ec26a0',
+  cashJPY: '0xebdaed142b1e9b2fbb8cd7ccbb5c095821a718a7',
+  cashKRW: '0xf518ed302d4e3a4dfdde4abc6b58445b84cbfe63',
+  cashLIVRE: '0x87c5625c0bc8ca05637de1bbedcc1cfad995a21d',
+  cashSDR: '0x5b53f4033c4bc5a79d758d6cf9bfea8ff08d344f',
+  wSOL: '0x4ceceb128754faab57315c12346b8f3f4e2abeb5',
+  wMEME: '0x10c7ab8a5e877d58f9d303da4e2f6f17acb5a1ff',
 } as const;
 
 export enum ChainIdentifier {

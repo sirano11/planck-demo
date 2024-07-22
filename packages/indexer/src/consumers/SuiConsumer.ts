@@ -41,7 +41,7 @@ export class SuiConsumer extends BaseConsumer {
     );
 
     this.ethSigner = new ethers.Wallet(
-      Config.HUB_OWNER_PRIVATE_KEY,
+      Config.PRIVATE_KEY_SUI_CONSUMER,
       ethProvider,
     );
   }

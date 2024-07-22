@@ -12,6 +12,7 @@ import { ethers } from 'ethers';
 import { HDKey } from 'micro-ed25519-hdkey';
 import { ERC20Mock__factory } from 'planck-demo-contracts/typechain/factories/ERC20Mock__factory';
 import { Hub__factory } from 'planck-demo-contracts/typechain/factories/Hub__factory';
+import { TOKEN_ADDRESS } from 'planck-demo-interface/src/helper/eth/config';
 import { createClient } from 'redis';
 
 import { Config, connection } from '@/config';
@@ -19,17 +20,13 @@ import { Config, connection } from '@/config';
 import { BaseConsumer, ChainIdentifier, Tx } from './Consumer';
 
 const SOL2ETH_ASSET_PAIRS: Record<string, string> = {
-  '5L9yR1bF4gdzZBfGxxLkidgUmjFa7CGBppKZPBYaPL3F':
-    '0xD308f37Ec20a11D2f979274afe06802595BBBEab',
-  iAo1RFXsYotAEf3vVj4tmxAPGrX8QmZnbFxumqRZ7xb:
-    '0xFf47d172CEa82096b8B82e916697beB306C4C685',
+  '5L9yR1bF4gdzZBfGxxLkidgUmjFa7CGBppKZPBYaPL3F': TOKEN_ADDRESS.wSOL,
+  iAo1RFXsYotAEf3vVj4tmxAPGrX8QmZnbFxumqRZ7xb: TOKEN_ADDRESS.wMEME,
 };
 
 const ETH2SOL_ASSET_PAIRS: Record<string, string> = {
-  '0xD308f37Ec20a11D2f979274afe06802595BBBEab':
-    '5L9yR1bF4gdzZBfGxxLkidgUmjFa7CGBppKZPBYaPL3F',
-  '0xFf47d172CEa82096b8B82e916697beB306C4C685':
-    'iAo1RFXsYotAEf3vVj4tmxAPGrX8QmZnbFxumqRZ7xb',
+  [TOKEN_ADDRESS.wSOL]: '5L9yR1bF4gdzZBfGxxLkidgUmjFa7CGBppKZPBYaPL3F',
+  [TOKEN_ADDRESS.wMEME]: 'iAo1RFXsYotAEf3vVj4tmxAPGrX8QmZnbFxumqRZ7xb',
 };
 
 const getKeypairFromMnemonic = (mnemonic: string): Keypair => {
@@ -68,11 +65,9 @@ export class SolanaConsumer extends BaseConsumer {
     );
 
     this.hubOwnerSigner = new ethers.Wallet(
-      Config.HUB_OWNER_PRIVATE_KEY,
+      Config.PRIVATE_KEY_SOLANA_CONSUMER,
       this.ethersProvider,
     );
-    // this.hubOwnerSigner = ethers.Wallet.fromMnemonic(Config.HUB_OWNER_MNEMONIC);
-    // this.hubOwnerSigner = new ethers.Wallet(Config.HUB_OWNER_PRIVATE_KEY);
   }
 
   static getInstance() {
