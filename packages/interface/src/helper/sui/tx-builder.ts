@@ -254,11 +254,7 @@ export const simulate_btc_to_lmint = async (
   const tx = new Transaction();
   tx.moveCall({
     target: PROTOCOL.TARGET.MARKET_SIMULATE_BTC_TO_LMINT,
-    arguments: [
-      tx.object(PROTOCOL.OBJECT_ID.PILGRIM),
-      tx.object(PROTOCOL.OBJECT_ID.SUPPLY_LIQUID_MINT),
-      tx.pure.u64(btcAmount),
-    ],
+    arguments: [tx.object(PROTOCOL.OBJECT_ID.PILGRIM), tx.pure.u64(btcAmount)],
   });
 
   const results = await devInspectAndGetResults(client, tx);
@@ -276,7 +272,6 @@ export const simulate_lmint_to_btc = async (
     target: PROTOCOL.TARGET.MARKET_SIMULATE_LMINT_TO_BTC,
     arguments: [
       tx.object(PROTOCOL.OBJECT_ID.PILGRIM),
-      tx.object(PROTOCOL.OBJECT_ID.SUPPLY_LIQUID_MINT),
       tx.pure.u64(lmintAmount),
     ],
   });
