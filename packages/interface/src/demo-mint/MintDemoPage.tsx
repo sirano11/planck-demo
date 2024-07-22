@@ -216,12 +216,26 @@ const MintDemoPage: NextPage = () => {
           '', // ErrorVotesNotFound
           'InvalidExchangeRate', // ErrorInvalidExchangeRate
         ],
+        pilgrim: [
+          'Too small input amount (RoundIn <= 0)', // ERoundInShouldBePositive
+          'BaseIn <= 0', // EBaseInShouldBePositive
+          'RoundOut <= 0', // ERoundOutShouldBePositive
+          'BaseOut <= 0', // EBaseOutShouldBePositive
+          'BaseIn > Max', // EBaseInIsGreaterThanMax
+          'BaseOut < Min', // EBaseOutIsLessThanMin
+          'RoundIn > Max', // ERoundInIsGreaterThanMax
+          'RoundOut < Min', // ERoundOutIsLessThanMin
+          'N < 0', // ENShouldBeNonnegative
+          'BaseOut > Reserve', // EBaseOutIsGreaterThanReserve
+        ],
       };
       const knownErrors = error.message.includes('market::')
         ? knownErrorsByModule.market
         : error.message.includes('oracle::')
           ? knownErrorsByModule.oracle
-          : [];
+          : error.message.includes('pilgrim::')
+            ? knownErrorsByModule.pilgrim
+            : [];
       const knownError =
         (errorCode && knownErrors[parseInt(errorCode, 10)]) || null;
 

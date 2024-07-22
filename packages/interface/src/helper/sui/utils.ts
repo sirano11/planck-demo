@@ -2,13 +2,22 @@ import { bcs } from '@mysten/sui.js/bcs';
 import { CoinStruct, SuiClient, SuiExecutionResult } from '@mysten/sui/client';
 import { Transaction } from '@mysten/sui/transactions';
 
-export const mergeCoins = (tx: Transaction, coinIds: string[]) =>
-  coinIds.length > 2
-    ? tx.mergeCoins(
-        tx.object(coinIds[0]),
-        coinIds.slice(1).map((v) => tx.object(v)),
-      )[0]
-    : tx.object(coinIds[0]);
+export const mergeCoins = (tx: Transaction, coinIds: string[]) => {
+  if (coinIds.length === 0) {
+    throw new Error('coinIds must not be empty');
+  }
+
+  if (coinIds.length === 1) {
+    return tx.object(coinIds[0]);
+  }
+
+  tx.mergeCoins(
+    tx.object(coinIds[0]),
+    coinIds.slice(1).map((v) => tx.object(v)),
+  );
+
+  return tx.object(coinIds[0]);
+};
 
 export type GetCoinObjectOptions = {
   client: SuiClient;
