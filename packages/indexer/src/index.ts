@@ -2,7 +2,6 @@ import { Queue, QueueEvents } from 'bullmq';
 import { ethers } from 'ethers';
 import findWorkspaceRoot from 'find-yarn-workspace-root';
 import path from 'path';
-import { MsgCommittedEvent } from 'planck-demo-contracts/typechain/Hub';
 import { Hub__factory } from 'planck-demo-contracts/typechain/factories/Hub__factory';
 
 import { Config, QUEUE_CONFIG, QUEUE_NAME } from './config';

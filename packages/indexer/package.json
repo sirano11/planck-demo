@@ -8,7 +8,8 @@
     "start": "tsx src/index.ts",
     "worker": "tsx src/consumers/worker.ts",
     "add-tx": "tsx src/scripts/addTx.ts",
-    "add-sender": "tsx src/scripts/addSenderInfo.ts"
+    "add-sender": "tsx src/scripts/addSenderInfo.ts",
+    "drain-queue": "tsx src/scripts/drainQueue.ts"
   },
   "dependencies": {
     "@mysten/sui": "^1.2.1",
