@@ -404,7 +404,7 @@ const MintDemoPage: NextPage = () => {
     } finally {
       setTxInFlight(false);
     }
-  }, [inputDraft, offerCoinAddress, askCoinAddress]);
+  }, [actorAddress, inputDraft, offerCoinAddress, askCoinAddress]);
 
   const [isSwapDisabled, ctaTitle] = useMemo(() => {
     let disabled: boolean = false;
