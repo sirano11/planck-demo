@@ -208,9 +208,8 @@ export const cash_to_btc = async (
     ],
     typeArguments: [fromTypeArgument, PROTOCOL.TYPE_ARGUMENT.LIQUID_MINT],
   });
-  tx.transferObjects([lmintCoin], recipient);
 
-  const [btcCoin] = tx.moveCall({
+  const [btcCoin, outlmintCoin] = tx.moveCall({
     target: PROTOCOL.TARGET.MARKET_SWAP_LMINT_TO_BTC,
     arguments: [
       tx.object(PROTOCOL.OBJECT_ID.PILGRIM),
@@ -219,7 +218,7 @@ export const cash_to_btc = async (
       tx.pure.u64(0),
     ],
   });
-  tx.transferObjects([btcCoin], recipient);
+  tx.transferObjects([btcCoin, outlmintCoin], recipient);
 
   return tx.build({ client, onlyTransactionKind: true });
 };
