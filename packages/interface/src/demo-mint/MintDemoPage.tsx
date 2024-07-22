@@ -52,7 +52,6 @@ const MintDemoPage: NextPage = () => {
   const [inputDraft, setInputDraft] = useState<string>('1');
   const [estimation, setEstimation] = useState<string>('0');
   const [actorAddress, setActorAddress] = useState<Address | null>(null);
-  const [actorBtcTotal, setActorBtcTotal] = useState<bigint>(0n);
   const [tokenBalances, setTokenBalances] = useState<Record<Address, bigint>>(
     {},
   );
@@ -119,7 +118,6 @@ const MintDemoPage: NextPage = () => {
           coinType: CUSTODY.TYPE_ARGUMENT.BTC,
           actorAddress,
         });
-        setActorBtcTotal(btcCoinTotal);
         setTokenBalances({
           ...senderTokenBalances,
           [TOKEN_ADDRESS.wBTC]:

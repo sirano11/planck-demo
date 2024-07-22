@@ -1,4 +1,10 @@
-import { ReactNode, createContext, useEffect, useReducer } from 'react';
+import {
+  ReactNode,
+  createContext,
+  useContext,
+  useEffect,
+  useReducer,
+} from 'react';
 import { toast } from 'react-toastify';
 import { Hash } from 'viem';
 
@@ -35,8 +41,11 @@ const JobStatusContext = createContext<{
 });
 
 export const useJobStatus = () => {
-  const [state, dispatch] = useReducer(reducer, initialState);
-  return { state, dispatch };
+  const context = useContext(JobStatusContext);
+  if (context === undefined) {
+    throw new Error('useJobStatus must be used within a JobStatusProvider');
+  }
+  return context;
 };
 
 const successMessages: Record<string, string> = {
@@ -58,7 +67,7 @@ const failureMessages: Record<string, string> = {
 export const JobStatusProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
-  const { state, dispatch } = useJobStatus();
+  const [state, dispatch] = useReducer(reducer, initialState);
 
   useEffect(() => {
     if (!state.jobHash) return;
