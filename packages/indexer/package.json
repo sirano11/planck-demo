@@ -7,6 +7,8 @@
   "scripts": {
     "start": "tsx src/index.ts",
     "worker": "tsx src/consumers/worker.ts",
+    "sui-worker": "tsx src/consumers/SuiWorker.ts",
+    "solana-worker": "tsx src/consumers/SolanaWorker.ts",
     "add-tx": "tsx src/scripts/addTx.ts",
     "add-sender": "tsx src/scripts/addSenderInfo.ts",
     "drain-queue": "tsx src/scripts/drainQueue.ts"
