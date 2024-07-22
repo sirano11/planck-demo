@@ -12,6 +12,7 @@ import { waitForTransactionReceipt } from '@wagmi/core';
 import BN from 'bn.js';
 import { BridgeToken__factory } from 'planck-demo-contracts/typechain/factories/BridgeToken__factory';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { toast } from 'react-toastify';
 import { formatUnits, parseUnits } from 'viem';
 import { useWriteContract } from 'wagmi';
 
@@ -28,6 +29,7 @@ import { useHover } from '@/raydium/hooks';
 import SwapButtonOneTurnIcon from '@/raydium/icons/misc/SwapButtonOneTurnIcon';
 import SwapButtonTwoTurnIcon from '@/raydium/icons/misc/SwapButtonTwoTurnIcon';
 import { colors } from '@/raydium/theme/cssVariables';
+import { toastTransaction } from '@/utils/toast';
 
 import { SwapInfoBoard } from './SwapInfoBoard';
 
@@ -108,7 +110,10 @@ export const SwapPanel: React.FC<SwapPanelProps> = ({
     if (hasEnoughAllowance) {
       return;
     }
-    (async () => {
+
+    onSending();
+
+    const promise = (async () => {
       const amount = parseUnits(amountIn, tokenInput.decimals);
 
       const hash = await writeContractAsync({
@@ -118,22 +123,21 @@ export const SwapPanel: React.FC<SwapPanelProps> = ({
         args: [HUB_CONTRACT_ADDRESS, amount],
       });
 
-      const receipt = await waitForTransactionReceipt(config, { hash });
+      return waitForTransactionReceipt(config, { hash });
+    })();
 
-      // TODO: Toast Result
-      console.log({ receipt });
-    })()
-      .catch((err) => {
-        // TODO: Toast Failure
-        console.error(err);
-      })
-      .finally(() => refreshAllowances());
+    toastTransaction(promise).finally(() => {
+      offSending();
+      refreshAllowances();
+    });
   }, [
     hasEnoughAllowance,
     amountIn,
     tokenInput,
     writeContractAsync,
     refreshAllowances,
+    onSending,
+    offSending,
   ]);
 
   const handleClickSwap = useCallback(async () => {
@@ -156,18 +160,24 @@ export const SwapPanel: React.FC<SwapPanelProps> = ({
       const rawTx = commitData.transaction.serialize();
       console.log({ rawTx });
 
-      const hash = await commit(
-        HUB_CONTRACT_ADDRESS,
-        tokenInput.address,
-        BigInt(computeSwapResult.amountIn.toString()),
-        ChainIdentifier.Solana,
-        rawTx,
-      );
+      const promise = (async () => {
+        const hash = await commit(
+          HUB_CONTRACT_ADDRESS,
+          tokenInput.address,
+          BigInt(computeSwapResult.amountIn.toString()),
+          ChainIdentifier.Solana,
+          rawTx,
+        );
 
-      jobStatus.dispatch({ type: 'SET_JOB_HASH', payload: hash });
+        jobStatus.dispatch({ type: 'SET_JOB_HASH', payload: hash });
 
-      await waitForTransactionReceipt(config, { hash });
+        return waitForTransactionReceipt(config, { hash });
+      })();
+
+      toastTransaction(promise);
     } catch (e) {
+      // error while constructing tx
+      toast.error('Error while constructing transaction');
       console.error(e);
     } finally {
       offSending();
