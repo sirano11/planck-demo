@@ -24,6 +24,7 @@ const addressToCoinType = new Map<string, string>([
   [PROTOCOL.TYPE_ARGUMENT.CASH_JPY, TOKEN_ADDRESS.cashJPY],
   [PROTOCOL.TYPE_ARGUMENT.CASH_KRW, TOKEN_ADDRESS.cashKRW],
   [PROTOCOL.TYPE_ARGUMENT.CASH_LIVRE, TOKEN_ADDRESS.cashLIVRE],
+  [PROTOCOL.TYPE_ARGUMENT.CASH_SDR, TOKEN_ADDRESS.cashSDR],
 ]);
 
 export class SuiConsumer extends BaseConsumer {
