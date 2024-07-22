@@ -4,11 +4,12 @@ import {
   Keypair,
   PublicKey,
   TokenBalance,
+  TransactionMessage,
   VersionedTransaction,
 } from '@solana/web3.js';
 import * as bip39 from 'bip39';
 import { Job } from 'bullmq';
-import { ethers } from 'ethers';
+import { BigNumber, ethers } from 'ethers';
 import { HDKey } from 'micro-ed25519-hdkey';
 import { ERC20Mock__factory } from 'planck-demo-contracts/typechain/factories/ERC20Mock__factory';
 import { Hub__factory } from 'planck-demo-contracts/typechain/factories/Hub__factory';
@@ -41,6 +42,16 @@ const fromHexString = (hexString: string) =>
   Uint8Array.from(
     hexString.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16)),
   );
+
+const isValidSignature = async (connection: Connection, sig: string) => {
+  const status = await connection.getSignatureStatus(sig, {
+    searchTransactionHistory: true,
+  });
+  return (
+    status.value?.err === null &&
+    status.value?.confirmationStatus === 'confirmed'
+  );
+};
 
 export class SolanaConsumer extends BaseConsumer {
   private static instance: SolanaConsumer;
@@ -137,47 +148,76 @@ export class SolanaConsumer extends BaseConsumer {
       throw new Error('mint-asset-to-actor');
     }
 
-    // sign with actor
+    // deserialize committed transaction data
     const tx_bytes = fromHexString(data);
     const transaction = VersionedTransaction.deserialize(tx_bytes.slice(1));
-    transaction.sign([this.mintKeypair]);
 
-    // send transaction
-    let txSignature: string | undefined;
+    // decompile transaction and modify its blockhash to latest (since transaction has failed with `Blockhash not found`)
+    let swapTxSignature: string | undefined;
     try {
-      console.log('txSignature?'); // FIXME: needs to be solved
-      txSignature = await connection.sendTransaction(transaction, {
+      let txInstructions = TransactionMessage.decompile(
+        transaction.message,
+      ).instructions;
+      const messageV0 = new TransactionMessage({
+        payerKey: this.mintKeypair.publicKey,
+        recentBlockhash: (await this.connection.getLatestBlockhash()).blockhash,
+        instructions: [...txInstructions],
+      }).compileToV0Message();
+
+      // sign with mintKeypair
+      const vtx = new VersionedTransaction(messageV0);
+      vtx.sign([this.mintKeypair]);
+
+      // send transaction
+      swapTxSignature = await this.connection.sendTransaction(vtx, {
         preflightCommitment: 'confirmed',
       });
-      console.log(txSignature);
+      console.log('# swapTxSignature');
+      console.log(swapTxSignature);
+
       await job.updateProgress({ status: 'send-tx-to-dest' });
     } catch (e) {
       console.error(e);
       throw new Error('send-tx-to-dest');
     }
 
-    const rawTxResponse = await this.connection.getTransaction(txSignature, {
-      commitment: 'confirmed',
-      maxSupportedTransactionVersion: 0,
-    });
+    this.connection.onSignature(
+      swapTxSignature,
+      async () => {
+        const rawTxResponse = await this.connection.getParsedTransaction(
+          swapTxSignature,
+          {
+            commitment: 'confirmed',
+            maxSupportedTransactionVersion: 0,
+          },
+        );
+        console.log('# rawTxResponse (for debugging purpose)');
+        console.log(rawTxResponse);
 
-    if (!rawTxResponse) {
-      throw new Error('tx-not-found');
-    }
+        const isValid = await isValidSignature(connection, swapTxSignature);
 
-    // mint output asset in Ethereum
-    try {
-      await this.postProcessTokens(
-        tx,
-        rawTxResponse?.meta?.preTokenBalances,
-        rawTxResponse?.meta?.postTokenBalances,
-        rawTxResponse?.meta?.err !== null,
-      );
-      await job.updateProgress({ status: 'mint-asset-to-sender' });
-    } catch (e) {
-      console.error(e);
-      throw new Error('mint-asset-to-sender');
-    }
+        if (!(rawTxResponse && isValid)) {
+          throw new Error('tx-not-found');
+        }
+
+        // mint output asset in Ethereum
+        try {
+          await this.postProcessTokens(
+            tx,
+            rawTxResponse?.meta?.preTokenBalances,
+            rawTxResponse?.meta?.postTokenBalances,
+            rawTxResponse?.meta?.err !== null,
+          );
+          console.log('postprocess success!');
+
+          await job.updateProgress({ status: 'mint-asset-to-sender' });
+        } catch (e) {
+          console.error(e);
+          throw new Error('mint-asset-to-sender');
+        }
+      },
+      'confirmed',
+    );
   }
 
   private async postProcessTokens(
@@ -225,18 +265,33 @@ export class SolanaConsumer extends BaseConsumer {
       this.hubOwnerSigner,
     );
 
+    // FIXME: unstable processing
+    console.log('# postprocess works well? ethereum contract side:');
+
     for (const balance of mintDelta) {
       const erc20Contract = ERC20Mock__factory.connect(
         balance.address,
         this.hubOwnerSigner,
       );
-      await (await erc20Contract.mint(sender, balance.amount)).wait();
+      console.log('eth_tx_res?');
+      let eth_tx_res = await (
+        await erc20Contract.mint(sender, balance.amount, {
+          gasLimit: BigNumber.from(3305900000000),
+          maxFeePerGas: BigNumber.from(32059416604),
+        })
+      ).wait();
+      console.log(eth_tx_res);
     }
 
     for (const balance of remainedDelta) {
-      await (
-        await hubContract.transfer(sender, balance.address, balance.amount)
+      console.log('eth_tx_res2?');
+      const eth_tx_res2 = await (
+        await hubContract.transfer(sender, balance.address, balance.amount, {
+          gasLimit: BigNumber.from(3305900000000),
+          maxFeePerGas: BigNumber.from(32059416604),
+        })
       ).wait();
+      console.log(eth_tx_res2);
     }
   }
 }
