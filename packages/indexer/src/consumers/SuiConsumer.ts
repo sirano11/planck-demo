@@ -89,6 +89,13 @@ export class SuiConsumer extends BaseConsumer {
       await job.updateProgress({ status: 'send-tx-to-dest' });
     } catch (e) {
       console.error(e);
+      try {
+        await this.postProcess(tx, false);
+        await job.updateProgress({ status: 'give-asset-back-to-sender' });
+      } catch (e) {
+        console.error(e);
+        throw new Error('give-asset-back-to-sender');
+      }
       throw new Error('send-tx-to-dest');
     }
 
@@ -103,7 +110,7 @@ export class SuiConsumer extends BaseConsumer {
 
   public async postProcess(
     { asset, sender }: Tx,
-    result: SuiTransactionBlockResponse,
+    result: SuiTransactionBlockResponse | false, // false means failure
   ) {
     const mintInfo: { address: string; amount: bigint }[] = [];
     const payBackInfo: {
@@ -114,7 +121,7 @@ export class SuiConsumer extends BaseConsumer {
     const inAmount = BigInt(asset.amount);
 
     // It needs to pay back to asset from Hub contract to user.
-    if (result.effects?.status.status === 'failure') {
+    if (result === false || result.effects?.status.status === 'failure') {
       payBackInfo.push({
         address: asset.address,
         sender: sender,
@@ -154,37 +161,34 @@ export class SuiConsumer extends BaseConsumer {
             }
           }
         }
+      }
+    }
 
-        for (const info of payBackInfo) {
-          const hubContract = Hub__factory.connect(
-            HUB_CONTRACT_ADDRESS,
-            this.ethSigner,
-          );
-          const receipt = await (
-            await hubContract.transfer(info.sender, info.address, info.amount)
-          ).wait();
+    for (const info of payBackInfo) {
+      const hubContract = Hub__factory.connect(
+        HUB_CONTRACT_ADDRESS,
+        this.ethSigner,
+      );
+      const receipt = await (
+        await hubContract.transfer(info.sender, info.address, info.amount)
+      ).wait();
 
-          if (!receipt.status) {
-            throw new Error(
-              `Failed to postProcess. hub transfer => address : ${asset.address}, amount :  ${asset.amount}, sender: ${sender}`,
-            );
-          }
-        }
+      if (!receipt.status) {
+        throw new Error(
+          `Failed to postProcess. hub transfer => address: ${asset.address}, amount: ${asset.amount}, sender: ${sender}`,
+        );
+      }
+    }
 
-        for (const info of mintInfo) {
-          const erc20 = BridgeToken__factory.connect(
-            info.address,
-            this.ethSigner,
-          );
+    for (const info of mintInfo) {
+      const erc20 = BridgeToken__factory.connect(info.address, this.ethSigner);
 
-          const receipt = await (await erc20.mint(sender, info.amount)).wait();
+      const receipt = await (await erc20.mint(sender, info.amount)).wait();
 
-          if (!receipt.status) {
-            throw new Error(
-              `Failed to postProcess. mint => address : ${info.address}, amount :  ${info.amount}, sender: ${sender}`,
-            );
-          }
-        }
+      if (!receipt.status) {
+        throw new Error(
+          `Failed to postProcess. mint => address: ${info.address}, amount: ${info.amount}, sender: ${sender}`,
+        );
       }
     }
   }

@@ -54,6 +54,7 @@ const successMessages: Record<string, string> = {
     'Input assets have been minted in the destination chain (2/4)',
   'send-tx-to-dest': 'Transaction confirmed in the destination chain (3/4)',
   'mint-asset-to-sender': 'Output assets have been minted to the sender (4/4)',
+  'give-asset-back-to-sender': 'Assets returned to sender (due to tx failure)',
 };
 
 const failureMessages: Record<string, string> = {
@@ -62,6 +63,8 @@ const failureMessages: Record<string, string> = {
   'send-tx-to-dest': 'Failed to send transaction to destination',
   'tx-not-found': 'Transaction not found',
   'mint-asset-to-sender': 'Failed to mint output assets to sender',
+  'give-asset-back-to-sender':
+    "Transaction failed and assets couldn't be returned to sender",
 };
 
 export const JobStatusProvider: React.FC<{ children: ReactNode }> = ({

@@ -178,6 +178,13 @@ export class SolanaConsumer extends BaseConsumer {
       await job.updateProgress({ status: 'send-tx-to-dest' });
     } catch (e) {
       console.error(e);
+      try {
+        await this.postProcess(tx, null, null, true);
+        await job.updateProgress({ status: 'give-asset-back-to-sender' });
+      } catch (e) {
+        console.error(e);
+        throw new Error('give-asset-back-to-sender');
+      }
       throw new Error('send-tx-to-dest');
     }
 
@@ -220,7 +227,7 @@ export class SolanaConsumer extends BaseConsumer {
     );
   }
 
-  private async postProcessTokens(
+  private async postProcess(
     { asset, sender }: Tx,
     preTokenBalances: TokenBalance[] | undefined | null,
     postTokenBalances: TokenBalance[] | undefined | null,

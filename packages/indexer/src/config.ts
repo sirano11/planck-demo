@@ -67,12 +67,6 @@ export const QUEUE_CONFIG = {
     port: 6379,
   },
   defaultJobOptions: {
-    attempts: 10, // The total number of attempts to try the job until it completes.
-    backoff: {
-      // Backoff setting for automatic retries if the job fails
-      type: 'exponential',
-      delay: 3000,
-    },
     removeOnFail: false, // If true, removes the job when it fails after all attempts.
     removeOnComplete: true, // If true, removes the job when it successfully completes
   },
