@@ -6,7 +6,7 @@ import {
 } from '@raydium-io/raydium-sdk-v2';
 import BN from 'bn.js';
 import Decimal from 'decimal.js';
-import { Dispatch, SetStateAction, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { parseUnits } from 'viem';
 
 import { POOL_IDS, Token } from '@/constants';
@@ -14,21 +14,24 @@ import { POOL_IDS, Token } from '@/constants';
 // global variable
 let debounce_: NodeJS.Timeout;
 
-type ComputeSwapOutput = {
-  inputAmount: BN;
-  outputAmount: BN;
-  minimumAmount: BN;
-  inputMint: string;
+export type ComputeSwapResult = {
   poolInfo: ComputeAmountOutParam['poolInfo'];
   poolKeys: AmmV4Keys | AmmV5Keys;
+
+  amountIn: BN;
+  amountOut: BN;
+  minAmountOut: BN;
+  currentPrice: Decimal;
+  executionPrice: Decimal;
+  priceImpact: Decimal;
+  fee: BN;
 };
 
 const computeSwap = async (
   raydium: Raydium,
   inputToken: Token,
   amountInDraft: string,
-  setResponse: Dispatch<SetStateAction<ComputeSwapOutput | null>>,
-) => {
+): Promise<ComputeSwapResult | undefined> => {
   const {
     poolInfo,
     poolKeys,
@@ -40,7 +43,7 @@ const computeSwap = async (
   // parsedInput
   const parsedInput = parseFloat(amountInDraft);
   if (isNaN(parsedInput) || parsedInput <= 0) {
-    return null;
+    return;
   }
 
   const amountIn = new BN(
@@ -81,29 +84,12 @@ const computeSwap = async (
     slippage: 0.01, // range: 1 ~ 0.0001, means 100% ~ 0.01%
   });
 
-  const mintInStr = mintIn.symbol || mintIn.address;
-  const amountOutStr = new Decimal(out.amountOut.toString()!)
-    .div(10 ** mintOut.decimals)
-    .toDecimalPlaces(mintOut.decimals)
-    .toString();
-  const mintOutStr = mintOut.symbol || mintOut.address;
-  const minAmountOutStr = new Decimal(out.minAmountOut.toString()!)
-    .div(10 ** mintOut.decimals)
-    .toDecimalPlaces(mintOut.decimals);
-
-  const res: ComputeSwapOutput = {
-    inputAmount: new BN(amountIn),
-    outputAmount: out.amountOut,
-    minimumAmount: out.minAmountOut,
+  return {
+    ...out,
     poolInfo,
     poolKeys,
-    inputMint: mintIn.address,
+    amountIn: new BN(amountIn),
   };
-  setResponse(res);
-
-  console.log(
-    `computed swap ${amountInDraft} ${mintInStr} to ${amountOutStr} ${mintOutStr}, minimum amount out ${minAmountOutStr} ${mintOutStr}`,
-  );
 };
 
 export const useComputeSwap = (
@@ -111,7 +97,10 @@ export const useComputeSwap = (
   inputToken: Token,
   amountInDraft: string,
 ) => {
-  const [response, setResponse] = useState<ComputeSwapOutput | null>(null);
+  const [computeSwapResult, setComputeSwapResult] = useState<
+    ComputeSwapResult | undefined
+  >(undefined);
+  const [isComputing, setComputing] = useState<boolean>(false);
 
   useEffect(() => {
     if (!raydium) {
@@ -119,14 +108,18 @@ export const useComputeSwap = (
     }
 
     clearTimeout(debounce_);
-    debounce_ = setTimeout(async () => {
-      await computeSwap(raydium, inputToken, amountInDraft, setResponse).catch(
-        (err) => {
+    debounce_ = setTimeout(() => {
+      setComputing(true);
+      computeSwap(raydium, inputToken, amountInDraft)
+        .then((res) => setComputeSwapResult(res))
+        .catch((err) => {
           console.error(err);
-        },
-      );
+        })
+        .finally(() => {
+          setComputing(false);
+        });
     }, 500);
   }, [amountInDraft, inputToken]);
 
-  return response;
+  return { isComputing, computeSwapResult };
 };

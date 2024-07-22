@@ -1,8 +1,10 @@
 import { Box, Collapse, Flex, HStack, Skeleton, Text } from '@chakra-ui/react';
+import Decimal from 'decimal.js';
 import { Fragment, RefObject, useRef, useState } from 'react';
 import { ChevronDown } from 'react-feather';
 
-import { Token } from '@/constants/tokens';
+import { TOKENS, Token } from '@/constants/tokens';
+import { ComputeSwapResult } from '@/hooks/useComputeSwap';
 import AddressChip from '@/raydium/components/AddressChip';
 import IntervalCircle, {
   IntervalCircleHandler,
@@ -15,61 +17,62 @@ import CircleCheckBreaker from '@/raydium/icons/misc/CircleCheckBreaker';
 import HorizontalSwitchIcon from '@/raydium/icons/misc/HorizontalSwitchIcon';
 import WarningIcon from '@/raydium/icons/misc/WarningIcon';
 import { colors } from '@/raydium/theme/cssVariables';
-import { formatToRawLocaleStr } from '@/raydium/utils/numberish/formatter';
+import {
+  formatCurrency,
+  formatToRawLocaleStr,
+  trimTrailZero,
+} from '@/raydium/utils/numberish/formatter';
 import toPercentString from '@/raydium/utils/numberish/toPercentString';
 
 import { ApiSwapV1OutSuccess } from '../type';
 
-export function SwapInfoBoard({
-  amountIn,
-  tokenInput,
-  tokenOutput,
-  // isComputing,
-  // computedSwapResult,
-  // onRefresh,
-}: {
-  amountIn: string;
+type SwapInfoBoardProps = {
   tokenInput?: Token;
   tokenOutput?: Token;
-  // isComputing: boolean;
-  // computedSwapResult?: ApiSwapV1OutSuccess['data'];
-  // onRefresh: () => void;
-}) {
+  isComputing: boolean;
+  computeSwapResult?: ComputeSwapResult;
+};
+export const SwapInfoBoard: React.FC<SwapInfoBoardProps> = ({
+  tokenInput,
+  tokenOutput,
+  isComputing,
+  computeSwapResult,
+}) => {
   const [showMoreSwapInfo, setShowMoreSwapInfo] = useState(false);
   const refreshCircleRef = useRef<IntervalCircleHandler>(null);
 
-  // FIXME:
-  // const routeTokens =
-  //   tokenInput && tokenOutput ? [tokenInput, tokenOutput] : undefined;
-  const routeTokens = undefined;
+  const priceImpact = computeSwapResult?.priceImpact.toNumber() || 0;
+  const isHighRiskPrice = priceImpact > 5;
 
-  const isBaseOut = true;
-  const isHighRiskPrice = false;
-  const priceImpact = 0;
-  // const isBaseOut = computedSwapResult?.swapType === 'BaseOut';
-  // const priceImpact = computedSwapResult?.priceImpactPct || 0;
-  // const isHighRiskPrice = priceImpact > 5;
-
-  // useEffect(() => {
-  //   refreshCircleRef.current?.restart();
-  // }, [tokenInput?.address, tokenOutput?.address, amountIn]);
+  const routePlan = !computeSwapResult
+    ? []
+    : [
+        {
+          poolId: computeSwapResult.poolInfo.id,
+          tokenInput,
+          tokenOutput,
+          feeMint: tokenInput?.address!,
+          feeRate: computeSwapResult.poolInfo.feeRate,
+          feeAmount: computeSwapResult.fee.toString(),
+        },
+      ];
 
   return (
     <Box
       position="relative"
-      // boxShadow={
-      //   isHighRiskPrice ? `0px 0px 12px 6px rgba(255, 78, 163, 0.15)` : 'none'
-      // }
-      // bg={
-      //   isHighRiskPrice
-      //     ? 'rgba(255, 78, 163,0.1)'
-      //     : colors.backgroundTransparent07
-      // }
+      boxShadow={
+        isHighRiskPrice ? `0px 0px 12px 6px rgba(255, 78, 163, 0.15)` : 'none'
+      }
+      bg={
+        isHighRiskPrice
+          ? 'rgba(255, 78, 163,0.1)'
+          : colors.backgroundTransparent07
+      }
       borderWidth="1px"
       borderStyle="solid"
-      // borderColor={
-      //   isHighRiskPrice ? colors.semanticError : colors.backgroundTransparent12
-      // }
+      borderColor={
+        isHighRiskPrice ? colors.semanticError : colors.backgroundTransparent12
+      }
       rounded="md"
       px={4}
       pt={1.5}
@@ -77,12 +80,12 @@ export function SwapInfoBoard({
     >
       {/* Top utils */}
       <HStack gap={4} py={2} justifyContent="space-between">
-        {/* <PriceDetector
-          computedSwapResult={computedSwapResult}
+        <PriceDetector
+          computedSwapResult={computeSwapResult}
           isComputing={isComputing}
           tokenInput={tokenInput}
           tokenOutput={tokenOutput}
-        /> */}
+        />
         <OtherMiscUtils
           refreshCircleRef={refreshCircleRef}
           // onClick={onRefresh}
@@ -92,17 +95,13 @@ export function SwapInfoBoard({
 
       <HStack gap={4} py={1} justifyContent="space-between">
         <ItemLabel
-          name={isBaseOut ? 'Maximum Input' : 'Minimum Received'}
-          tooltip={
-            isBaseOut
-              ? 'The maximum number of tokens you will input on this trade'
-              : 'The minimum number of tokens you will receive. This is determined by your slippage tolerance.'
-          }
+          name={'Minimum Received'}
+          tooltip="The minimum number of tokens you will receive. This is determined by your slippage tolerance."
         />
-        {/* <MinimumReceiveValue
-          tokenOutput={isBaseOut ? tokenInput : tokenOutput}
-          amount={computedSwapResult?.otherAmountThreshold || ''}
-        /> */}
+        <MinimumReceiveValue
+          tokenOutput={tokenOutput}
+          amount={computeSwapResult?.minAmountOut.toString() || ''}
+        />
       </HStack>
 
       <HStack gap={4} py={1} justifyContent="space-between">
@@ -121,9 +120,9 @@ export function SwapInfoBoard({
           }
           fontWeight={500}
         >
-          {/* {computedSwapResult
-            ? `${formatToRawLocaleStr(toPercentString(computedSwapResult.priceImpactPct, { notShowZero: true }))}`
-            : '-'} */}
+          {computeSwapResult
+            ? `${formatToRawLocaleStr(toPercentString(priceImpact.toString(), { notShowZero: true }))}`
+            : '-'}
         </Text>
       </HStack>
 
@@ -133,9 +132,7 @@ export function SwapInfoBoard({
             name="Order Routing"
             tooltip="This route gave the best price for your trade"
           />
-          {/* {routeTokens && (
-            <RoutingValue routePlan={computedSwapResult?.routePlan || []} />
-          )} */}
+          <RoutingValue routePlan={routePlan} />
         </HStack>
 
         <HStack gap={4} py={1} justifyContent="space-between">
@@ -143,11 +140,11 @@ export function SwapInfoBoard({
             name="Estimated Fees"
             tooltip="Swap fees go to LPs, RAY buybacks, and treasury."
           />
-          {/* <Text align="end" fontSize="xs" color={colors.textPrimary}>
-            {computedSwapResult?.routePlan.map((route) => (
+          <Text align="end" fontSize="xs" color={colors.textPrimary}>
+            {routePlan.map((route) => (
               <FeeItem key={route.poolId} route={route} />
             ))}
-          </Text> */}
+          </Text>
         </HStack>
       </Collapse>
 
@@ -172,50 +169,50 @@ export function SwapInfoBoard({
       </HStack>
     </Box>
   );
-}
+};
 
-function PriceDetector({
-  isComputing,
-  // tokenInput,
-  // tokenOutput,
-  computedSwapResult,
-}: {
+type PriceDetectorProps = {
   isComputing: boolean;
-  // tokenInput?: TokenInfo;
-  // tokenOutput?: TokenInfo;
-  computedSwapResult?: ApiSwapV1OutSuccess['data'];
-}) {
+  computedSwapResult?: ComputeSwapResult;
+  tokenInput?: Token;
+  tokenOutput?: Token;
+};
+const PriceDetector: React.FC<PriceDetectorProps> = ({
+  isComputing,
+  tokenInput,
+  tokenOutput,
+  computedSwapResult,
+}) => {
   const [reverse, setReverse] = useState(false);
 
   const priceImpact = computedSwapResult
-    ? computedSwapResult.priceImpactPct > 5
+    ? computedSwapResult.priceImpact.toNumber() > 5
       ? 'high'
-      : computedSwapResult.priceImpactPct > 1
+      : computedSwapResult.priceImpact.toNumber() > 1
         ? 'warning'
         : 'low'
     : undefined;
 
-  // let price = computedSwapResult
-  //   ? trimTrailZero(
-  //       new Decimal(computedSwapResult.outputAmount)
-  //         .div(10 ** (tokenOutput?.decimals || 0))
-  //         .div(
-  //           new Decimal(computedSwapResult.inputAmount).div(
-  //             10 ** (tokenInput?.decimals || 0),
-  //           ),
-  //         )
-  //         .toFixed(tokenOutput?.decimals || 0, Decimal.ROUND_FLOOR),
-  //     )!
-  //   : '';
-  // if (reverse)
-  //   price =
-  //     price === ''
-  //       ? price
-  //       : new Decimal(1)
-  //           .div(price)
-  //           .toDecimalPlaces(tokenInput?.decimals || 0, Decimal.ROUND_FLOOR)
-  //           .toString();
-  let price = '';
+  let price = computedSwapResult
+    ? trimTrailZero(
+        new Decimal(computedSwapResult.amountOut.toString())
+          .div(10 ** (tokenOutput?.decimals || 0))
+          .div(
+            new Decimal(computedSwapResult.amountIn.toString()).div(
+              10 ** (tokenInput?.decimals || 0),
+            ),
+          )
+          .toFixed(tokenOutput?.decimals || 0, Decimal.ROUND_FLOOR),
+      )!
+    : '';
+  if (reverse)
+    price =
+      price === ''
+        ? price
+        : new Decimal(1)
+            .div(price)
+            .toDecimalPlaces(tokenInput?.decimals || 0, Decimal.ROUND_FLOOR)
+            .toString();
 
   return (
     <HStack>
@@ -228,27 +225,23 @@ function PriceDetector({
         >
           <Text as="div">1</Text>
           <Text as="div">
-            {/* {reverse ? tokenOutput?.symbol : tokenInput?.symbol} */}
+            {reverse ? tokenOutput?.symbol : tokenInput?.symbol}
           </Text>
           ≈
           {!isComputing ? (
             <Text as="div">
-              {/* {reverse
-                ? formatCurrency(price, {
-                    decimalPlaces: tokenInput?.decimals || 0,
-                  })
-                : formatCurrency(price, {
-                    decimalPlaces: tokenOutput?.decimals || 0,
-                  })} */}
+              {formatCurrency(price, {
+                decimalPlaces: tokenInput?.decimals || 0,
+              })}
             </Text>
           ) : (
             <Skeleton
-              // width={`${12 * ((reverse ? tokenInput?.decimals : tokenOutput?.decimals) || 1)}px`}
+              width={`${12 * ((reverse ? tokenInput?.decimals : tokenOutput?.decimals) || 1)}px`}
               height="24px"
             />
           )}
           <Text as="div">
-            {/* {reverse ? tokenInput?.symbol : tokenOutput?.symbol} */}
+            {reverse ? tokenInput?.symbol : tokenOutput?.symbol}
           </Text>
         </Flex>
       </Text>
@@ -278,15 +271,13 @@ function PriceDetector({
       </Box>
     </HStack>
   );
-}
+};
 
-function ItemLabel({
-  name,
-  tooltip,
-}: {
+type ItemLabelProps = {
   name: string;
   tooltip?: string | null;
-}) {
+};
+const ItemLabel: React.FC<ItemLabelProps> = ({ name, tooltip }) => {
   return (
     <HStack fontSize="xs" color={colors.textSecondary}>
       <Text>{name}</Text>
@@ -298,17 +289,18 @@ function ItemLabel({
       )}
     </HStack>
   );
-}
+};
 
-function OtherMiscUtils({
-  refreshCircleRef,
-  onClick,
-  onEnd,
-}: {
+type OtherMiscUtilsProps = {
   refreshCircleRef: RefObject<IntervalCircleHandler>;
   onClick?(): void;
   onEnd?(): void;
-}) {
+};
+const OtherMiscUtils: React.FC<OtherMiscUtilsProps> = ({
+  refreshCircleRef,
+  onClick,
+  onEnd,
+}) => {
   const handleClick = useEvent(() => {
     refreshCircleRef.current?.restart();
     onClick?.();
@@ -316,18 +308,6 @@ function OtherMiscUtils({
 
   return (
     <Flex>
-      {/* <Popover placement="top-end">
-        <PopoverTrigger>
-          <Text cursor="pointer">🔗</Text>
-        </PopoverTrigger>
-        <PopoverContent>
-          <PopoverArrow />
-          <PopoverHeader>Address</PopoverHeader>
-          <PopoverBody>
-            <AddressPopoverContentBody relativeTokens={relativeTokens} />
-          </PopoverBody>
-        </PopoverContent>
-      </Popover> */}
       <IntervalCircle
         componentRef={refreshCircleRef}
         duration={60 * 1000}
@@ -341,19 +321,20 @@ function OtherMiscUtils({
       />
     </Flex>
   );
-}
+};
 
-function MinimumReceiveValue({
-  // tokenOutput,
-  amount,
-}: {
-  // tokenOutput?: TokenInfo;
+type MinimumReceiveValueProps = {
+  tokenOutput?: Token;
   amount: string;
-}) {
+};
+const MinimumReceiveValue: React.FC<MinimumReceiveValueProps> = ({
+  tokenOutput,
+  amount,
+}) => {
   return (
     <HStack fontSize="xs" fontWeight={500}>
       <Text color={colors.textPrimary}>
-        {/* {amount && tokenOutput
+        {amount && tokenOutput
           ? formatCurrency(
               new Decimal(amount)
                 .div(10 ** tokenOutput.decimals)
@@ -362,32 +343,44 @@ function MinimumReceiveValue({
                 decimalPlaces: tokenOutput?.decimals,
               },
             )
-          : formatCurrency(amount)} */}
+          : formatCurrency(amount)}
       </Text>
       {/* <Text color={colors.textSecondary}>{tokenOutput?.symbol}</Text> */}
     </HStack>
   );
-}
+};
 
-function RoutingValue({
-  routePlan,
-}: {
-  routePlan: ApiSwapV1OutSuccess['data']['routePlan'];
-}) {
+type Route = {
+  poolId: string;
+  tokenInput?: Token;
+  tokenOutput?: Token;
+
+  feeMint: string;
+  feeRate: number;
+  feeAmount: string;
+};
+type RoutingValue = {
+  routePlan: Route[];
+};
+const RoutingValue: React.FC<RoutingValue> = ({ routePlan }) => {
   return (
     <HStack spacing={0.5} minH="32px">
-      {routePlan.map(({ inputMint, outputMint, feeRate, poolId }, idx) => (
-        <Fragment key={inputMint}>
+      {routePlan.map(({ tokenInput, tokenOutput, feeRate, poolId }, idx) => (
+        <Fragment key={tokenInput?.mint}>
           <Tooltip
             label={
               <AddressChip
-                address={inputMint}
+                address={tokenInput?.mint}
                 textProps={{ fontSize: 'xs' }}
                 canExternalLink
               />
             }
           >
-            <TokenAvatar tokenMint={inputMint} size="sm" />
+            <TokenAvatar
+              token={tokenInput}
+              tokenMint={tokenInput?.mint}
+              size="sm"
+            />
           </Tooltip>
           <Tooltip
             label={
@@ -413,13 +406,17 @@ function RoutingValue({
               <Tooltip
                 label={
                   <AddressChip
-                    address={outputMint}
+                    address={tokenOutput?.mint}
                     textProps={{ fontSize: 'xs' }}
                     canExternalLink
                   />
                 }
               >
-                <TokenAvatar tokenMint={outputMint} size="sm" />
+                <TokenAvatar
+                  token={tokenOutput}
+                  tokenMint={tokenOutput?.mint}
+                  size="sm"
+                />
               </Tooltip>
             </>
           )}
@@ -427,4 +424,26 @@ function RoutingValue({
       ))}
     </HStack>
   );
-}
+};
+
+type FeeItemProps = {
+  route: Route;
+};
+const FeeItem: React.FC<FeeItemProps> = ({ route }) => {
+  const feeToken = TOKENS.find((v) => v.mint === route.feeMint);
+  if (!feeToken) {
+    return null;
+  }
+  return (
+    <Flex alignItems="center" justifyContent="space-between" gap="1">
+      {formatCurrency(
+        new Decimal(route.feeAmount)
+          .div(10 ** feeToken.decimals)
+          .toDecimalPlaces(feeToken.decimals, Decimal.ROUND_FLOOR)
+          .toString(),
+        { decimalPlaces: feeToken.decimals },
+      )}
+      <Text>{feeToken.symbol}</Text>
+    </Flex>
+  );
+};

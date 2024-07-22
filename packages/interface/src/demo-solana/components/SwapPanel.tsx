@@ -1,6 +1,7 @@
 import {
   Box,
   Button,
+  Collapse,
   Flex,
   SimpleGrid,
   Text,
@@ -10,7 +11,7 @@ import { TxVersion } from '@raydium-io/raydium-sdk-v2';
 import { waitForTransactionReceipt } from '@wagmi/core';
 import BN from 'bn.js';
 import { BridgeToken__factory } from 'planck-demo-contracts/typechain/factories/BridgeToken__factory';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { formatUnits, parseUnits } from 'viem';
 import { useWriteContract } from 'wagmi';
 
@@ -29,6 +30,18 @@ import SwapButtonTwoTurnIcon from '@/raydium/icons/misc/SwapButtonTwoTurnIcon';
 import { colors } from '@/raydium/theme/cssVariables';
 
 import { SwapInfoBoard } from './SwapInfoBoard';
+
+// https://github.com/raydium-io/raydium-ui-v3/blob/master/src/utils/functionMethods.ts#L1
+export const debounce = (func: (params?: any) => void, delay?: number) => {
+  let timer: number | null = null;
+
+  return (params?: any) => {
+    timer && clearTimeout(timer);
+    timer = window.setTimeout(() => {
+      func(params);
+    }, delay || 250);
+  };
+};
 
 type SwapPanelProps = {
   tokenInput: Token;
@@ -52,13 +65,31 @@ export const SwapPanel: React.FC<SwapPanelProps> = ({
 
   const [amountIn, setAmountIn] = useState<string>('');
   const swapDisabled = false;
+  const [hasValidAmountOut, setHasValidAmountOut] = useState(false);
 
   const raydium = useRaydium();
-  const computeResult = useComputeSwap(raydium!, tokenInput, amountIn);
+  const { isComputing, computeSwapResult } = useComputeSwap(
+    raydium!,
+    tokenInput,
+    amountIn,
+  );
   const jobStatus = useJobStatus();
 
-  const inputAmount = (computeResult && computeResult.inputAmount) || null;
-  const outputAmount = (computeResult && computeResult.outputAmount) || null;
+  const outputAmount = useMemo(
+    () => (computeSwapResult && computeSwapResult.amountOut) || null,
+    [computeSwapResult],
+  );
+
+  const debounceUpdate = useCallback(
+    debounce(({ outputAmount, isComputing }) => {
+      setHasValidAmountOut(Number(outputAmount) !== 0 || isComputing);
+    }, 150),
+    [],
+  );
+
+  useEffect(() => {
+    debounceUpdate({ outputAmount, isComputing });
+  }, [outputAmount, isComputing]);
 
   const hasEnoughAllowance = useMemo(() => {
     try {
@@ -106,17 +137,17 @@ export const SwapPanel: React.FC<SwapPanelProps> = ({
   ]);
 
   const handleClickSwap = useCallback(async () => {
-    if (!computeResult || !raydium) {
+    if (!computeSwapResult || !raydium) {
       return;
     }
     onSending();
     try {
       const commitData = await raydium.liquidity.swap({
-        poolInfo: computeResult.poolInfo,
-        poolKeys: computeResult.poolKeys,
+        poolInfo: computeSwapResult.poolInfo,
+        poolKeys: computeSwapResult.poolKeys,
         inputMint: tokenInput.mint!,
-        amountIn: new BN(computeResult.inputAmount),
-        amountOut: new BN(computeResult.minimumAmount), // amountOut means amount 'without' slippage
+        amountIn: new BN(computeSwapResult.amountIn),
+        amountOut: new BN(computeSwapResult.minAmountOut), // amountOut means amount 'without' slippage
         fixedSide: 'in',
         txVersion: TxVersion.V0,
       });
@@ -128,7 +159,7 @@ export const SwapPanel: React.FC<SwapPanelProps> = ({
       const hash = await commit(
         HUB_CONTRACT_ADDRESS,
         tokenInput.address,
-        BigInt(computeResult.inputAmount.toString()),
+        BigInt(computeSwapResult.amountIn.toString()),
         ChainIdentifier.Solana,
         rawTx,
       );
@@ -141,7 +172,7 @@ export const SwapPanel: React.FC<SwapPanelProps> = ({
     } finally {
       offSending();
     }
-  }, [raydium, computeResult, tokenInput, onSending, offSending]);
+  }, [raydium, computeSwapResult, tokenInput, onSending, offSending]);
 
   return (
     <>
@@ -177,13 +208,16 @@ export const SwapPanel: React.FC<SwapPanelProps> = ({
         />
       </Flex>
       {/* swap info */}
-      <Box mb={[4, 5]}>
-        <SwapInfoBoard
-          amountIn={amountIn}
-          tokenInput={tokenInput}
-          tokenOutput={tokenOutput}
-        />
-      </Box>
+      <Collapse in={hasValidAmountOut} animateOpacity>
+        <Box mb={[4, 5]}>
+          <SwapInfoBoard
+            tokenInput={tokenInput}
+            tokenOutput={tokenOutput}
+            isComputing={isComputing}
+            computeSwapResult={computeSwapResult}
+          />
+        </Box>
+      </Collapse>
 
       <Button
         onClick={!hasEnoughAllowance ? handleClickApprove : handleClickSwap}
