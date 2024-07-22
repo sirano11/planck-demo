@@ -2,9 +2,9 @@
 pragma solidity >=0.4.22 <0.9.0;
 
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
-import '@openzeppelin/contracts/access/Ownable.sol';
+import '@openzeppelin/contracts/access/AccessControl.sol';
 
-contract Hub is Ownable {
+contract Hub is AccessControl {
     enum ChainIdentifier {
         Ethereum,
         Solana,
@@ -20,7 +20,9 @@ contract Hub is Ownable {
         bytes data
     );
 
-    constructor() Ownable(msg.sender) {}
+    constructor() {
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    }
 
     function commit(
         address asset,
@@ -44,10 +46,22 @@ contract Hub is Ownable {
         address recipient,
         address asset,
         uint256 amount
-    ) public onlyOwner {
+    ) public onlyRole(DEFAULT_ADMIN_ROLE) {
         require(
             IERC20(asset).transfer(recipient, amount),
             'Token transfer failed'
         );
+    }
+
+    function grantAdminRole(
+        address account
+    ) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        grantRole(DEFAULT_ADMIN_ROLE, account);
+    }
+
+    function revokeAdminRole(
+        address account
+    ) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        revokeRole(DEFAULT_ADMIN_ROLE, account);
     }
 }

@@ -110,7 +110,13 @@ const config: HardhatUserConfig = {
       chainId: 11155111,
       url: process.env.SEPOLIA_URL || 'https://rpc.sepolia.org',
       accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+        process.env.PRIVATE_KEY_SUI_CONSUMER !== undefined &&
+        process.env.PRIVATE_KEY_SOLANA_CONSUMER !== undefined
+          ? [
+              process.env.PRIVATE_KEY_SUI_CONSUMER,
+              process.env.PRIVATE_KEY_SOLANA_CONSUMER,
+            ]
+          : [],
     },
   },
   gasReporter: {
