@@ -242,9 +242,9 @@ export const simulate_swap = async (
   });
 
   const results = await devInspectAndGetResults(client, tx);
-  const [result] = parseExecutionResults<[bigint]>(results);
+  const [result] = parseExecutionResults<[string]>(results);
 
-  return result;
+  return BigInt(result);
 };
 
 export const simulate_btc_to_lmint = async (
@@ -262,9 +262,9 @@ export const simulate_btc_to_lmint = async (
   });
 
   const results = await devInspectAndGetResults(client, tx);
-  const [result] = parseExecutionResults<[bigint]>(results);
+  const [result] = parseExecutionResults<[string]>(results);
 
-  return result;
+  return BigInt(result);
 };
 
 export const simulate_lmint_to_btc = async (
@@ -282,7 +282,7 @@ export const simulate_lmint_to_btc = async (
   });
 
   const results = await devInspectAndGetResults(client, tx);
-  const [result] = parseExecutionResults<[bigint]>(results);
+  const [result] = parseExecutionResults<[string]>(results);
 
-  return result;
+  return BigInt(result);
 };
