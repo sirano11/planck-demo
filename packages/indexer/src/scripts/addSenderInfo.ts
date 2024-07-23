@@ -49,7 +49,7 @@ const putSenderPair = async (
   const result = await redisClient.hSet(`eth:${ethAddr}`, {
     eth: ethAddr,
     sui: suiAddr,
-    solana: solAddr,
+    sol: solAddr,
     mnemonic: mnemonic,
   });
 

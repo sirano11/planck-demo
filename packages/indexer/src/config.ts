@@ -79,6 +79,6 @@ export const WORKER_CONFIG = {
 
 export const QUEUE_NAME = {
   Sui: 'sui',
-  Solana: 'solana',
+  Solana: 'sol',
   Ethereum: 'eth',
 };
