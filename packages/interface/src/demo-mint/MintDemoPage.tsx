@@ -43,6 +43,8 @@ import { toastTransaction } from '@/utils/toast';
 
 const SUI_TOKENS = TOKENS.filter((v) => v.chain === ChainIdentifier.Sui);
 
+const max = (a: bigint, b: bigint) => (a > b ? a : b);
+
 const MintDemoPage: NextPage = () => {
   const [isTxInFlight, setTxInFlight] = useState<boolean>(false);
   const [offerCoinAddress, setOfferCoinAddress] = useState<Address>(
@@ -342,12 +344,14 @@ const MintDemoPage: NextPage = () => {
       }
 
       let rawTx: Uint8Array | undefined;
+      let assetAmount = inputAtomics;
       if (offer.category === 'wbtc' && ask.category === 'lmint') {
+        assetAmount = max(inputAtomics - offerCoinTotal, 0n);
         rawTx = await btc_to_lmint(
           client,
           offerCoinObjectIds,
-          offerCoinTotal,
           inputAtomics,
+          assetAmount,
           0n,
           actorAddress,
         );
@@ -360,11 +364,12 @@ const MintDemoPage: NextPage = () => {
           actorAddress,
         );
       } else if (offer.category === 'wbtc' && ask.category === 'cash') {
+        assetAmount = max(inputAtomics - offerCoinTotal, 0n);
         rawTx = await btc_to_cash(
           client,
           offerCoinObjectIds,
-          offerCoinTotal,
           inputAtomics,
+          assetAmount,
           ask.supplyId!,
           ask.typeArgument!,
           actorAddress,
@@ -395,7 +400,7 @@ const MintDemoPage: NextPage = () => {
         const hash = await commit(
           HUB_CONTRACT_ADDRESS,
           offerCoinAddress,
-          inputAtomics,
+          assetAmount,
           ChainIdentifier.Sui,
           rawTx,
         );

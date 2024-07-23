@@ -76,20 +76,20 @@ export const lmint_to_btc = async (
 export const btc_to_lmint = async (
   client: SuiClient,
   btcCoinIds: string[],
-  btcCoinTotal: bigint,
   btcAmount: bigint,
+  btcMintAmount: bigint,
   minLmintOut: bigint,
   recipient: string,
 ): Promise<Uint8Array> => {
   const tx = new Transaction();
 
   const mintedBtcCoin =
-    btcAmount > btcCoinTotal
+    btcMintAmount > 0
       ? tx.moveCall({
           target: CUSTODY.TARGET.BTC_MINT,
           arguments: [
             tx.object(CUSTODY.OBJECT_ID.BTC_TREASURY),
-            tx.pure.u64(btcAmount - btcCoinTotal),
+            tx.pure.u64(btcMintAmount),
           ],
         })[0]
       : null;
@@ -122,8 +122,8 @@ export const btc_to_lmint = async (
 export const btc_to_cash = async (
   client: SuiClient,
   btcCoinIds: string[],
-  btcCoinTotal: bigint,
   btcAmount: bigint,
+  btcMintAmount: bigint,
   toSupplyId: string,
   toTypeArgument: string,
   recipient: string,
@@ -131,12 +131,12 @@ export const btc_to_cash = async (
   const tx = new Transaction();
 
   const mintedBtcCoin =
-    btcAmount > btcCoinTotal
+    btcMintAmount > 0
       ? tx.moveCall({
           target: CUSTODY.TARGET.BTC_MINT,
           arguments: [
             tx.object(CUSTODY.OBJECT_ID.BTC_TREASURY),
-            tx.pure.u64(btcAmount - btcCoinTotal),
+            tx.pure.u64(btcMintAmount),
           ],
         })[0]
       : null;
