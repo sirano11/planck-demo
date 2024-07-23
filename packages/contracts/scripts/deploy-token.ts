@@ -14,10 +14,7 @@ async function main() {
     );
   }
 
-  console.log(
-    'Deploying contracts with the account:',
-    SUI_CONSUMER.address.toLowerCase(),
-  );
+  console.log('Deploying contracts with the account:', SUI_CONSUMER.address);
 
   const BridgeTokenFactory = await ethers.getContractFactory('BridgeToken');
 
@@ -35,8 +32,7 @@ async function main() {
   );
   await bridgeToken.deployed();
 
-  const bridgeTokenAddress = bridgeToken.address.toLowerCase();
-  console.log(`✅ ${token.symbol} deployed to:`, bridgeTokenAddress);
+  console.log(`✅ ${token.symbol} deployed to:`, bridgeToken.address);
 
   // give access control to second admin
   await (

@@ -22,9 +22,8 @@ const deployBridgeTokens = async (admins: SignerWithAddress[]) => {
     );
     await bridgeToken.deployed();
 
-    const bridgeTokenAddress = bridgeToken.address.toLowerCase();
-    console.log(`✅ ${token.symbol} deployed to:`, bridgeTokenAddress);
-    deployedAddrs.push(bridgeTokenAddress);
+    console.log(`✅ ${token.symbol} deployed to:`, bridgeToken.address);
+    deployedAddrs.push(bridgeToken.address);
 
     // give access control to second admin
     if (admins.length > 1) {
@@ -62,26 +61,20 @@ async function main() {
     );
   }
 
-  console.log(
-    'Deploying contracts with the account:',
-    SUI_CONSUMER.address.toLowerCase(),
-  );
+  console.log('Deploying contracts with the account:', SUI_CONSUMER.address);
 
   await deployBridgeTokens([SUI_CONSUMER, SOLANA_CONSUMER]);
 
   const HubFactory = await ethers.getContractFactory('Hub');
   const hub = await HubFactory.connect(SUI_CONSUMER).deploy();
-  console.log('✅ Deployed Hub:', hub.address.toLowerCase());
+  console.log('✅ Deployed Hub:', hub.address);
 
   await (
     await hub
       .connect(SUI_CONSUMER)
-      .grantRole(
-        ethers.utils.id('ADMIN_ROLE'),
-        SOLANA_CONSUMER.address.toLowerCase(),
-      )
+      .grantRole(ethers.utils.id('ADMIN_ROLE'), SOLANA_CONSUMER.address)
   ).wait();
-  console.log('✅ Admin granted to:', SOLANA_CONSUMER.address.toLowerCase());
+  console.log('✅ Admin granted to:', SOLANA_CONSUMER.address);
 }
 
 main().catch((error) => {

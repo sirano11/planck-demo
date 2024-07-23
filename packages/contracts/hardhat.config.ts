@@ -2,6 +2,7 @@ import '@nomiclabs/hardhat-etherscan';
 import '@nomiclabs/hardhat-waffle';
 import '@typechain/hardhat';
 import * as dotenv from 'dotenv';
+import { ethers } from 'ethers';
 import 'hardhat-contract-sizer';
 import 'hardhat-gas-reporter';
 import { HardhatUserConfig, task } from 'hardhat/config';
@@ -18,6 +19,16 @@ task('accounts', 'Prints the list of accounts', async (taskArgs, hre) => {
     console.log(account.address);
   }
 });
+
+task(
+  'checksum',
+  'Convert the non-mixedcase address to mixed one (Checksum Address)',
+)
+  .addParam('address', 'Address to be converted')
+  .setAction(async (taskArgs: { address: string }, hre) => {
+    const { address } = taskArgs as { address: string };
+    console.log(ethers.utils.getAddress(address));
+  });
 
 task('faucet', 'Mint a given BridgeToken to a user address')
   .addParam('tokenAddress', 'Address of BridgeToken')
