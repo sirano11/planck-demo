@@ -72,7 +72,7 @@ export const SwapPanel: React.FC<SwapPanelProps> = ({
 
   const raydium = useRaydium();
   const { isComputing, computeSwapResult } = useComputeSwap(
-    raydium!,
+    raydium,
     tokenInput,
     amountIn,
   );

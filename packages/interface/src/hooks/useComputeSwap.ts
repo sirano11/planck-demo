@@ -93,7 +93,7 @@ const computeSwap = async (
 };
 
 export const useComputeSwap = (
-  raydium: Raydium,
+  raydium: Raydium | null,
   inputToken: Token,
   amountInDraft: string,
 ) => {
@@ -119,7 +119,7 @@ export const useComputeSwap = (
           setComputing(false);
         });
     }, 500);
-  }, [amountInDraft, inputToken]);
+  }, [raydium, amountInDraft, inputToken]);
 
   return { isComputing, computeSwapResult };
 };
