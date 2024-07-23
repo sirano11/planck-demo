@@ -87,7 +87,10 @@ export class SuiConsumer extends BaseConsumer {
           showObjectChanges: true,
         },
       });
-      await job.updateProgress({ status: 'send-tx-to-dest' });
+      await job.updateProgress({
+        status: 'send-tx-to-dest',
+        txHash: result.digest,
+      });
     } catch (e) {
       console.error(e);
       try {

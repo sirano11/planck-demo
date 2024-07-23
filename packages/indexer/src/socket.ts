@@ -12,18 +12,22 @@ interface JobStatus {
   id: string;
   status: string;
   error: boolean;
+  txHash?: string;
 }
 
 io.on('connection', (socket) => {
   console.log('[*] A client connected');
 
   socket.on('job-status', (data: JobStatus) => {
-    const { id, status, error } = data;
-    io.emit(`job-${id}`, { status, error });
+    const { id, status, error, txHash } = data;
+    io.emit(`job-${id}`, { status, error, txHash });
     if (error) {
       console.error(`[-] Job ${id} failure event: ${status}`);
     } else {
-      console.log(`[+] Job ${id} success event: ${status}`);
+      console.log(
+        `[+] Job ${id} success event: ${status}` +
+          `${txHash ? ` (${txHash})` : ''}`,
+      );
     }
   });
 });

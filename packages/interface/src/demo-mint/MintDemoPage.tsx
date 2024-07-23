@@ -59,7 +59,8 @@ const MintDemoPage: NextPage = () => {
   );
 
   const { address } = useAccount();
-  const { tokenBalances: senderTokenBalances } = useTokenBalances();
+  const { tokenBalances: senderTokenBalances, refresh: refreshTokenBalances } =
+    useTokenBalances();
   const { tokenAllowances, refresh: refreshAllowances } = useTokenAllowances();
 
   const jobStatus = useJobStatus();
@@ -123,13 +124,19 @@ const MintDemoPage: NextPage = () => {
         setTokenBalances({
           ...senderTokenBalances,
           [TOKEN_ADDRESS.wBTC]:
-            senderTokenBalances[TOKEN_ADDRESS.wBTC] + btcCoinTotal,
+            senderTokenBalances[TOKEN_ADDRESS.wBTC] || 0n + btcCoinTotal,
         });
       } catch (e) {
         console.error(e);
       }
     })();
   }, [address, senderTokenBalances]);
+
+  useEffect(() => {
+    if (jobStatus.state.jobStatus) {
+      refreshTokenBalances();
+    }
+  }, [jobStatus.state.jobStatus]);
 
   useEffect(() => {
     const parsedInput = parseFloat(inputDraft);

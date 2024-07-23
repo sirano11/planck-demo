@@ -3,6 +3,7 @@ import { io } from 'socket.io-client';
 
 import { Config, QUEUE_CONFIG, QUEUE_NAME, WORKER_CONFIG } from '@/config';
 
+import { ChainIdentifier } from './Consumer';
 import { SolanaConsumer } from './SolanaConsumer';
 import { SuiConsumer } from './SuiConsumer';
 
@@ -35,10 +36,19 @@ const solanaWorker = new Worker(
 );
 
 for (const worker of [suiWorker, solanaWorker]) {
+  const chain =
+    worker.name === QUEUE_NAME.Sui
+      ? ChainIdentifier.Sui
+      : ChainIdentifier.Solana;
   worker.on('progress', (job: Job, progress: number | object) => {
     console.log({ id: job.id, progress }, 'Job progress');
     if (typeof progress === 'object' && job.id) {
-      socket.emit('job-status', { ...progress, id: job.id, error: false });
+      socket.emit('job-status', {
+        ...progress,
+        id: job.id,
+        chain,
+        error: false,
+      });
     }
   });
 
@@ -47,6 +57,7 @@ for (const worker of [suiWorker, solanaWorker]) {
     if (job.id) {
       socket.emit('job-status', {
         id: job.id,
+        chain,
         status: 'completed',
         error: false,
       });
@@ -58,6 +69,7 @@ for (const worker of [suiWorker, solanaWorker]) {
     if (job && job.id && error.message) {
       socket.emit('job-status', {
         id: job.id,
+        chain,
         status: error.message,
         error: true,
       });

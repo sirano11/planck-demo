@@ -175,7 +175,10 @@ export class SolanaConsumer extends BaseConsumer {
       console.log('# swapTxSignature');
       console.log(swapTxSignature);
 
-      await job.updateProgress({ status: 'send-tx-to-dest' });
+      await job.updateProgress({
+        status: 'send-tx-to-dest',
+        txHash: swapTxSignature,
+      });
     } catch (e) {
       console.error(e);
       try {
@@ -209,7 +212,7 @@ export class SolanaConsumer extends BaseConsumer {
 
         // mint output asset in Ethereum
         try {
-          await this.postProcessTokens(
+          await this.postProcess(
             tx,
             rawTxResponse?.meta?.preTokenBalances,
             rawTxResponse?.meta?.postTokenBalances,

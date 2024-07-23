@@ -3,7 +3,7 @@ import { toast } from 'react-toastify';
 import { TransactionReceipt } from 'viem';
 
 import { Button } from '@/components/ui/button';
-import { Explorer } from '@/helper/eth/explorer';
+import { EthereumExplorer } from '@/helper/explorer';
 
 export const toastTransaction = async (promise: Promise<TransactionReceipt>) =>
   toast
@@ -22,7 +22,7 @@ export const toastTransaction = async (promise: Promise<TransactionReceipt>) =>
                 className="text-xs !w-fit py-[5px] px-2 !h-fit tracking-tighter"
                 onClick={() => {
                   const win = window.open(
-                    Explorer.getTxLink(data.transactionHash),
+                    EthereumExplorer.getTxLink(data.transactionHash),
                     '_blank',
                   );
                   win?.focus();

@@ -3,6 +3,7 @@ import { io } from 'socket.io-client';
 
 import { Config, QUEUE_CONFIG, QUEUE_NAME, WORKER_CONFIG } from '@/config';
 
+import { ChainIdentifier } from './Consumer';
 import { SolanaConsumer } from './SolanaConsumer';
 
 const socket = io(`http://localhost:${Config.WEBSOCKET_PORT}`, {
@@ -24,7 +25,12 @@ const solanaWorker = new Worker(
 solanaWorker.on('progress', (job: Job, progress: number | object) => {
   console.log({ id: job.id, progress }, 'Job progress');
   if (typeof progress === 'object' && job.id) {
-    socket.emit('job-status', { ...progress, id: job.id, error: false });
+    socket.emit('job-status', {
+      ...progress,
+      chain: ChainIdentifier.Solana,
+      id: job.id,
+      error: false,
+    });
   }
 });
 
@@ -33,6 +39,7 @@ solanaWorker.on('completed', (job: Job) => {
   if (job.id) {
     socket.emit('job-status', {
       id: job.id,
+      chain: ChainIdentifier.Solana,
       status: 'completed',
       error: false,
     });
@@ -44,6 +51,7 @@ solanaWorker.on('failed', (job: Job | undefined, error: Error) => {
   if (job && job.id && error.message) {
     socket.emit('job-status', {
       id: job.id,
+      chain: ChainIdentifier.Solana,
       status: error.message,
       error: true,
     });
