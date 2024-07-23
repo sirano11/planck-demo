@@ -112,16 +112,11 @@ export class SolanaConsumer extends BaseConsumer {
     await job.updateProgress({ status: 'event-received' });
 
     let actorKeypair = await this.getKeypair(sender);
-    const actorPrivateKey = await this.getActorAddress(sender);
-
-    if (!(actorKeypair || actorPrivateKey)) {
+    if (!actorKeypair) {
       console.log(new Error('actor-not-found'));
       // throw new Error('actor-not-found');
       process.exit(1);
     }
-
-    const solAddrBytes = fromHexString(actorPrivateKey!);
-    actorKeypair = Keypair.fromSecretKey(solAddrBytes.slice(1));
 
     const tokenOwner = await getOrCreateAssociatedTokenAccount(
       connection,
@@ -157,8 +152,8 @@ export class SolanaConsumer extends BaseConsumer {
     }
 
     // deserialize committed transaction data
-    const tx_bytes = fromHexString(data);
-    const transaction = VersionedTransaction.deserialize(tx_bytes.slice(1));
+    const txBytes = fromHexString(data);
+    const transaction = VersionedTransaction.deserialize(txBytes.slice(1));
 
     // decompile transaction and modify its blockhash to latest (since transaction has failed with `Blockhash not found`)
     let swapTxSignature: string | undefined;

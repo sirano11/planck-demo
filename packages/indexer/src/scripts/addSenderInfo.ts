@@ -14,9 +14,9 @@ const mnemonics: string[] = [
 ];
 
 function getEthAddress(mnemonic: string): string {
-  const walletMnemonic = ethers.Wallet.fromMnemonic(mnemonic);
+  const wallet = ethers.Wallet.fromMnemonic(mnemonic);
 
-  return walletMnemonic.address;
+  return wallet.address;
 }
 
 function getSuiAddress(mnemonic: string): string {
@@ -56,28 +56,6 @@ const putSenderPair = async (
   console.log({ ethAddr, suiAddr, solAddr, result });
 };
 
-const putRandomSenderPairWithPrivateKey = async (
-  redisClient: RedisClient,
-  privateKey: string,
-): Promise<void> => {
-  if (!redisClient.isOpen) {
-    await redisClient.connect();
-  }
-
-  const ethAddr = new ethers.Wallet(privateKey).address;
-  const suiAddr = Ed25519Keypair.generate().getSecretKey();
-  const solAddr = Keypair.generate().secretKey;
-  const solHex = `0x${solAddr.reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '')}`;
-
-  const result = await redisClient.hSet(`eth:${ethAddr}`, {
-    eth: privateKey,
-    sui: suiAddr,
-    sol: solHex,
-  });
-
-  console.log({ ethAddr, privateKey, suiAddr, solHex, result });
-};
-
 const putSenderPairs = async (
   redisClient: RedisClient,
   mnemonics: string[],
@@ -96,10 +74,6 @@ const main = async (): Promise<void> => {
   await redisClient.connect();
 
   await putSenderPairs(redisClient, mnemonics);
-  await putRandomSenderPairWithPrivateKey(
-    redisClient,
-    '6fd6fd72124f84a73dc8cb332483bfac3f1964020907370539d07f3e990c9ab8',
-  );
   await redisClient.disconnect();
 };
 
