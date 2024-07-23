@@ -4,7 +4,7 @@ import { derivePath } from 'ed25519-hd-key';
 
 export const getSolanaKeypair = (mnemonic: string) => {
   // Convert mnemonic to seed
-  const seed = bip39.mnemonicToSeedSync(mnemonic, 'mint');
+  const seed = bip39.mnemonicToSeedSync(mnemonic, '');
 
   const derivationPath = "m/44'/501'/0'/0'";
   const { key } = derivePath(derivationPath, seed.toString('hex'));

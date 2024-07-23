@@ -31,8 +31,11 @@ const ETH2SOL_ASSET_PAIRS: Record<string, string> = {
   [TOKEN_ADDRESS.wMEME]: SPL_TOKENS.wMEME.toBase58(),
 };
 
-const getKeypairFromMnemonic = (mnemonic: string): Keypair => {
-  const seed = bip39.mnemonicToSeedSync(mnemonic, 'mint');
+const getKeypairFromMnemonic = (
+  mnemonic: string,
+  password: string = '',
+): Keypair => {
+  const seed = bip39.mnemonicToSeedSync(mnemonic, password);
   const hd = HDKey.fromMasterSeed(seed.toString('hex'));
   const path = `m/44'/501'/0'/0'`;
   return Keypair.fromSeed(hd.derive(path).privateKey);
@@ -71,7 +74,12 @@ export class SolanaConsumer extends BaseConsumer {
       'confirmed',
     );
 
-    this.mintKeypair = getKeypairFromMnemonic(Config.SOLANA_MINT_MNEMONIC);
+    this.mintKeypair = getKeypairFromMnemonic(
+      Config.SOLANA_MINT_MNEMONIC,
+
+      // FIXME: password is deprecated and only being passed to `mintKeypair`! Please remove it after future contract deployments
+      'mint',
+    );
     this.ethersProvider = new ethers.providers.JsonRpcProvider(
       Config.ETH_HTTP_ENDPOINT,
     );
