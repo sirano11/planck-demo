@@ -292,24 +292,18 @@ export class SolanaConsumer extends BaseConsumer {
         this.hubOwnerSigner,
       );
       console.log('eth_tx_res?');
-      let eth_tx_res = await (
-        await erc20Contract.mint(sender, balance.amount, {
-          gasLimit: BigNumber.from(3305900000000),
-          maxFeePerGas: BigNumber.from(32059416604),
-        })
+      let receipt = await (
+        await erc20Contract.mint(sender, balance.amount)
       ).wait();
-      console.log(eth_tx_res);
+      console.log(receipt);
     }
 
     for (const balance of remainedDelta) {
       console.log('eth_tx_res2?');
-      const eth_tx_res2 = await (
-        await hubContract.transfer(sender, balance.address, balance.amount, {
-          gasLimit: BigNumber.from(3305900000000),
-          maxFeePerGas: BigNumber.from(32059416604),
-        })
+      const receipt = await (
+        await hubContract.transfer(sender, balance.address, balance.amount)
       ).wait();
-      console.log(eth_tx_res2);
+      console.log(receipt);
     }
   }
 }
