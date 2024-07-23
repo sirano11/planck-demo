@@ -113,9 +113,7 @@ export class SolanaConsumer extends BaseConsumer {
 
     let actorKeypair = await this.getKeypair(sender);
     if (!actorKeypair) {
-      console.log(new Error('actor-not-found'));
-      // throw new Error('actor-not-found');
-      process.exit(1);
+      throw new Error('actor-not-found');
     }
 
     const tokenOwner = await getOrCreateAssociatedTokenAccount(
