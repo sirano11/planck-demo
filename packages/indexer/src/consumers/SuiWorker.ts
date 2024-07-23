@@ -3,6 +3,7 @@ import { io } from 'socket.io-client';
 
 import { Config, QUEUE_CONFIG, QUEUE_NAME, WORKER_CONFIG } from '@/config';
 
+import { ChainIdentifier } from './Consumer';
 import { SuiConsumer } from './SuiConsumer';
 
 const socket = io(`http://localhost:${Config.WEBSOCKET_PORT}`, {
@@ -33,6 +34,7 @@ suiWorker.on('completed', (job: Job) => {
   if (job.id) {
     socket.emit('job-status', {
       id: job.id,
+      chain: ChainIdentifier.Sui,
       status: 'completed',
       error: false,
     });
@@ -44,6 +46,7 @@ suiWorker.on('failed', (job: Job | undefined, error: Error) => {
   if (job && job.id && error.message) {
     socket.emit('job-status', {
       id: job.id,
+      chain: ChainIdentifier.Sui,
       status: error.message,
       error: true,
     });

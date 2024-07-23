@@ -136,7 +136,9 @@ const MintDemoPage: NextPage = () => {
 
   useEffect(() => {
     if (jobStatus.state.jobStatus) {
-      refreshTokenBalances();
+      setTimeout(() => {
+        refreshTokenBalances();
+      }, 500);
     }
   }, [jobStatus.state.jobStatus]);
 
