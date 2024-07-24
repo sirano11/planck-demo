@@ -143,21 +143,10 @@ const MintDemoPage: NextPage = () => {
   }, [jobStatus.state.jobStatus]);
 
   useEffect(() => {
-    const parsedInput = parseFloat(inputDraft);
-    if (isNaN(parsedInput) || parsedInput <= 0) {
-      setEstimation('0');
-      setErrorMessage(null);
-      return;
-    }
-
     if (offerCoin.address === askCoin.address) return;
+    const inputAtomics = parseUnits(inputDraft, offerCoin.decimals);
 
     (async () => {
-      const inputAtomics = parseUnits(
-        parsedInput.toString(),
-        offerCoin.decimals,
-      );
-
       let est: bigint | null = null;
       if (offerCoin.category === 'wbtc' && askCoin.category === 'lmint') {
         est = await simulate_btc_to_lmint(client, inputAtomics);
@@ -324,14 +313,9 @@ const MintDemoPage: NextPage = () => {
     }
 
     try {
-      const parsedInput = parseFloat(inputDraft);
-      if (isNaN(parsedInput)) {
-        return;
-      }
-
       const offer = TOKENS.find((v) => v.address === offerCoinAddress)!;
       const ask = TOKENS.find((v) => v.address === askCoinAddress)!;
-      const inputAtomics = parseUnits(parsedInput.toString(), offer.decimals);
+      const inputAtomics = parseUnits(inputDraft, offer.decimals);
 
       const { coinObjectIds: offerCoinObjectIds, coinTotal: offerCoinTotal } =
         await getCoinObject({
