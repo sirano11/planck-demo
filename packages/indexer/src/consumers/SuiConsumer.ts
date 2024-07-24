@@ -144,10 +144,8 @@ export class SuiConsumer extends BaseConsumer {
             // When executing the btc_to_lmint or lmint_to_btc, it returned back used coin object as parameter.
             // So it needs to pay back remained amount to user from lock asset.
             if (
-              (balance.coinType === PROTOCOL.TYPE_ARGUMENT.LIQUID_MINT &&
-                asset.address === TOKEN_ADDRESS.lMINT) ||
-              (balance.coinType === CUSTODY.TYPE_ARGUMENT.BTC &&
-                asset.address === TOKEN_ADDRESS.wBTC)
+              balance.coinType === PROTOCOL.TYPE_ARGUMENT.LIQUID_MINT &&
+              asset.address === TOKEN_ADDRESS.lMINT
             ) {
               const remainedAmount = inAmount + deltaAmount;
               if (remainedAmount > 0) {
@@ -173,6 +171,9 @@ export class SuiConsumer extends BaseConsumer {
         HUB_CONTRACT_ADDRESS,
         this.ethSigner,
       );
+
+      console.log(`payback ${info.sender}, ${info.address}, ${info.amount}`);
+
       const receipt = await (
         await hubContract.transfer(info.sender, info.address, info.amount)
       ).wait();
@@ -186,6 +187,8 @@ export class SuiConsumer extends BaseConsumer {
 
     for (const info of mintInfo) {
       const erc20 = BridgeToken__factory.connect(info.address, this.ethSigner);
+
+      console.log(`mint ${sender}, ${info.address}, ${info.amount}`);
 
       const receipt = await (await erc20.mint(sender, info.amount)).wait();
 
