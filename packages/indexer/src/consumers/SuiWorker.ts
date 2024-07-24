@@ -25,7 +25,12 @@ const suiWorker = new Worker(
 suiWorker.on('progress', (job: Job, progress: number | object) => {
   console.log({ id: job.id, progress }, 'Job progress');
   if (typeof progress === 'object' && job.id) {
-    socket.emit('job-status', { ...progress, id: job.id, error: false });
+    socket.emit('job-status', {
+      ...progress,
+      id: job.id,
+      chain: ChainIdentifier.Sui,
+      error: false,
+    });
   }
 });
 

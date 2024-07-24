@@ -27,8 +27,8 @@ solanaWorker.on('progress', (job: Job, progress: number | object) => {
   if (typeof progress === 'object' && job.id) {
     socket.emit('job-status', {
       ...progress,
-      chain: ChainIdentifier.Solana,
       id: job.id,
+      chain: ChainIdentifier.Solana,
       error: false,
     });
   }
