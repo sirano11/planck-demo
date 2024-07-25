@@ -40,25 +40,12 @@ const deploy = async () => {
 
   const raydium = await RaydiumSDK.init({ keypair });
 
-  // const { marketInfo, ...createMarketTxInfo } = await RaydiumSDK.createMarket({
-  //   raydium,
-  //   mintSigner: publisherSigner,
-  // });
-  // console.log('createMarket', { ...createMarketTxInfo, marketInfo });
+  const { marketInfo, ...createMarketTxInfo } = await RaydiumSDK.createMarket({
+    raydium,
+    mintSigner: publisherSigner,
+  });
+  console.log('createMarket', { ...createMarketTxInfo, marketInfo });
 
-  // Due to the Raydium SDK version issue, I make tx one by one each,
-  // deployed market first, and deployed ammpool second using the previous market information.
-  const marketInfo = {
-    marketId: '6ZMBmRw5tdcgwS8YH3gwnsk1FdGZmXeJW3f1krcgXRdZ',
-    requestQueue: '4amC3ZdjKXTs7WtbCbDN9mf4xaWV5Yi3wN9Y5vvB6MpJ',
-    eventQueue: 'wadYH7CWbMicvnkZ1iHipg4RjLB9xVVDvavBa9zwnwQ',
-    bids: '93vWkT4eD4rHdmKVYMcbGFbHV2Ced3b3f2vSqMaQBRBU',
-    asks: 'FqtPe4wbVJyGXEpU3ZbhMoEnyBNZAHG3p67R7s5MBJnH',
-    baseVault: 'ESYmLJof2GnLCpwJRw2H2BiCwvCsHsDnMi6z137WyS3A',
-    quoteVault: '9Wu3hAB973TQgUh7HsddSg9zRdwCgfsmRfLYfnaSLLGv',
-    baseMint: '5L9yR1bF4gdzZBfGxxLkidgUmjFa7CGBppKZPBYaPL3F',
-    quoteMin: 'iAo1RFXsYotAEf3vVj4tmxAPGrX8QmZnbFxumqRZ7xb',
-  };
   const { ammPoolInfo, ...createAMMPoolTxInfo } =
     await RaydiumSDK.createAMMPool({
       raydium,

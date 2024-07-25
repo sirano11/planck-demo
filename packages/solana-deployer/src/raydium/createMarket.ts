@@ -5,8 +5,9 @@ import {
   WSOLMint,
 } from '@raydium-io/raydium-sdk-v2';
 import { Keypair, VersionedTransaction } from '@solana/web3.js';
+import { SPL_TOKENS } from 'planck-demo-interface/src/constants/solanaConfigs';
 
-import { PROGRAMS } from '../constants';
+import { TOKENS } from '../constants';
 import { txVersion } from './sdk';
 
 export type MarketInfo = {
@@ -38,12 +39,12 @@ export const createMarket = async ({
 }: CreateMarketParams): Promise<CreateMarketResult> => {
   const { execute, extInfo, transactions } = await raydium.marketV2.create({
     baseInfo: {
-      mint: PROGRAMS.wSOL,
-      decimals: 9,
+      mint: SPL_TOKENS.wSOL,
+      decimals: TOKENS.find((t) => t.symbol == 'wSOL')?.decimals!,
     },
     quoteInfo: {
-      mint: PROGRAMS.wMEME,
-      decimals: 9,
+      mint: SPL_TOKENS.wMEME,
+      decimals: TOKENS.find((t) => t.symbol == 'wMEME')?.decimals!,
     },
     lotSize: 1,
     tickSize: 0.01,
@@ -52,8 +53,8 @@ export const createMarket = async ({
     txVersion,
     // optional: set up priority fee here
     computeBudgetConfig: {
-      units: 600000,
-      microLamports: 100000000,
+      units: 600_000,
+      microLamports: 1_000_000, // 100_000_000?
     },
   });
 
@@ -67,7 +68,7 @@ export const createMarket = async ({
 
   const { txIds, signedTxs } = await execute({
     // set sequentially to true means tx will be sent when previous one confirmed
-    sequentially: false,
+    sequentially: true,
   });
 
   return {

@@ -7,7 +7,7 @@ import {
 import { Keypair, PublicKey, VersionedTransaction } from '@solana/web3.js';
 import BN from 'bn.js';
 
-import { PROGRAMS } from '../constants';
+import { SPL_TOKENS, TOKENS } from '../constants';
 import { MarketInfo } from './createMarket';
 import { txVersion } from './sdk';
 
@@ -42,6 +42,9 @@ export type CreateAMMPoolResult = {
   ammPoolInfo: AMMPoolInfo;
 };
 
+const wSOLDecimals = TOKENS.find((t) => t.symbol == 'wSOL')?.decimals!;
+const wMEMEDecimals = TOKENS.find((t) => t.symbol == 'wMEME')?.decimals!;
+
 export const createAMMPool = async ({
   raydium,
   marketInfo,
@@ -55,15 +58,15 @@ export const createAMMPool = async ({
       programId: DEVNET_PROGRAM_ID.OPENBOOK_MARKET, // devnet
     },
     baseMintInfo: {
-      mint: PROGRAMS.wSOL,
-      decimals: 9,
+      mint: SPL_TOKENS.wSOL,
+      decimals: wSOLDecimals,
     },
     quoteMintInfo: {
-      mint: PROGRAMS.wMEME,
-      decimals: 9,
+      mint: SPL_TOKENS.wMEME,
+      decimals: wMEMEDecimals,
     },
-    baseAmount: new BN(1 * 10 ** 9),
-    quoteAmount: new BN(1 * 10 ** 9),
+    baseAmount: new BN('1000' + '0'.repeat(wSOLDecimals)),
+    quoteAmount: new BN('51751065' + '0'.repeat(wMEMEDecimals)),
 
     // sol devnet faucet: https://faucet.solana.com/
     // baseAmount: new BN(4 * 10 ** 9), // if devent pool with sol/wsol, better use amount >= 4*10**9

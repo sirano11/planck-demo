@@ -51,14 +51,14 @@ export const TOKENS: TokenParameters[] = [
     // Ethereum Bridged wSOL
     name: 'Wrapped SOL',
     symbol: 'wSOL',
-    initialSupply: 1_230_000n,
+    initialSupply: 580_900_000n,
     decimals: 9,
   },
   {
     // Ethereum Bridged wMEME
     name: 'Wrapped MEME',
     symbol: 'wMEME',
-    initialSupply: 1_230_000n,
+    initialSupply: 517_510_650n,
     decimals: 9,
   },
 ];
