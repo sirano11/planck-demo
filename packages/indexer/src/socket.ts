@@ -19,14 +19,13 @@ io.on('connection', (socket) => {
   console.log('[*] A client connected');
 
   socket.on('job-status', (data: JobStatus) => {
-    const { id, status, error, txHash } = data;
-    io.emit(`job-${id}`, { status, error, txHash });
-    if (error) {
-      console.error(`[-] Job ${id} failure event: ${status}`);
+    io.emit(`job-${data.id}`, data);
+    if (data.error) {
+      console.error(`[-] Job ${data.id} failure event: ${data.status}`);
     } else {
       console.log(
-        `[+] Job ${id} success event: ${status}` +
-          `${txHash ? ` (${txHash})` : ''}`,
+        `[+] Job ${data.id} success event: ${data.status}` +
+          `${data.txHash ? ` (${data.txHash})` : ''}`,
       );
     }
   });
