@@ -64,8 +64,9 @@ export class SuiConsumer extends BaseConsumer {
     const { sender, data } = tx;
 
     let result: SuiTransactionBlockResponse | undefined;
+    await job.updateProgress({ status: 'event-received' });
+
     try {
-      await job.updateProgress({ status: 'event-received' });
       const keypair = await this.getKeypair(sender);
       if (!keypair) {
         throw new Error('actor-not-found');
@@ -76,23 +77,28 @@ export class SuiConsumer extends BaseConsumer {
 
       suiTx.setSender(keypair.toSuiAddress());
 
-      result = await this.suiClient.signAndExecuteTransaction({
-        transaction: suiTx,
-        signer: keypair,
-        requestType: 'WaitForLocalExecution',
-        options: {
-          showEffects: true,
-          showEvents: true,
-          showBalanceChanges: true,
-          showObjectChanges: true,
-        },
-      });
+      try {
+        result = await this.suiClient.signAndExecuteTransaction({
+          transaction: suiTx,
+          signer: keypair,
+          requestType: 'WaitForLocalExecution',
+          options: {
+            showEffects: true,
+            showEvents: true,
+            showBalanceChanges: true,
+            showObjectChanges: true,
+          },
+        });
+      } catch (e) {
+        console.error(e);
+        throw new Error('send-tx-to-dest');
+      }
+
       await job.updateProgress({
         status: 'send-tx-to-dest',
         txHash: result.digest,
       });
     } catch (e) {
-      console.error(e);
       try {
         await this.postProcess(tx, false);
         await job.updateProgress({ status: 'give-asset-back-to-sender' });
@@ -100,7 +106,7 @@ export class SuiConsumer extends BaseConsumer {
         console.error(e);
         throw new Error('give-asset-back-to-sender');
       }
-      throw new Error('send-tx-to-dest');
+      throw e;
     }
 
     try {

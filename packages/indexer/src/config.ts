@@ -25,6 +25,7 @@ type Config = {
   REDIS_URL: string;
 
   CONTRACT_ADDRESS_HUB: string;
+  ALLOWED_SENDER?: string;
 
   PRIVATE_KEY_SUI_CONSUMER: string;
   PRIVATE_KEY_SOLANA_CONSUMER: string;
@@ -45,6 +46,7 @@ const getConfig = (): Config => {
     'REDIS_URL',
     //
     'CONTRACT_ADDRESS_HUB',
+    'ALLOWED_SENDER',
     //
     'PRIVATE_KEY_SUI_CONSUMER',
     'PRIVATE_KEY_SOLANA_CONSUMER',

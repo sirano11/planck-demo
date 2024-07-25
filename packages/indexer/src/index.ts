@@ -56,7 +56,13 @@ const hubContract = Hub__factory.connect(Config.CONTRACT_ADDRESS_HUB, provider);
 const main = async (): Promise<void> => {
   console.log({ ...Config, CACHE_FILE_PATH });
 
-  const msgCommittedFilter = hubContract.filters.MsgCommitted();
+  const msgCommittedFilter = hubContract.filters.MsgCommitted(
+    null,
+    null,
+    null,
+    Config.ALLOWED_SENDER || null,
+    null,
+  );
 
   const repository = saveLastSyncedHeightInJSON(
     Config.START_HEIGHT,
