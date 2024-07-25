@@ -1,8 +1,10 @@
 import { getOrCreateAssociatedTokenAccount, transfer } from '@solana/spl-token';
 import {
   Connection,
+  Context,
   Keypair,
   PublicKey,
+  SignatureResult,
   TokenBalance,
   TransactionMessage,
   VersionedTransaction,
@@ -104,6 +106,25 @@ export class SolanaConsumer extends BaseConsumer {
     return mnemonic ? getKeypairFromMnemonic(mnemonic) : null;
   }
 
+  waitForConfirmedSignature = (signature: string) =>
+    new Promise<{
+      signatureResult: SignatureResult;
+      context: Context;
+    }>((resolve, reject) => {
+      const subscriptionId = connection.onSignature(
+        signature,
+        async (signatureResult, context) => {
+          try {
+            resolve({ signatureResult, context });
+            connection.removeSignatureListener(subscriptionId);
+          } catch (error) {
+            reject(error);
+          }
+        },
+        'confirmed',
+      );
+    });
+
   public async processTx(job: Job) {
     const tx = job.data as Tx;
     const { asset, sender, data } = tx;
@@ -188,40 +209,35 @@ export class SolanaConsumer extends BaseConsumer {
       throw new Error('send-tx-to-dest');
     }
 
-    // TODO: Make this a `Promise`
-    this.connection.onSignature(
+    await this.waitForConfirmedSignature(swapTxSignature);
+
+    const rawTxResponse = await this.connection.getParsedTransaction(
       swapTxSignature,
-      async () => {
-        const rawTxResponse = await this.connection.getParsedTransaction(
-          swapTxSignature,
-          {
-            commitment: 'confirmed',
-            maxSupportedTransactionVersion: 0,
-          },
-        );
-        const isValid = await isValidSignature(connection, swapTxSignature);
-
-        if (!(rawTxResponse && isValid)) {
-          throw new Error('tx-not-found');
-        }
-
-        // mint output asset in Ethereum
-        try {
-          await this.postProcess(
-            tx,
-            rawTxResponse?.meta?.preTokenBalances,
-            rawTxResponse?.meta?.postTokenBalances,
-            rawTxResponse?.meta?.err !== null,
-          );
-
-          await job.updateProgress({ status: 'mint-asset-to-sender' });
-        } catch (e) {
-          console.error(e);
-          throw new Error('mint-asset-to-sender');
-        }
+      {
+        commitment: 'confirmed',
+        maxSupportedTransactionVersion: 0,
       },
-      'confirmed',
     );
+
+    const isValid = await isValidSignature(connection, swapTxSignature);
+    if (!(rawTxResponse && isValid)) {
+      throw new Error('tx-not-found');
+    }
+
+    // Mint output asset in Ethereum
+    try {
+      await this.postProcess(
+        tx,
+        rawTxResponse?.meta?.preTokenBalances,
+        rawTxResponse?.meta?.postTokenBalances,
+        rawTxResponse?.meta?.err !== null,
+      );
+
+      await job.updateProgress({ status: 'mint-asset-to-sender' });
+    } catch (e) {
+      console.error(e);
+      throw new Error('mint-asset-to-sender');
+    }
   }
 
   private async postProcess(
