@@ -140,8 +140,6 @@ export class SolanaConsumer extends BaseConsumer {
         this.mintKeypair.publicKey,
         assetAmount,
       );
-      console.log('# transferTxSignature:');
-      console.log(transferTxSignature);
 
       await job.updateProgress({ status: 'mint-asset-to-actor' });
     } catch (e) {
@@ -173,8 +171,6 @@ export class SolanaConsumer extends BaseConsumer {
       swapTxSignature = await this.connection.sendTransaction(vtx, {
         preflightCommitment: 'confirmed',
       });
-      console.log('# swapTxSignature');
-      console.log(swapTxSignature);
 
       await job.updateProgress({
         status: 'send-tx-to-dest',
@@ -192,6 +188,7 @@ export class SolanaConsumer extends BaseConsumer {
       throw new Error('send-tx-to-dest');
     }
 
+    // TODO: Make this a `Promise`
     this.connection.onSignature(
       swapTxSignature,
       async () => {
@@ -202,9 +199,6 @@ export class SolanaConsumer extends BaseConsumer {
             maxSupportedTransactionVersion: 0,
           },
         );
-        console.log('# rawTxResponse (for debugging purpose)');
-        console.log(rawTxResponse);
-
         const isValid = await isValidSignature(connection, swapTxSignature);
 
         if (!(rawTxResponse && isValid)) {
@@ -219,7 +213,6 @@ export class SolanaConsumer extends BaseConsumer {
             rawTxResponse?.meta?.postTokenBalances,
             rawTxResponse?.meta?.err !== null,
           );
-          console.log('postprocess success!');
 
           await job.updateProgress({ status: 'mint-asset-to-sender' });
         } catch (e) {
@@ -249,18 +242,14 @@ export class SolanaConsumer extends BaseConsumer {
         );
         const postAmount = BigInt(post.uiTokenAmount.amount);
 
-        if (postAmount > preAmount && post.mint in SOL2ETH_ASSET_PAIRS) {
+        if (
+          postAmount > preAmount &&
+          post.mint in SOL2ETH_ASSET_PAIRS &&
+          post.mint !== ETH2SOL_ASSET_PAIRS[asset.address]
+        ) {
           mintDelta.push({
             address: SOL2ETH_ASSET_PAIRS[post.mint],
             amount: postAmount - preAmount,
-          });
-        } else if (
-          postAmount < preAmount &&
-          asset.address in ETH2SOL_ASSET_PAIRS
-        ) {
-          remainedDelta.push({
-            address: asset.address,
-            amount: preAmount - postAmount,
           });
         }
       });
@@ -276,15 +265,11 @@ export class SolanaConsumer extends BaseConsumer {
       this.hubOwnerSigner,
     );
 
-    // FIXME: unstable processing
-    console.log('# postprocess works well? ethereum contract side:');
-
     for (const balance of mintDelta) {
       const erc20Contract = ERC20Mock__factory.connect(
         balance.address,
         this.hubOwnerSigner,
       );
-      console.log('eth_tx_res?');
       let receipt = await (
         await erc20Contract.mint(sender, balance.amount)
       ).wait();
@@ -292,7 +277,6 @@ export class SolanaConsumer extends BaseConsumer {
     }
 
     for (const balance of remainedDelta) {
-      console.log('eth_tx_res2?');
       const receipt = await (
         await hubContract.transfer(sender, balance.address, balance.amount)
       ).wait();

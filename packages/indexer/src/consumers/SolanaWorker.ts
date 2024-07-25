@@ -47,6 +47,7 @@ solanaWorker.on('completed', (job: Job) => {
 });
 
 solanaWorker.on('failed', (job: Job | undefined, error: Error) => {
+  console.log(error);
   console.log({ id: job?.id }, 'Job failed');
   if (job && job.id && error.message) {
     socket.emit('job-status', {
