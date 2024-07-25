@@ -616,7 +616,7 @@ const Input = styled.input`
   border: 0;
   background-color: transparent;
 
-  font-size: 36px;
+  font-size: 28px;
   font-weight: 700;
   letter-spacing: -1.5px;
 
