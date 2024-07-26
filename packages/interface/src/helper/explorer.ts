@@ -11,14 +11,14 @@ export const EthereumExplorer = {
 };
 
 export const SolanaExplorer = {
-  getTxLink: (hash: Hash) =>
-    `${SOL_EXPLORER_BASE_URL}/tx/${hash}?cluster=testnet`,
-  getAccountLink: (address?: Address) =>
+  getTxLink: (signature: string) =>
+    `${SOL_EXPLORER_BASE_URL}/tx/${signature}?cluster=testnet`,
+  getAccountLink: (address?: string) =>
     `${SOL_EXPLORER_BASE_URL}/address/${address}?cluster=testnet`,
 };
 
 export const SuiExplorer = {
-  getTxLink: (hash: Hash) => `${SUI_EXPLORER_BASE_URL}/tx/${hash}`,
+  getTxLink: (digest: string) => `${SUI_EXPLORER_BASE_URL}/tx/${digest}`,
   getAccountLink: (address?: Address) =>
     `${SUI_EXPLORER_BASE_URL}/address/${address}`,
 };

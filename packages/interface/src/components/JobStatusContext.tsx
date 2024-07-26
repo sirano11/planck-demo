@@ -45,7 +45,7 @@ type JobStatusEvent =
       error: false;
       chain: ChainIdentifier;
       status: SuccessStatusType;
-      txHash?: `0x${string}`;
+      txHash?: Hash | string;
     };
 
 type JobStatusAction =
@@ -145,6 +145,7 @@ export const JobStatusProvider: React.FC<{ children: ReactNode }> = ({
                       ? SuiExplorer
                       : SolanaExplorer
                     ).getTxLink(event.txHash),
+                    // txHash could be Sui Digest or Solana Signature
                     '_blank',
                   );
                   win?.focus();
