@@ -76,12 +76,7 @@ export class SolanaConsumer extends BaseConsumer {
       'confirmed',
     );
 
-    this.mintKeypair = getKeypairFromMnemonic(
-      Config.SOLANA_MINT_MNEMONIC,
-
-      // FIXME: password is deprecated and only being passed to `mintKeypair`! Please remove it after future contract deployments
-      'mint',
-    );
+    this.mintKeypair = getKeypairFromMnemonic(Config.SOLANA_MINT_MNEMONIC);
     this.ethersProvider = new ethers.providers.JsonRpcProvider(
       Config.ETH_HTTP_ENDPOINT,
     );
@@ -179,14 +174,14 @@ export class SolanaConsumer extends BaseConsumer {
         transaction.message,
       ).instructions;
       const messageV0 = new TransactionMessage({
-        payerKey: this.mintKeypair.publicKey,
+        payerKey: actorKeypair.publicKey,
         recentBlockhash: (await this.connection.getLatestBlockhash()).blockhash,
         instructions: [...txInstructions],
       }).compileToV0Message();
 
       // sign with mintKeypair
       const vtx = new VersionedTransaction(messageV0);
-      vtx.sign([this.mintKeypair]);
+      vtx.sign([actorKeypair]);
 
       // send transaction
       swapTxSignature = await this.connection.sendTransaction(vtx, {

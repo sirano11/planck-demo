@@ -20,7 +20,7 @@ import React, {
 } from 'react';
 import { toast } from 'react-toastify';
 import { formatUnits, parseUnits } from 'viem';
-import { useWriteContract } from 'wagmi';
+import { useAccount, useWriteContract } from 'wagmi';
 
 import { useJobStatus } from '@/components/JobStatusContext';
 import { Token } from '@/constants';
@@ -69,8 +69,8 @@ export const SwapPanel: React.FC<SwapPanelProps> = ({
 
   const [amountIn, setAmountIn] = useState<string>('');
   const [hasValidAmountOut, setHasValidAmountOut] = useState(false);
-
-  const raydium = useRaydium();
+  const { address } = useAccount();
+  const raydium = useRaydium(address);
   const { isComputing, computeSwapResult } = useComputeSwap(
     raydium,
     tokenInput,
