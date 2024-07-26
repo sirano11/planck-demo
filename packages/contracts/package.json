@@ -14,7 +14,9 @@
     "test": "npx hardhat test",
     "deploy": "npx hardhat run scripts/deploy-all.ts",
     "faucet": "npx hardhat faucet",
-    "checksum": "npx hardhat checksum"
+    "checksum": "npx hardhat checksum",
+    "create-admin": "npx hardhat create-admin",
+    "check-admin": "npx hardhat check-admin"
   },
   "keywords": [],
   "author": "",

@@ -6,6 +6,10 @@ import { ethers } from 'ethers';
 import 'hardhat-contract-sizer';
 import 'hardhat-gas-reporter';
 import { HardhatUserConfig, task } from 'hardhat/config';
+import {
+  HUB_CONTRACT_ADDRESS,
+  TOKEN_ADDRESS,
+} from 'planck-demo-interface/src/helper/eth/config';
 import 'solidity-coverage';
 
 dotenv.config();
@@ -25,8 +29,8 @@ task(
   'Convert the non-mixedcase address to mixed one (Checksum Address)',
 )
   .addParam('address', 'Address to be converted')
-  .setAction(async (taskArgs: { address: string }, hre) => {
-    const { address } = taskArgs as { address: string };
+  .setAction(async (taskArgs: { address: string }, _hre) => {
+    const { address } = taskArgs;
     console.log(ethers.utils.getAddress(address));
   });
 
@@ -65,6 +69,73 @@ task('faucet', 'Mint a given BridgeToken to a user address')
       console.log(receipt);
     },
   );
+
+task('create-admin', 'Create a new EOA with access control')
+  .addOptionalParam(
+    'address',
+    'If this is set, grant admin role to this address without creating a new EOA',
+  )
+  .setAction(async (taskArgs: { address?: string }, hre) => {
+    const [SUI_CONSUMER] = await hre.ethers.getSigners();
+    if (!SUI_CONSUMER) {
+      throw new Error('PRIVATE_KEY_SUI_CONSUMER must be set');
+    }
+
+    // Create a new EOA from scratch
+    let address = taskArgs.address;
+    if (!address) {
+      const wallet = ethers.Wallet.createRandom();
+
+      // print the address and private key
+      address = await wallet.getAddress();
+      const privateKey = wallet.privateKey;
+      console.log({ address, privateKey });
+    }
+
+    // Grant for Hub
+    const HubFactory = await hre.ethers.getContractFactory('Hub');
+    const hub = HubFactory.connect(SUI_CONSUMER).attach(HUB_CONTRACT_ADDRESS);
+    await (await hub.connect(SUI_CONSUMER).grantAdminRole(address)).wait();
+    console.log('✅ Hub admin granted to:', address);
+
+    // Grant for BridgeTokens
+    for (const token of Object.values(TOKEN_ADDRESS)) {
+      const bridgeToken = await hre.ethers.getContractAt('BridgeToken', token);
+      await (
+        await bridgeToken.connect(SUI_CONSUMER).grantAdminRole(address)
+      ).wait();
+      console.log(
+        `✅ ${await bridgeToken.symbol()} admin granted to:`,
+        address,
+        'for',
+        token,
+      );
+    }
+  });
+
+task('check-admin', 'Check if a wallet has access control')
+  .addParam('address', 'Address to check')
+  .setAction(async (taskArgs: { address: string }, hre) => {
+    const { address } = taskArgs;
+
+    const hub = await hre.ethers.getContractAt('Hub', HUB_CONTRACT_ADDRESS);
+    const hasRole = await hub.hasRole(await hub.DEFAULT_ADMIN_ROLE(), address);
+    console.log('✅', address, 'has admin role for Hub:', hasRole);
+
+    for (const token of Object.values(TOKEN_ADDRESS)) {
+      const bridgeToken = await hre.ethers.getContractAt('BridgeToken', token);
+      const hasRole = await bridgeToken.hasRole(
+        await bridgeToken.DEFAULT_ADMIN_ROLE(),
+        address,
+      );
+      console.log(
+        '✅',
+        address,
+        `has admin role for ${await bridgeToken.symbol()}:`,
+        hasRole,
+      );
+    }
+  });
 
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
