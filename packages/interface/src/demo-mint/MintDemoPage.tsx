@@ -312,6 +312,8 @@ const MintDemoPage: NextPage = () => {
       return;
     }
 
+    setTxInFlight(true);
+
     try {
       const offer = TOKENS.find((v) => v.address === offerCoinAddress)!;
       const ask = TOKENS.find((v) => v.address === askCoinAddress)!;
@@ -326,6 +328,8 @@ const MintDemoPage: NextPage = () => {
 
       if (offer.category !== 'wbtc' && offerCoinObjectIds.length === 0) {
         console.error('No coin found in actor wallet');
+        toast.error('Error: no coin found in actor wallet');
+        setTxInFlight(false);
         return;
       }
 
@@ -399,8 +403,8 @@ const MintDemoPage: NextPage = () => {
       toastTransaction(promise);
     } catch (e) {
       // error while constructing tx
-      toast.error('Error while constructing transaction');
       console.error(e);
+      toast.error('Error while constructing transaction');
     } finally {
       setTxInFlight(false);
     }
