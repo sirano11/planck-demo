@@ -70,9 +70,7 @@ async function main() {
   console.log('✅ Deployed Hub:', hub.address);
 
   await (
-    await hub
-      .connect(SUI_CONSUMER)
-      .grantRole(ethers.utils.id('ADMIN_ROLE'), SOLANA_CONSUMER.address)
+    await hub.connect(SUI_CONSUMER).grantAdminRole(SOLANA_CONSUMER.address)
   ).wait();
   console.log('✅ Admin granted to:', SOLANA_CONSUMER.address);
 }
