@@ -64,7 +64,7 @@ export const SwapPanel: React.FC<SwapPanelProps> = ({
 }) => {
   const [isTxInFlight, setTxInFlight] = useState<boolean>(false);
 
-  const { tokenBalances } = useTokenBalances();
+  const { tokenBalances, refresh: refreshTokenBalances } = useTokenBalances();
   const { tokenAllowances, refresh: refreshAllowances } = useTokenAllowances();
 
   const [amountIn, setAmountIn] = useState<string>('');
@@ -198,6 +198,14 @@ export const SwapPanel: React.FC<SwapPanelProps> = ({
       setTxInFlight(false);
     }
   }, [raydium, computeSwapResult, tokenInput]);
+
+  useEffect(() => {
+    if (jobStatus.state.jobStatus) {
+      setTimeout(() => {
+        refreshTokenBalances();
+      }, 500);
+    }
+  }, [jobStatus.state.jobStatus]);
 
   const [isSwapDisabled, ctaTitle, onClickCTA] = useMemo(() => {
     let disabled: boolean = false;
