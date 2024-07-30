@@ -12,9 +12,9 @@ export const EthereumExplorer = {
 
 export const SolanaExplorer = {
   getTxLink: (signature: string) =>
-    `${SOL_EXPLORER_BASE_URL}/tx/${signature}?cluster=testnet`,
+    `${SOL_EXPLORER_BASE_URL}/tx/${signature}?cluster=devnet`,
   getAccountLink: (address?: string) =>
-    `${SOL_EXPLORER_BASE_URL}/address/${address}?cluster=testnet`,
+    `${SOL_EXPLORER_BASE_URL}/address/${address}?cluster=devnet`,
 };
 
 export const SuiExplorer = {
