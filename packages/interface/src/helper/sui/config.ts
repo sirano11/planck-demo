@@ -49,6 +49,9 @@ export const CUSTODY = {
   TARGET: {
     BTC_MINT: `${CUSTODY_PACKAGE_ID}::btc::mint`,
   },
+  TYPE_ARGUMENT: {
+    BTC: `${CUSTODY_PACKAGE_ID}::btc::BTC`,
+  },
   OBJECT_ID: {
     // btc::Treasury
     BTC_TREASURY: `0xb7eb26210d9ad67c8cb2247db1bd06dc6df2f1ab0b444141d504f6521cfabc24`,
