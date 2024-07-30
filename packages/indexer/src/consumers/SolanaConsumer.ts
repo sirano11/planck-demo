@@ -9,10 +9,8 @@ import {
   TransactionMessage,
   VersionedTransaction,
 } from '@solana/web3.js';
-import * as bip39 from 'bip39';
 import { Job } from 'bullmq';
 import { BigNumber, ethers } from 'ethers';
-import { HDKey } from 'micro-ed25519-hdkey';
 import { ERC20Mock__factory } from 'planck-demo-contracts/typechain/factories/ERC20Mock__factory';
 import { Hub__factory } from 'planck-demo-contracts/typechain/factories/Hub__factory';
 import { SPL_TOKENS } from 'planck-demo-interface/src/constants/solanaConfigs';
@@ -20,6 +18,7 @@ import { TOKEN_ADDRESS } from 'planck-demo-interface/src/helper/eth/config';
 import { createClient } from 'redis';
 
 import { Config, connection } from '@/config';
+import { fromHexString, getKeypairFromMnemonic } from '@/utils/solanaUtils';
 
 import { BaseConsumer, ChainIdentifier, Tx } from './Consumer';
 
@@ -32,21 +31,6 @@ const ETH2SOL_ASSET_PAIRS: Record<string, string> = {
   [TOKEN_ADDRESS.wSOL]: SPL_TOKENS.wSOL.toBase58(),
   [TOKEN_ADDRESS.wMEME]: SPL_TOKENS.wMEME.toBase58(),
 };
-
-const getKeypairFromMnemonic = (
-  mnemonic: string,
-  password: string = '',
-): Keypair => {
-  const seed = bip39.mnemonicToSeedSync(mnemonic, password);
-  const hd = HDKey.fromMasterSeed(seed.toString('hex'));
-  const path = `m/44'/501'/0'/0'`;
-  return Keypair.fromSeed(hd.derive(path).privateKey);
-};
-
-const fromHexString = (hexString: string) =>
-  Uint8Array.from(
-    hexString.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16)),
-  );
 
 const isValidSignature = async (connection: Connection, sig: string) => {
   const status = await connection.getSignatureStatus(sig, {

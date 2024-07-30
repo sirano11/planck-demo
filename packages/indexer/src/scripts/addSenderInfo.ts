@@ -1,9 +1,11 @@
 import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
-import { Keypair, Keypair as SolKeypair } from '@solana/web3.js';
-import * as bip39 from 'bip39';
+import { getOrCreateAssociatedTokenAccount } from '@solana/spl-token';
 import * as ethers from 'ethers';
-import { HDKey } from 'micro-ed25519-hdkey';
+import { SPL_TOKENS } from 'planck-demo-interface/src/constants/solanaConfigs';
 import * as redis from 'redis';
+
+import { Config, connection } from '@/config';
+import { getKeypairFromMnemonic } from '@/utils/solanaUtils';
 
 export type RedisClient = ReturnType<typeof redis.createClient>;
 
@@ -25,15 +27,6 @@ function getSuiAddress(mnemonic: string): string {
   return keyPair.toSuiAddress();
 }
 
-function getSolanaAddress(mnemonic: string): string {
-  const seed = bip39.mnemonicToSeedSync(mnemonic, '');
-  const hd = HDKey.fromMasterSeed(seed.toString('hex'));
-  const path = `m/44'/501'/0'/0'`;
-  const keypair = SolKeypair.fromSeed(hd.derive(path).privateKey);
-
-  return keypair.publicKey.toBase58();
-}
-
 const putSenderPair = async (
   redisClient: RedisClient,
   mnemonic: string,
@@ -44,7 +37,20 @@ const putSenderPair = async (
 
   const ethAddr = getEthAddress(mnemonic);
   const suiAddr = getSuiAddress(mnemonic);
-  const solAddr = getSolanaAddress(mnemonic);
+  const solActorKeypair = getKeypairFromMnemonic(mnemonic);
+  const solAddr = solActorKeypair.publicKey.toBase58();
+
+  const solMintKeypair = getKeypairFromMnemonic(Config.SOLANA_MINT_MNEMONIC);
+
+  // create token account for all tokens (wSOL, wMEME)
+  for (const token in SPL_TOKENS) {
+    await getOrCreateAssociatedTokenAccount(
+      connection,
+      solMintKeypair,
+      SPL_TOKENS[token],
+      solActorKeypair.publicKey,
+    );
+  }
 
   const result = await redisClient.hSet(`eth:${ethAddr}`, {
     eth: ethAddr,

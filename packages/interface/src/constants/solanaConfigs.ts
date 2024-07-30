@@ -4,7 +4,11 @@ export const connection = new Connection('https://api.devnet.solana.com', {
   commitment: 'confirmed',
 });
 
-export const SPL_TOKENS = {
+interface SPLTokens {
+  [key: string]: PublicKey;
+}
+
+export const SPL_TOKENS: SPLTokens = {
   wSOL: new PublicKey('7tbH4ie5q6ibAVv1trsNwWQPkZcQE8wHRiBVkX9oPHP'),
   wMEME: new PublicKey('9HPW6fJsjJsCtkupv5fazmmqGo8rbKQvYkYQzvjaRuq'),
 } as const;
