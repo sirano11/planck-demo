@@ -52,7 +52,12 @@ export class SolanaConsumer extends BaseConsumer {
   hubOwnerSigner: ethers.Wallet;
 
   constructor() {
-    const redisClient = createClient({ url: Config.REDIS_URL });
+    const redisClient = createClient({
+      socket: {
+        host: Config.REDIS_HOST,
+        port: Config.REDIS_PORT,
+      },
+    });
     super(redisClient, ChainIdentifier.Solana);
 
     this.connection = new Connection(

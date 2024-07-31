@@ -33,7 +33,12 @@ export class SuiConsumer extends BaseConsumer {
   private suiClient: SuiClient;
   private ethSigner: ethers.Signer;
   constructor() {
-    const redisClient = createClient({ url: Config.REDIS_URL });
+    const redisClient = createClient({
+      socket: {
+        host: Config.REDIS_HOST,
+        port: Config.REDIS_PORT,
+      },
+    });
     super(redisClient, ChainIdentifier.Sui);
     this.suiClient = new SuiClient({ url: getFullnodeUrl('testnet') });
 

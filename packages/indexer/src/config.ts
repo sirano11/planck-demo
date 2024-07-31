@@ -22,7 +22,8 @@ type Config = {
   SOLANA_DEVNET_RPC_ENDPOINT: string;
 
   START_HEIGHT: number;
-  REDIS_URL: string;
+  REDIS_HOST: string;
+  REDIS_PORT: number;
 
   CONTRACT_ADDRESS_HUB: string;
   ALLOWED_SENDER?: string;
@@ -31,6 +32,7 @@ type Config = {
   PRIVATE_KEY_SOLANA_CONSUMER: string;
   SOLANA_MINT_MNEMONIC: string;
 
+  WEBSOCKET_HOST: string;
   WEBSOCKET_PORT: number;
   WEBSOCKET_CORS_ORIGIN: string;
 };
@@ -43,7 +45,8 @@ const getConfig = (): Config => {
     'SOLANA_DEVNET_RPC_ENDPOINT',
     //
     'START_HEIGHT',
-    'REDIS_URL',
+    'REDIS_HOST',
+    'REDIS_PORT',
     //
     'CONTRACT_ADDRESS_HUB',
     'ALLOWED_SENDER',
@@ -52,6 +55,7 @@ const getConfig = (): Config => {
     'PRIVATE_KEY_SOLANA_CONSUMER',
     'SOLANA_MINT_MNEMONIC',
     //
+    'WEBSOCKET_HOST',
     'WEBSOCKET_PORT',
     'WEBSOCKET_CORS_ORIGIN',
   ]);
@@ -65,8 +69,8 @@ export const Config = getConfig();
 
 export const QUEUE_CONFIG = {
   connection: {
-    host: 'localhost',
-    port: 6379,
+    host: Config.REDIS_HOST,
+    port: Config.REDIS_PORT,
   },
   defaultJobOptions: {
     removeOnFail: false, // If true, removes the job when it fails after all attempts.

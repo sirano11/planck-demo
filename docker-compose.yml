@@ -1,0 +1,100 @@
+name: planck-demo
+
+services:
+  redis:
+    container_name: indexer-redis
+    image: redis:7.2.5
+    restart: always
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - .volumes/redis:/data
+    ports:
+      - 6379:6379
+  indexer:
+    container_name: indexer
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    restart: always
+    environment:
+      - ETH_HTTP_ENDPOINT=https://ethereum-sepolia.publicnode.com
+      - START_HEIGHT=6319973
+      - REDIS_HOST=host.docker.internal
+      - REDIS_PORT=6379
+      - CONTRACT_ADDRESS_HUB=0x2912d6e766f136dfa1ebfea5c77bb4a61fb68cf4
+    volumes:
+      - ./packages/indexer/data:/usr/src/app/packages/indexer/data
+    depends_on:
+      - redis
+    entrypoint: 
+      - "yarn"
+      - "workspace"
+      - "planck-demo-indexer"
+    command: ["start"]
+  indexer_sui_consumer:
+    container_name: indexer_sui_consumer
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    environment:
+      - ETH_HTTP_ENDPOINT=https://ethereum-sepolia.publicnode.com
+      - SUI_RPC_ENDPOINT=https://sui.publicnode.com/?testnet
+      - REDIS_HOST=host.docker.internal
+      - REDIS_PORT=6379
+      - CONTRACT_ADDRESS_HUB=0x2912d6e766f136dfa1ebfea5c77bb4a61fb68cf4
+      - PRIVATE_KEY_SUI_CONSUMER=0x5f823f3498a2436ec1607233679251e2522fe4a68ff92b4df7571efbeaa9c6f5
+      - WEBSOCKET_HOST=host.docker.internal
+      - WEBSOCKET_PORT=1233
+      - WEBSOCKET_CORS_ORIGIN=http://localhost:3000
+    depends_on:
+      - redis
+      - indexer
+    entrypoint: 
+      - "yarn"
+      - "workspace"
+      - "planck-demo-indexer"
+    command: ["sui-worker"]
+  indexer_solana_consumer:
+    container_name: indexer_solana_consumer
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    environment:
+      - ETH_HTTP_ENDPOINT=https://ethereum-sepolia.publicnode.com
+      - SOLANA_DEVNET_RPC_ENDPOINT=https://api.devnet.solana.com
+      - REDIS_HOST=host.docker.internal
+      - REDIS_PORT=6379
+      - CONTRACT_ADDRESS_HUB=0x2912d6e766f136dfa1ebfea5c77bb4a61fb68cf4
+      - SOLANA_MINT_MNEMONIC=defense service rail filter because must raccoon wife morning hazard produce solar
+      - PRIVATE_KEY_SOLANA_CONSUMER=0x390ee857be0aec687774ede42e0358ffae4c268c8c68b42f3917415c1377e518
+      - WEBSOCKET_HOST=host.docker.internal
+      - WEBSOCKET_PORT=1233
+      - WEBSOCKET_CORS_ORIGIN=http://localhost:3000
+    depends_on:
+      - redis
+      - indexer
+    entrypoint: 
+      - "yarn"
+      - "workspace"
+      - "planck-demo-indexer"
+    command: ["solana-worker"]
+  indexer_socket_server:
+    container_name: indexer_socket_server
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    environment:
+      - WEBSOCKET_HOST=host.docker.internal
+      - WEBSOCKET_PORT=1233
+      - WEBSOCKET_CORS_ORIGIN=http://localhost:3000
+    ports:
+      - "1233:1233"
+    depends_on:
+      - redis
+      - indexer
+    entrypoint: 
+      - "yarn"
+      - "workspace"
+      - "planck-demo-indexer"
+    command: ["socket"]
+    

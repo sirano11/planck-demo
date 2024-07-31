@@ -6,7 +6,7 @@ import { Config, QUEUE_CONFIG, QUEUE_NAME, WORKER_CONFIG } from '@/config';
 import { ChainIdentifier } from './Consumer';
 import { SolanaConsumer } from './SolanaConsumer';
 
-const socket = io(`http://localhost:${Config.WEBSOCKET_PORT}`, {
+const socket = io(`http://${Config.WEBSOCKET_HOST}:${Config.WEBSOCKET_PORT}`, {
   autoConnect: true,
 });
 

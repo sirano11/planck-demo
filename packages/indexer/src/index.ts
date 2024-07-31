@@ -48,9 +48,7 @@ const solanaQueueEvents = new QueueEvents(QUEUE_NAME.Solana, {
   connection: QUEUE_CONFIG.connection,
 });
 
-const provider = new ethers.providers.WebSocketProvider(
-  Config.ETH_WSS_ENDPOINT,
-);
+const provider = new ethers.providers.JsonRpcProvider(Config.ETH_HTTP_ENDPOINT);
 const hubContract = Hub__factory.connect(Config.CONTRACT_ADDRESS_HUB, provider);
 
 const main = async (): Promise<void> => {
@@ -145,9 +143,6 @@ const gracefulShutdown = async (signal: string) => {
   await solanaQueue.close();
   await solanaQueueEvents.close();
 
-  hubContract.removeAllListeners();
-  provider.websocket.close();
-
   process.exit(0);
 };
 
@@ -168,9 +163,6 @@ process.on('uncaughtException', async (err, origin) => {
   await solanaQueue.close();
   await solanaQueueEvents.close();
 
-  hubContract.removeAllListeners();
-  provider.websocket.close();
-
   process.exit(1);
 });
 
@@ -181,9 +173,6 @@ process.on('unhandledRejection', async (reason, promise) => {
   await suiQueueEvents.close();
   await solanaQueue.close();
   await solanaQueueEvents.close();
-
-  hubContract.removeAllListeners();
-  provider.websocket.close();
 
   process.exit(1);
 });
