@@ -73,8 +73,12 @@ export const QUEUE_CONFIG = {
     port: Config.REDIS_PORT,
   },
   defaultJobOptions: {
-    removeOnFail: false, // If true, removes the job when it fails after all attempts.
-    removeOnComplete: true, // If true, removes the job when it successfully completes
+    // If true, removes the job when it successfully completes
+    // If false (or set a number), we can check bull:sol:completed to find the duplicated job so that preventing same job execution.
+    removeOnComplete: 1000,
+    // If true, removes the job when it fails after all attempts.
+    // If false (or set a number), we can restrict the number of finished jobs to be kept, so that we do not fill Redis with data that is not particularly useful.
+    removeOnFail: 5000,
   },
 };
 
