@@ -115,10 +115,6 @@ const main = async (): Promise<void> => {
   }
 };
 
-main()
-  .then(() => console.log('✨ Done'))
-  .catch(console.error);
-
 //---> Queue Event handler
 suiQueueEvents.on('completed', ({ jobId, returnvalue }) => {
   // Called every time a job is completed in any worker.
@@ -177,3 +173,15 @@ process.on('unhandledRejection', async (reason, promise) => {
   process.exit(1);
 });
 //<--- Error handler
+
+main()
+  .then(() => console.log('✨ Done'))
+  .catch((e) => {
+    /**
+     *  If it is necessary to terminate the Node.js process due to an error condition,
+        throwing an _uncaught_ error and allowing the process to terminate accordingly
+        is safer than calling `process.exit()`.
+     */
+    console.log(e);
+    throw e;
+  });
