@@ -4,6 +4,7 @@ import {
   SuiHTTPTransportError,
   getFullnodeUrl,
 } from '@mysten/sui/client';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { waitForTransactionReceipt } from '@wagmi/core';
 import axios from 'axios';
 import { Loader2Icon } from 'lucide-react';
@@ -60,7 +61,9 @@ const MintDemoPage: NextPage = () => {
     {},
   );
 
-  const { address } = useAccount();
+  const { address, isConnected } = useAccount();
+  const { openConnectModal } = useConnectModal();
+
   const { tokenBalances: senderTokenBalances, refresh: refreshTokenBalances } =
     useTokenBalances();
   const { tokenAllowances, refresh: refreshAllowances } = useTokenAllowances();
@@ -410,7 +413,7 @@ const MintDemoPage: NextPage = () => {
     }
   }, [actorAddress, inputDraft, offerCoinAddress, askCoinAddress]);
 
-  const [isSwapDisabled, ctaTitle] = useMemo(() => {
+  const [isCTADisabled, ctaTitle] = useMemo(() => {
     let disabled: boolean = false;
     let title: React.ReactNode = 'Swap';
 
@@ -436,14 +439,40 @@ const MintDemoPage: NextPage = () => {
       title = 'Withdraw';
     }
 
+    if (!isConnected) {
+      disabled = false;
+      title = 'Connect Wallet';
+    }
+
     return [disabled, title];
   }, [
+    isConnected,
     isTxInFlight,
     offerCoinAddress,
     askCoinAddress,
     hasEnoughBalance,
     hasEnoughAllowance,
     errorMessage,
+  ]);
+
+  const onClickCTA = useMemo(() => {
+    if (!isConnected) {
+      return openConnectModal;
+    }
+    if (isCTADisabled) {
+      return undefined;
+    }
+    if (!hasEnoughAllowance) {
+      return onClickApprove;
+    }
+    return onClickSwap;
+  }, [
+    isConnected,
+    isCTADisabled,
+    hasEnoughAllowance,
+    openConnectModal,
+    onClickApprove,
+    onClickSwap,
   ]);
 
   return (
@@ -564,14 +593,8 @@ const MintDemoPage: NextPage = () => {
         </TokenInputContainer>
 
         <Button
-          disabled={isSwapDisabled}
-          onClick={
-            isSwapDisabled
-              ? undefined
-              : !hasEnoughAllowance
-                ? onClickApprove
-                : onClickSwap
-          }
+          disabled={isCTADisabled}
+          onClick={onClickCTA}
           className="w-full h-[64px] py-0 text-[22px] font-bold bg-emerald-300 hover:bg-emerald-400 text-slate-800 rounded-[12px] transition-colors duration-200"
         >
           {ctaTitle}
