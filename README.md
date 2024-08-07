@@ -1,60 +1,79 @@
 # Planck Demo
 
-## Prerequisites
+## Getting Started
 
-### Install dependencies.
+### Prerequisites
 
-In your root folder or planck-demo, just run the below command.
+- Node.js
+- Yarn
+- Docker and Docker Compose
 
+### Clone the repository
+
+```bash
+git clone https://github.com/your-username/planck-demo.git
+cd planck-demo
 ```
+
+### Install dependencies
+
+In the root directory of the project (where the `yarn.lock` file is located), run:
+
+```bash
 yarn install
 ```
 
 ### Register your account
 
-To subscribe and handle your transaction through Hub contract in Ethereum network, It needs to register your secret in redis.
+To subscribe to events and commit your transactions through the Hub contract on the Ethereum network, you need to register your secret in Redis.
 
-In `./planck-demo/packages/indexer/src/scripts/addSenderInfo.ts`, you need to modify the mnemonic string to register account that used planck-demo.
+In the file `./packages/indexer/src/scripts/addSenderInfo.ts`, modify the mnemonic string to generate new accounts for use in Planck Demo.
 
-```
+```ts
 const mnemonics: string[] = [
   'penalty frog guide equal virus grant airport boost inside way pond wisdom catalog poet question',
 ];
 ```
 
-And then, it run `addSenderInfo.ts`
+And then, run `addSenderInfo.ts`
 
-```
+```bash
 yarn tsx ./addSenderInfo.ts
-//or
+# or
 yarn workspace planck-demo-indexer add-sender
 ```
 
+if you forget this step, you might see this error in a toast message:
+
+> Actor wallet not registered
+
 ### Mint wBTC and wSOL
 
-Before you enjoy the planck-demo, you needs to have wBTC and wSOL existed in Ethereum.
-You can find the addresses of wBTC, wSOL that used by planck-demo through `planck-demo/interface/src/helper/eth/config.ts`
+Before you enjoy Planck Demo, you need to have wBTC and wSOL available on the Ethereum network.
 
-Mint it.
+You can find the addresses of wBTC and wSOL used by Planck Demo in the file `./interface/src/helper/eth/config.ts`.
 
-```
-// wBTC
+Mint it!:
+
+```bash
+# wBTC
 yarn workspace planck-demo-contracts faucet --token-address 0x7daEE33986AC827989bb32F9962d5E54080CC859 --user-address 0x{yourEOA} --amount 1000000000000 --network sepolia
 
-// wSOL
+# wSOL
 yarn workspace planck-demo-contracts faucet --token-address 0x4cECeB128754faAB57315C12346b8f3F4E2ABEb5 --user-address 0x{yourEOA} --amount 1000000000000 --network sepolia
 ```
 
 ## Run with Docker compose
 
-In your root of this project, you can find `docker-compose.yml`.
-You just open terminal and run below command:
+In the root of this project, you can find `docker-compose.yml`.
+Open the new terminal and run:
 
-```
+```bash
 docker compose up
 ```
 
-If you would test only your owned account, it needs to set `ALLOWED_SENDER` environment variable in `indexer` container. If not set, the indexer will try to catch all accounts that registerd in redis.
+If you want to test with only your own account, you need to set the `ALLOWED_SENDER` environment variable in the `indexer` container.  
+If not set, the `indexer` will try to catch events of all accounts that registerd in Redis:
 
 ```
   - .....
@@ -63,30 +82,36 @@ If you would test only your owned account, it needs to set `ALLOWED_SENDER` envi
 
 ## See the log of specfic container
 
-You can watch the log specfic container through below command.
+You can watch the logs of a specific container through the command below:
 
-```
-// To watch indexer log
+```bash
+# To watch indexer log
 docker logs indexer -f
 
-// To watch indexer_sui_consumer
+# To watch indexer_sui_consumer
 docker logs indexer_sui_consumer -f
 ```
 
-## planck-demo-interface
+## Demo Web Page
 
-The planck-demo-interface is a web server to render planck-demo page. To run planck-demo locally, it also needs to run planck-demo-interface.
+The planck-demo-interface is a web server to render planck-demo page. To run planck-demo locally, you also need to run planck-demo-interface.
 
-### set .env
+### Environment variables
 
-First, it needs to set environment variable in `.env`.
+First, set the environment variables in the `.env` file located in the root directory of the `interface` package (`packages/interface/.env`):
+
+```bash
+# The socket server that emit events while processing transaction
+NEXT_PUBLIC_INDEXER_URL=http://localhost:1233
+
+# The redis server
+REDIS_URL=redis://localhost:6379
 
 ```
-NEXT_PUBLIC_INDEXER_URL=http://localhost:1233 // The socket server that emit events while processing transaction
-REDIS_URL=redis://localhost:6379 // The redis server
-```
 
-### Run planck-demo-interface
+### Web server
+
+Run planck-demo-interface:
 
 ```
 yarn workspace planck-demo-interface dev
