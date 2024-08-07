@@ -91,11 +91,12 @@ export const useJobStatus = () => {
 };
 
 const successMessages: Record<SuccessStatusType, string> = {
-  'event-received': 'Event received (1/4)',
+  'event-received': '🚀 Event received (1/3)',
   'mint-asset-to-actor':
-    'Input assets have been minted in the destination chain (2/4)',
-  'send-tx-to-dest': 'Transaction confirmed in the destination chain (3/4)',
-  'mint-asset-to-sender': 'Output assets have been minted to the sender (4/4)',
+    '🌠 Input assets have been minted in the destination chain',
+  'send-tx-to-dest': '✨ Transaction confirmed in the destination chain (2/3)',
+  'mint-asset-to-sender':
+    '🌟 Output assets have been minted to the sender (3/3)',
   'give-asset-back-to-sender': 'Assets returned to sender (due to tx failure)',
   completed: 'Transaction completed',
 };
