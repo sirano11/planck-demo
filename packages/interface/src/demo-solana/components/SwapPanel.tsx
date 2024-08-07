@@ -35,21 +35,10 @@ import { useHover } from '@/raydium/hooks';
 import SwapButtonOneTurnIcon from '@/raydium/icons/misc/SwapButtonOneTurnIcon';
 import SwapButtonTwoTurnIcon from '@/raydium/icons/misc/SwapButtonTwoTurnIcon';
 import { colors } from '@/raydium/theme/cssVariables';
+import { debounce } from '@/raydium/utils/functionMethods';
 import { toastTransaction } from '@/utils/toast';
 
 import { SwapInfoBoard } from './SwapInfoBoard';
-
-// https://github.com/raydium-io/raydium-ui-v3/blob/master/src/utils/functionMethods.ts#L1
-export const debounce = (func: (params?: any) => void, delay?: number) => {
-  let timer: number | null = null;
-
-  return (params?: any) => {
-    timer && clearTimeout(timer);
-    timer = window.setTimeout(() => {
-      func(params);
-    }, delay || 250);
-  };
-};
 
 type SwapPanelProps = {
   tokenInput: Token;

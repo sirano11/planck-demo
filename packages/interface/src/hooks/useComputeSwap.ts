@@ -6,13 +6,11 @@ import {
 } from '@raydium-io/raydium-sdk-v2';
 import BN from 'bn.js';
 import Decimal from 'decimal.js';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { parseUnits } from 'viem';
 
 import { POOL_IDS, Token } from '@/constants';
-
-// global variable
-let debounce_: NodeJS.Timeout;
+import { debounce } from '@/raydium/utils/functionMethods';
 
 export type ComputeSwapResult = {
   poolInfo: ComputeAmountOutParam['poolInfo'];
@@ -102,13 +100,11 @@ export const useComputeSwap = (
   >(undefined);
   const [isComputing, setComputing] = useState<boolean>(false);
 
-  useEffect(() => {
-    if (!raydium) {
-      return;
-    }
-
-    clearTimeout(debounce_);
-    debounce_ = setTimeout(() => {
+  const debounceUpdate = useCallback(
+    debounce(({ raydium, inputToken, amountInDraft }) => {
+      if (!raydium) {
+        return;
+      }
       setComputing(true);
       computeSwap(raydium, inputToken, amountInDraft)
         .then((res) => setComputeSwapResult(res))
@@ -118,8 +114,13 @@ export const useComputeSwap = (
         .finally(() => {
           setComputing(false);
         });
-    }, 500);
-  }, [raydium, amountInDraft, inputToken]);
+    }, 500),
+    [],
+  );
+
+  useEffect(() => {
+    debounceUpdate({ raydium, inputToken, amountInDraft });
+  }, [raydium, inputToken, amountInDraft]);
 
   return { isComputing, computeSwapResult };
 };

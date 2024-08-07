@@ -1,118 +1,133 @@
-function debounce(func: (params?: any) => void, delay?: number) {
-  let timer: number | null = null
+// https://github.com/raydium-io/raydium-ui-v3/blob/master/src/utils/functionMethods.ts#L1
+export function debounce(func: (params?: any) => void, delay?: number) {
+  let timer: number | null = null;
 
   return (params?: any) => {
-    timer && clearTimeout(timer)
+    timer && clearTimeout(timer);
     timer = window.setTimeout(() => {
-      func(params)
-    }, delay || 250)
-  }
+      func(params);
+    }, delay || 250);
+  };
 }
 
 function throttle(func: () => void, delay = 250) {
-  let lastTime = 0
+  let lastTime = 0;
 
   return () => {
-    const triggerTime = Date.now()
+    const triggerTime = Date.now();
 
     if (triggerTime - lastTime > delay) {
-      func()
-      lastTime = triggerTime
+      func();
+      lastTime = triggerTime;
     }
-  }
+  };
 }
 
 function throbounce(func: () => void, delay = 250) {
-  let timer: number | null = null
-  let lastTime = 0
+  let timer: number | null = null;
+  let lastTime = 0;
 
   return () => {
-    const triggerTime = Date.now()
+    const triggerTime = Date.now();
 
     if (triggerTime - lastTime > delay) {
       // throttle
-      func()
-      lastTime = triggerTime
+      func();
+      lastTime = triggerTime;
     } else {
       // debounce
-      timer && clearTimeout(timer)
+      timer && clearTimeout(timer);
       timer = window.setTimeout(() => {
-        lastTime = triggerTime
-        clearTimeout(timer!)
-        func()
-      }, delay)
+        lastTime = triggerTime;
+        clearTimeout(timer!);
+        func();
+      }, delay);
     }
-  }
+  };
 }
 
 function throttleTrigger(func: () => void, delay = 250) {
-  let lastTime = 0
-  let timer: number | undefined = undefined
+  let lastTime = 0;
+  let timer: number | undefined = undefined;
 
   return () => {
-    const triggerTime = Date.now()
-    if (timer) clearTimeout(timer)
+    const triggerTime = Date.now();
+    if (timer) clearTimeout(timer);
 
     if (triggerTime - lastTime > delay) {
-      func()
-      lastTime = triggerTime
-      return
+      func();
+      lastTime = triggerTime;
+      return;
     }
 
     timer = window.setTimeout(() => {
-      func()
-      lastTime = Date.now()
-    }, delay)
-  }
+      func();
+      lastTime = Date.now();
+    }, delay);
+  };
 }
 
 /**
  * simple but useful shortcut
  */
-function tryCatch<T>(tryFunction: () => T, catchFunction?: (err: unknown) => T): T {
+function tryCatch<T>(
+  tryFunction: () => T,
+  catchFunction?: (err: unknown) => T,
+): T {
   try {
-    return tryFunction()
+    return tryFunction();
   } catch (err) {
     // @ts-expect-error force
-    return catchFunction?.(err)
+    return catchFunction?.(err);
   }
 }
 
 // SERENDIPITY: looks like this is Promise then chain
 // Ask so, why not just use promise.prototype.then()？
 // because the value can't get syncly
-export function fall<T, F1 extends (arg: T) => any>(n: T, actions: [F1]): ReturnType<F1>
-export function fall<T, F1 extends (arg: T) => any, F2 extends (arg: ReturnType<F1>) => any>(n: T, actions: [F1, F2]): ReturnType<F2> // fixme: why type not work properly?
-export function fall<T, F1 extends (arg: T) => any, F2 extends (arg: ReturnType<F1>) => any, F3 extends (arg: ReturnType<F2>) => any>(
+export function fall<T, F1 extends (arg: T) => any>(
   n: T,
-  actions: [F1, F2, F3]
-): ReturnType<F3>
+  actions: [F1],
+): ReturnType<F1>;
+export function fall<
+  T,
+  F1 extends (arg: T) => any,
+  F2 extends (arg: ReturnType<F1>) => any,
+>(n: T, actions: [F1, F2]): ReturnType<F2>; // fixme: why type not work properly?
 export function fall<
   T,
   F1 extends (arg: T) => any,
   F2 extends (arg: ReturnType<F1>) => any,
   F3 extends (arg: ReturnType<F2>) => any,
-  F4 extends (arg: ReturnType<F3>) => any
->(n: T, actions: [F1, F2, F3, F4]): ReturnType<F4>
+>(n: T, actions: [F1, F2, F3]): ReturnType<F3>;
 export function fall<
   T,
   F1 extends (arg: T) => any,
   F2 extends (arg: ReturnType<F1>) => any,
   F3 extends (arg: ReturnType<F2>) => any,
   F4 extends (arg: ReturnType<F3>) => any,
-  F5 extends (arg: ReturnType<F4>) => any
->(n: T, actions: [F1, F2, F3, F4, F5]): ReturnType<F5>
+>(n: T, actions: [F1, F2, F3, F4]): ReturnType<F4>;
+export function fall<
+  T,
+  F1 extends (arg: T) => any,
+  F2 extends (arg: ReturnType<F1>) => any,
+  F3 extends (arg: ReturnType<F2>) => any,
+  F4 extends (arg: ReturnType<F3>) => any,
+  F5 extends (arg: ReturnType<F4>) => any,
+>(n: T, actions: [F1, F2, F3, F4, F5]): ReturnType<F5>;
 export function fall(n: any, actions: any[]) {
-  return actions.reduce((value, action) => action(value), n)
+  return actions.reduce((value, action) => action(value), n);
 }
 
-function exhaustCall<T>(func: ((params?: T) => Promise<void>) | ((params?: T) => void)) {
-  let executing = false
+function exhaustCall<T>(
+  func: ((params?: T) => Promise<void>) | ((params?: T) => void),
+) {
+  let executing = false;
 
   return async (params?: T) => {
-    if (executing) return
-    executing = true
-    await func(params)
-    executing = false
-  }
+    if (executing) return;
+    executing = true;
+    await func(params);
+    executing = false;
+  };
 }
