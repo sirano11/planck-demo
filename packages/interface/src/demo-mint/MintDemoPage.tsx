@@ -133,6 +133,7 @@ const MintDemoPage: NextPage = () => {
         });
       } catch (e) {
         console.error(e);
+        setTokenBalances(senderTokenBalances);
       }
     })();
   }, [address, senderTokenBalances]);
