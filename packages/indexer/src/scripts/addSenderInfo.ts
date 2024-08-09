@@ -1,3 +1,5 @@
+import { SuiClient, getFullnodeUrl } from '@mysten/sui/client';
+import { getFaucetHost, requestSuiFromFaucetV0 } from '@mysten/sui/faucet';
 import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
 import { getOrCreateAssociatedTokenAccount } from '@solana/spl-token';
 import {
@@ -28,54 +30,46 @@ function getEthAddress(mnemonic: string): string {
   const wallet = ethers.Wallet.fromMnemonic(mnemonic);
 
   // when importing to MetaMask
-  console.log({ wallet_privateKey: wallet.privateKey });
+  console.log({ eth_wallet_privateKey: wallet.privateKey });
 
   return wallet.address;
 }
 
 function getSuiAddress(mnemonic: string): string {
-  const keyPair = Ed25519Keypair.deriveKeypair(mnemonic);
+  const keypair = Ed25519Keypair.deriveKeypair(mnemonic);
 
-  return keyPair.toSuiAddress();
+  // when importing to Sui client
+  console.log({ sui_wallet_privateKey: keypair.getSecretKey() });
+
+  return keypair.toSuiAddress();
 }
 
-const requestSolAirdrop = async (pubkey: PublicKey): Promise<void> => {
-  try {
-    const airdropSignature = await connection.requestAirdrop(
-      pubkey,
-      5e9, // 5 SOL
-    );
+const requestSuiFaucet = async (suiAddr: string): Promise<void> => {
+  const client = new SuiClient({ url: getFullnodeUrl('testnet') });
+  const suiBalance = await client.getBalance({ owner: suiAddr });
 
-    const latestBlockHash = await connection.getLatestBlockhash();
-    await connection.confirmTransaction({
-      blockhash: latestBlockHash.blockhash,
-      lastValidBlockHeight: latestBlockHash.lastValidBlockHeight,
-      signature: airdropSignature,
+  console.log('\n=== Request Sui Faucet ===');
+
+  console.log(`${suiAddr}: ${suiBalance.totalBalance} SUI`);
+  console.log({ suiBalance });
+
+  if (BigInt(suiBalance.totalBalance) === 0n) {
+    // get tokens from the Testnet faucet server
+    const responseV0 = await requestSuiFromFaucetV0({
+      // connect to Testnet
+      host: getFaucetHost('testnet'),
+      recipient: suiAddr,
     });
-  } catch (e) {
-    console.error('Error in requestSolAirdrop:', e);
-    throw e; // Rethrow the error to be handled by the caller
+    console.log({ responseV0 });
+    console.log({ transferredGasObjects: responseV0.transferredGasObjects });
   }
 };
 
-const putSenderPair = async (
-  redisClient: RedisClient,
-  mnemonic: string,
+const calculateFaucetThreshold = async (
+  solPubKey: PublicKey,
   solMintKeypair: Keypair,
-): Promise<void> => {
-  if (!redisClient.isOpen) {
-    await redisClient.connect();
-  }
-
-  const ethAddr = getEthAddress(mnemonic);
-  const suiAddr = getSuiAddress(mnemonic);
-  const solActorKeypair = getKeypairFromMnemonic(mnemonic);
-  const solPubKey = solActorKeypair.publicKey;
-  const solAddr = solPubKey.toBase58();
-
-  const solanaBalance = await connection.getBalance(solPubKey);
-  console.log(`${solAddr}: ${solanaBalance / LAMPORTS_PER_SOL} SOL`);
-
+): Promise<number> => {
+  console.log('\n--- Calculate Solana Faucet Threshold ---');
   // Create a sample transaction instruction
   const transferInstruction = SystemProgram.transfer({
     fromPubkey: solMintKeypair.publicKey,
@@ -108,12 +102,66 @@ const putSenderPair = async (
 
   console.log(`Threshold with buffer: ${threshold} lamports`);
 
-  try {
-    if (solanaBalance < threshold) {
-      await requestSolAirdrop(solPubKey);
+  return threshold;
+};
+
+const requestSolFaucet = async (
+  solAddr: string,
+  solPubKey: PublicKey,
+  solMintKeypair: Keypair,
+): Promise<void> => {
+  const solanaBalance = await connection.getBalance(solPubKey);
+  console.log('\n=== Request Solana Faucet ===');
+  console.log(`${solAddr}: ${solanaBalance / LAMPORTS_PER_SOL} SOL`);
+
+  const threshold = await calculateFaucetThreshold(solPubKey, solMintKeypair);
+
+  if (solanaBalance < threshold) {
+    try {
+      const airdropSignature = await connection.requestAirdrop(
+        solPubKey,
+        5e9, // 5 SOL
+      );
+
+      const latestBlockHash = await connection.getLatestBlockhash();
+      await connection.confirmTransaction({
+        blockhash: latestBlockHash.blockhash,
+        lastValidBlockHeight: latestBlockHash.lastValidBlockHeight,
+        signature: airdropSignature,
+      });
+    } catch (e) {
+      console.error('Error in requestSolAirdrop:', e);
+      throw e; // Rethrow the error to be handled by the caller
     }
+  }
+};
+
+const putSenderPair = async (
+  redisClient: RedisClient,
+  mnemonic: string,
+  solMintKeypair: Keypair,
+): Promise<void> => {
+  if (!redisClient.isOpen) {
+    await redisClient.connect();
+  }
+
+  const ethAddr = getEthAddress(mnemonic);
+  const suiAddr = getSuiAddress(mnemonic);
+  const solActorKeypair = getKeypairFromMnemonic(mnemonic);
+  const solPubKey = solActorKeypair.publicKey;
+  const solAddr = solPubKey.toBase58();
+
+  try {
+    await requestSuiFaucet(suiAddr);
   } catch (e) {
-    console.log(`Failed to request airdrop`);
+    console.log(`Failed to request sui faucet`);
+    console.log(e);
+  }
+
+  try {
+    await requestSolFaucet(solAddr, solPubKey, solMintKeypair);
+  } catch (e) {
+    console.log(`Failed to request solana faucet`);
     console.log(e);
   }
 
@@ -134,6 +182,7 @@ const putSenderPair = async (
     mnemonic: mnemonic,
   });
 
+  console.log(`\n==== actor addresses ====`);
   console.log({ ethAddr, suiAddr, solAddr, result });
 };
 
@@ -146,7 +195,9 @@ const putSenderPairs = async (
     await redisClient.connect();
   }
 
-  for (const mnemonic of mnemonics) {
+  for (const [index, mnemonic] of mnemonics.entries()) {
+    console.log(`\n== #${index + 1} mnemonic ==`);
+
     await putSenderPair(redisClient, mnemonic, solMintKeypair);
   }
 };
@@ -159,6 +210,9 @@ const main = async (): Promise<void> => {
   const solMintKeypair = getKeypairFromMnemonic(Config.SOLANA_MINT_MNEMONIC);
   const solMintAddr = solMintKeypair.publicKey.toBase58();
   const adminBalance = await connection.getBalance(solMintKeypair.publicKey);
+
+  console.log('\n= Start add senders! =');
+
   console.log({
     solMintKeypair_publicKey: solMintAddr,
   });
