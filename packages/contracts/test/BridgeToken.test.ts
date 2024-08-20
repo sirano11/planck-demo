@@ -153,4 +153,28 @@ describe('BridgeToken', function () {
       ).to.be.revertedWith('AccessControlUnauthorizedAccount');
     });
   });
+
+  describe('Faucet', function () {
+    it('Should mint tokens to faucet caller', async function () {
+      // given
+      const FaucetFactory = await ethers.getContractFactory('Faucet');
+      const faucet = await FaucetFactory.connect(owner).deploy(token.address);
+      await faucet.deployed();
+
+      await token.connect(owner).grantAdminRole(faucet.address);
+
+      const addr1BalancePre = await token.balanceOf(addr1.address);
+      expect(addr1BalancePre).to.equal(0);
+
+      // when
+      const amount = ethers.utils.parseUnits('1', 9);
+      await expect(faucet.connect(addr1).requestFaucet(amount))
+        .to.emit(token, 'Transfer')
+        .withArgs(ethers.constants.AddressZero, addr1.address, amount);
+
+      // then
+      const addr1BalancePost = await token.balanceOf(addr1.address);
+      expect(addr1BalancePost).to.equal(amount);
+    });
+  });
 });

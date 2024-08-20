@@ -12,7 +12,8 @@ module.exports = withPlugins(
       emotion: true,
     },
     redirects: async () => [
-      { source: '/', destination: '/mint', permanent: false },
+      { source: '/', destination: '/swap', permanent: false },
+      { source: '/mint', destination: '/swap', permanent: false },
     ],
     // NOTE: Unused for now
     transpilePackages: ['planck-demo-contracts'],

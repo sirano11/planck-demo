@@ -26,7 +26,7 @@ services:
       - ./packages/indexer/data:/usr/src/app/packages/indexer/data
     depends_on:
       - redis
-    entrypoint: 
+    entrypoint:
       - "yarn"
       - "workspace"
       - "planck-demo-indexer"
@@ -49,7 +49,7 @@ services:
     depends_on:
       - redis
       - indexer
-    entrypoint: 
+    entrypoint:
       - "yarn"
       - "workspace"
       - "planck-demo-indexer"
@@ -73,7 +73,7 @@ services:
     depends_on:
       - redis
       - indexer
-    entrypoint: 
+    entrypoint:
       - "yarn"
       - "workspace"
       - "planck-demo-indexer"
@@ -92,9 +92,8 @@ services:
     depends_on:
       - redis
       - indexer
-    entrypoint: 
+    entrypoint:
       - "yarn"
       - "workspace"
       - "planck-demo-indexer"
     command: ["socket"]
-    

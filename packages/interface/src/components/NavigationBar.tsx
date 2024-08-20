@@ -13,10 +13,14 @@ import { ColorModeToggle } from './ColorModeToggle';
 
 const NavigationBar: React.FC = () => {
   return (
-    <nav className="fixed top-0 w-full bg-background border-b border border-b-slate-200 dark:border-b-slate-800">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          <span className="font-bold text-xl flex-[1_0_0]">Planck Demo</span>
+    <nav className="fixed top-0 w-full bg-white dark:bg-background border-b border-b-slate-200 dark:border-b-slate-800 z-[100]">
+      <div className="max-w-[1200px] mx-auto px-4">
+        <div className="flex items-center justify-between h-14">
+          <div className="flex-[1_0_0]">
+            <Link href="/">
+              <span className="font-bold text-xl">Planck Demo</span>
+            </Link>
+          </div>
 
           <NavigationMenu className="hidden md:flex space-x-4 flex-[1_0_0]">
             <NavigationMenuList>

@@ -43,7 +43,7 @@ const SolanaDemoPage = () => {
 
   return (
     <div className="px-4 pt-[96px] container mx-auto">
-      <HStack alignSelf="flex-end" my={[1, 0]}>
+      <HStack alignSelf="flex-end" mb={2}>
         <SlippageAdjuster />
         {!isMobile && isPCChartShown && (
           <Box

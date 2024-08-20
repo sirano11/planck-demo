@@ -6,8 +6,7 @@ import {
 } from '@mysten/sui/client';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { waitForTransactionReceipt } from '@wagmi/core';
-import axios from 'axios';
-import { Loader2Icon } from 'lucide-react';
+import { ArrowLeftRightIcon, Loader2Icon } from 'lucide-react';
 import { NextPage } from 'next';
 import { BridgeToken__factory } from 'planck-demo-contracts/typechain/factories/BridgeToken__factory';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -15,6 +14,7 @@ import { toast } from 'react-toastify';
 import { Address, formatUnits, parseUnits } from 'viem';
 import { useAccount, useWriteContract } from 'wagmi';
 
+import { FeatureHeader } from '@/components/FeatureHeader';
 import { useJobStatus } from '@/components/JobStatusContext';
 import { TokenSelector } from '@/components/TokenSelector';
 import { Button } from '@/components/ui/button';
@@ -38,6 +38,7 @@ import {
   swap,
 } from '@/helper/sui/tx-builder';
 import { getCoinObject } from '@/helper/sui/utils';
+import { useActorAddress } from '@/hooks/useActorAddress';
 import { useTokenAllowances } from '@/hooks/useTokenAllowances';
 import { useTokenBalances } from '@/hooks/useTokenBalances';
 import { toastTransaction } from '@/utils/toast';
@@ -56,7 +57,6 @@ const MintDemoPage: NextPage = () => {
   );
   const [inputDraft, setInputDraft] = useState<string>('1');
   const [estimation, setEstimation] = useState<string>('0');
-  const [actorAddress, setActorAddress] = useState<Address | null>(null);
   const [tokenBalances, setTokenBalances] = useState<Record<Address, bigint>>(
     {},
   );
@@ -108,19 +108,21 @@ const MintDemoPage: NextPage = () => {
     [askCoinAddress, offerCoinAddress],
   );
 
+  const { actorAddress, hasError: hasActorFetchError } = useActorAddress({
+    address,
+    chain: ChainIdentifier.Sui,
+  });
   useEffect(() => {
     (async () => {
-      if (!address) return;
+      if (hasActorFetchError) {
+        setTokenBalances(senderTokenBalances);
+        return;
+      }
+      if (!actorAddress) {
+        return;
+      }
 
       try {
-        const { actorAddress } = (
-          await axios.get<{ actorAddress: string }>('/api/actor', {
-            params: { address, chain: 'sui' },
-          })
-        ).data;
-
-        setActorAddress(actorAddress as Address);
-
         const { coinTotal: btcCoinTotal } = await getCoinObject({
           client,
           coinType: CUSTODY.TYPE_ARGUMENT.BTC,
@@ -136,7 +138,7 @@ const MintDemoPage: NextPage = () => {
         setTokenBalances(senderTokenBalances);
       }
     })();
-  }, [address, senderTokenBalances]);
+  }, [actorAddress, hasActorFetchError, senderTokenBalances]);
 
   useEffect(() => {
     if (jobStatus.state.jobStatus) {
@@ -477,10 +479,13 @@ const MintDemoPage: NextPage = () => {
   ]);
 
   return (
-    <div
-      className={`w-full min-h-screen bg-background flex justify-center items-center`}
-    >
-      <div className="w-full max-w-[525px] mx-auto gap-[10px] flex flex-col">
+    <div className="my-[80px] w-full max-w-[600px] mx-auto gap-[10px] flex flex-col">
+      <FeatureHeader icon={<ArrowLeftRightIcon size={20} />}>
+        {/* */}
+        Swap
+      </FeatureHeader>
+
+      <div className="mt-8 w-full max-w-[525px] flex flex-col gap-[10px] mx-auto">
         <TokenInputContainer>
           <div className="flex items-center gap-4">
             <div className="flex flex-col w-full">

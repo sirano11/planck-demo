@@ -13,6 +13,7 @@
     "compile": "npx hardhat compile",
     "test": "npx hardhat test",
     "deploy": "npx hardhat run scripts/deploy-all.ts",
+    "deploy-btc-faucet": "npx hardhat run scripts/deploy-btc-faucet.ts",
     "faucet": "npx hardhat faucet",
     "checksum": "npx hardhat checksum",
     "create-admin": "npx hardhat create-admin",

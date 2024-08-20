@@ -19,26 +19,39 @@ export type Token = {
   mint?: string;
 };
 
+export const wBTC = {
+  symbol: 'wBTC',
+  category: 'wbtc',
+  address: TOKEN_ADDRESS.wBTC,
+  decimals: 9,
+  logo: '/assets/bitcoin.png',
+  typeArgument: CUSTODY.TYPE_ARGUMENT.BTC,
+  chain: ChainIdentifier.Sui,
+} as const;
+export const lMINT = {
+  symbol: 'MINT',
+  category: 'lmint',
+  address: TOKEN_ADDRESS.lMINT,
+  decimals: 9,
+  logo: '/assets/mint.png',
+  typeArgument: PROTOCOL.TYPE_ARGUMENT.LIQUID_MINT,
+  supplyId: PROTOCOL.OBJECT_ID.SUPPLY_LIQUID_MINT,
+  chain: ChainIdentifier.Sui,
+} as const;
+export const LIVRE = {
+  symbol: 'cashLIVRE',
+  category: 'cash',
+  address: TOKEN_ADDRESS.cashLIVRE,
+  decimals: 9,
+  logo: '/assets/cash-livre.png',
+  typeArgument: PROTOCOL.TYPE_ARGUMENT.CASH_LIVRE,
+  supplyId: PROTOCOL.OBJECT_ID.SUPPLY_LIVRE,
+  chain: ChainIdentifier.Sui,
+} as const;
+
 export const TOKENS: Token[] = [
-  {
-    symbol: 'wBTC',
-    category: 'wbtc',
-    address: TOKEN_ADDRESS.wBTC,
-    decimals: 9,
-    logo: '/assets/bitcoin.png',
-    typeArgument: CUSTODY.TYPE_ARGUMENT.BTC,
-    chain: ChainIdentifier.Sui,
-  },
-  {
-    symbol: 'MINT',
-    category: 'lmint',
-    address: TOKEN_ADDRESS.lMINT,
-    decimals: 9,
-    logo: '/assets/mint.png',
-    typeArgument: PROTOCOL.TYPE_ARGUMENT.LIQUID_MINT,
-    supplyId: PROTOCOL.OBJECT_ID.SUPPLY_LIQUID_MINT,
-    chain: ChainIdentifier.Sui,
-  },
+  wBTC,
+  lMINT,
   {
     symbol: 'cashSDR',
     category: 'cash',
@@ -49,16 +62,7 @@ export const TOKENS: Token[] = [
     supplyId: PROTOCOL.OBJECT_ID.SUPPLY_SDR,
     chain: ChainIdentifier.Sui,
   },
-  {
-    symbol: 'cashLIVRE',
-    category: 'cash',
-    address: TOKEN_ADDRESS.cashLIVRE,
-    decimals: 9,
-    logo: '/assets/cash-livre.png',
-    typeArgument: PROTOCOL.TYPE_ARGUMENT.CASH_LIVRE,
-    supplyId: PROTOCOL.OBJECT_ID.SUPPLY_LIVRE,
-    chain: ChainIdentifier.Sui,
-  },
+  LIVRE,
   {
     symbol: 'cashKRW',
     category: 'cash',
