@@ -6,7 +6,7 @@ import {
 } from '@mysten/sui/client';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { waitForTransactionReceipt } from '@wagmi/core';
-import { ArrowLeftRightIcon, Loader2Icon } from 'lucide-react';
+import { ArrowLeftRightIcon, ArrowUpDownIcon, Loader2Icon } from 'lucide-react';
 import { NextPage } from 'next';
 import { BridgeToken__factory } from 'planck-demo-contracts/typechain/factories/BridgeToken__factory';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -519,6 +519,18 @@ const MintDemoPage: NextPage = () => {
               onChange={handleOfferCoinChange}
               tokenBalances={tokenBalances}
             />
+
+            <ChangeDirectionButton
+              onClick={() => {
+                // change (swap) between offer and ask
+                setOfferCoinAddress(askCoinAddress);
+                setAskCoinAddress(offerCoinAddress);
+
+                setInputDraft(estimation);
+              }}
+            >
+              <ArrowUpDownIcon size={24} />
+            </ChangeDirectionButton>
           </div>
           <div className="w-full flex items-center justify-between">
             {/* TODO: Show token valuation */}
@@ -619,6 +631,7 @@ const TokenInputContainer = styled.div`
   padding: 14px;
   background-color: #f1f5f9;
 
+  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -629,6 +642,34 @@ const TokenInputContainer = styled.div`
 
   .dark & {
     background-color: #334155;
+  }
+`;
+
+const CHANGE_DIRECTION_BUTTON_SIZE = 52;
+const ChangeDirectionButton = styled.button`
+  width: ${CHANGE_DIRECTION_BUTTON_SIZE}px;
+  height: ${CHANGE_DIRECTION_BUTTON_SIZE}px;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: ${CHANGE_DIRECTION_BUTTON_SIZE / -2}px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: #fff;
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out;
+  color: #8a8f9d;
+  box-shadow: 0px 6px 18px 0px rgba(222, 225, 240, 0.6);
+  &:hover {
+    transform: translateX(-50%) rotate(180deg);
+  }
+  .dark & {
+    background-color: #1e2a3b;
+    color: #94a3b8;
+    box-shadow: 0px 6px 18px 0px rgba(30, 41, 59, 0.6);
   }
 `;
 

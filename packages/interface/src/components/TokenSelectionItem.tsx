@@ -29,7 +29,7 @@ export const TokenSelectionItem: React.FC<TokenSelectionItemProps> = ({
       <TokenLogo alt={token.symbol} src={token.logo} />
 
       <Info>
-        <span className="symbol">{token.symbol}</span>
+        <span className="symbol">{token.displaySymbol || token.symbol}</span>
         <span className="balance">
           {typeof balance === 'undefined'
             ? '-'

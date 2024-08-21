@@ -17,6 +17,7 @@ export type Token = {
   supplyId?: string;
   chain: ChainIdentifier;
   mint?: string;
+  displaySymbol?: React.ReactNode;
 };
 
 export const wBTC = {
@@ -47,6 +48,11 @@ export const LIVRE = {
   typeArgument: PROTOCOL.TYPE_ARGUMENT.CASH_LIVRE,
   supplyId: PROTOCOL.OBJECT_ID.SUPPLY_LIVRE,
   chain: ChainIdentifier.Sui,
+  displaySymbol: (
+    <>
+      cash<span className="text-[#20DA92]">LIVRE</span>
+    </>
+  ),
 } as const;
 
 export const TOKENS: Token[] = [
@@ -61,6 +67,11 @@ export const TOKENS: Token[] = [
     typeArgument: PROTOCOL.TYPE_ARGUMENT.CASH_SDR,
     supplyId: PROTOCOL.OBJECT_ID.SUPPLY_SDR,
     chain: ChainIdentifier.Sui,
+    displaySymbol: (
+      <>
+        cash<span className="text-[#06F] dark:text-[#3E8BFF]">SDR</span>
+      </>
+    ),
   },
   LIVRE,
   {
@@ -72,6 +83,11 @@ export const TOKENS: Token[] = [
     typeArgument: PROTOCOL.TYPE_ARGUMENT.CASH_KRW,
     supplyId: PROTOCOL.OBJECT_ID.SUPPLY_KRW,
     chain: ChainIdentifier.Sui,
+    displaySymbol: (
+      <>
+        cash<span className="text-[#A18DFF]">KRW</span>
+      </>
+    ),
   },
   {
     symbol: 'cashJPY',
@@ -82,6 +98,11 @@ export const TOKENS: Token[] = [
     typeArgument: PROTOCOL.TYPE_ARGUMENT.CASH_JPY,
     supplyId: PROTOCOL.OBJECT_ID.SUPPLY_JPY,
     chain: ChainIdentifier.Sui,
+    displaySymbol: (
+      <>
+        cash<span className="text-[#FF8291]">JPY</span>
+      </>
+    ),
   },
   {
     symbol: 'wSOL',

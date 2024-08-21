@@ -58,7 +58,9 @@ export const TokenSelector: React.FC<TokenSelectorProps> = ({
       >
         <TokenInfo>
           <TokenLogo src={selectedToken.logo} />
-          <TokenSymbol>{selectedToken.symbol}</TokenSymbol>
+          <TokenSymbol>
+            {selectedToken.displaySymbol || selectedToken.symbol}
+          </TokenSymbol>
         </TokenInfo>
         <CaretWrapper>
           <Caret
